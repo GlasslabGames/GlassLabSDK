@@ -17,7 +17,7 @@
 			
 			glsdk.instance().setDocument( this );
 			glsdk.instance().clientLevel = "Argument Wars";
-			glsdk.instance().connect( "AW-1", "ben_device", "http://192.168.4.244:8001" );
+			glsdk.instance().connect( "AW-1", "test_device", "http://localhost:8001" );
 		}
 		
 		public function updateText( text:String ) : void {
