@@ -165,7 +165,7 @@
 			postData.timestamp = date.time;
 			
 			// Store the dispatch message to be called later
-			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_SESSION_START, "POST", postData, m_glsdk_config.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, startSession_Done, startSession_Fail ) );
+			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_SESSION_START, "POST", postData, m_glsdk_config.CONTENT_TYPE_APPLICATION_JSON, startSession_Done, startSession_Fail ) );
 		}
 		
 		
@@ -187,7 +187,7 @@
 			postData.timestamp = date.time;
 			
 			// Store the dispatch message to be called later
-			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_SESSION_END, "POST", postData, m_glsdk_config.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, endSession_Done, endSession_Fail ) );
+			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_SESSION_END, "POST", postData, m_glsdk_config.CONTENT_TYPE_APPLICATION_JSON, endSession_Done, endSession_Fail ) );
 		}
 		
 		
@@ -203,7 +203,7 @@
 		}
 		public function sendTelemEvents() : void {
 			// Store the dispatch message to be called later
-			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_EVENTS, "POST", [], m_glsdk_config.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
+			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_EVENTS, "POST", m_telemEvents, m_glsdk_config.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
 		}
 		
 		
@@ -218,13 +218,17 @@
 			
 			// Set the request data if this is a POST request
 			if( dispatch.m_method == URLRequestMethod.POST ) {
-				req.data = dispatch.m_postData;
+				var dataAsJSON : String = JSON.stringify( dispatch.m_postData );
+				
+				// Search for gameSessionId tag and replace it with the value
+				req.data = dataAsJSON.split( "$gameSessionId$" ).join( m_gameSessionId );
 			}
 			
 			// Create a URL loader to load the request
 			var loader : URLLoader = new URLLoader();
-			
 			loader.load( req );
+			
+			// Add necessary loader listeners
 			loader.addEventListener( Event.COMPLETE, dispatch.m_successCallback );
 			loader.addEventListener( IOErrorEvent.IO_ERROR, dispatch.m_failureCallback );
             loader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onSecurityError );
@@ -265,7 +269,7 @@
 			telemEvent.clientTimeStamp = date.time;
 			telemEvent.eventName = p_eventName;
 			telemEvent.gameId = m_clientId;
-			telemEvent.gameSessionId = "";
+			telemEvent.gameSessionId = "$gameSessionId$";
 			
 			// Set the device Id if it is valid
 			if( m_deviceId != "" ) {
@@ -284,7 +288,8 @@
 			telemEvent.eventData = m_telemEventValues;
 			
 			// Append this event to the events JSON object
-			m_telemEvents.push( telemEvent );
+			//m_telemEvents.push( telemEvent );
+			m_telemetryQueue.push( new glsdk_dispatch( m_glsdk_config.API_POST_EVENTS, "POST", telemEvent, m_glsdk_config.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
 			
 			// Clear the event values
 			clearTelemEventValues();

@@ -22,7 +22,7 @@
 		
 		public function updateText( text:String ) : void {
 			var rt:MovieClip = MovieClip(root);
-			TextField(rt["DebugText"]).appendText( text );
+			TextField(rt["DebugText"]).appendText( text + "\n\n" );
 		}
 	}
 }
