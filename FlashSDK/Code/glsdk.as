@@ -52,16 +52,19 @@
 				switch( response.m_message ) {
 					case glsdk_const.MESSAGE_CONNECT:
 						trace( "MESSAGE_CONNECT: " + response.m_data );
-						deviceUpdate();
-						break;
-					
-					case glsdk_const.MESSAGE_DEVICE_UPDATE:
-						trace( "MESSAGE_DEVICE_UPDATE: " + response.m_data );
 						startSession();
 						break;
 					
 					case glsdk_const.MESSAGE_SESSION_START:
 						trace( "MESSAGE_SESSION_START: " + response.m_data );
+						
+						for( var i : int = 0; i < 16; i++ ) {
+							addTelemEventValue_string( "key1", "value1" );
+							addTelemEventValue_int( "key2", 2 );
+							addTelemEventValue_uint( "key3", 3 );
+							addTelemEventValue_number( "key4", 4.1 );
+							saveTelemEvent( "test_telem" );
+						}
 						endSession();
 						break;
 					
