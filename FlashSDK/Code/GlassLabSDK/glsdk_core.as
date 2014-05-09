@@ -328,5 +328,10 @@
 		public function get clientLevel() : String {
 			return m_clientLevel;
 		}
+		
+		/*
+		 * DEBUG text writing.
+		 */
+		public function writeText( text:String ) : void {}
 	}
 }
