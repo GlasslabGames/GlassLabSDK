@@ -4,9 +4,7 @@
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.net.URLLoader;
-	import flash.system.LoaderContext;
-	import flash.system.ApplicationDomain;
-	import flash.system.SecurityDomain;
+	
 	import flash.events.*;
 	import flash.utils.Timer;
 	
@@ -176,6 +174,9 @@
 		}
 		private function endSession_Done( event:Event ) : void {
 			trace( "endSession_Done: " + event.target.data );
+
+			// Reset the game session Id
+			m_gameSessionId = "";
 			
 			pushMessageStack( glsdk_const.MESSAGE_SESSION_END, event.target.data );
 		}

@@ -4,22 +4,20 @@
 
 	import flash.events.*;
 
-	import flash.net.URLLoader;
-	import flash.net.URLRequest;
-	import flash.net.URLRequestMethod;
-	import flash.net.URLVariables;
-	import flash.system.Security;
-
 
 	public class Document extends MovieClip {
 
 		public function Document() {
 			
+			// DEBUG - set the document so we have the canvas to print to
 			glsdk.instance().setDocument( this );
+			
+			// Set the client level and connect to a server
 			glsdk.instance().clientLevel = "Argument Wars";
-			glsdk.instance().connect( "AW-1", "test_device", "http://localhost:8001" );
+			glsdk.instance().connect( "AW-1", "test_device", "http://54.241.27.184" );
 		}
 		
+		// DEBUG text printing
 		public function updateText( text:String ) : void {
 			var rt:MovieClip = MovieClip(root);
 			TextField(rt["DebugText"]).appendText( text + "\n\n" );
