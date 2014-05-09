@@ -20,7 +20,7 @@
 		// DEBUG text printing
 		public function updateText( text:String ) : void {
 			var rt:MovieClip = MovieClip(root);
-			TextField(rt["DebugText"]).appendText( text + "\n\n" );
+			TextField(rt["DebugText"]).text = text + "\n\n" + TextField(rt["DebugText"]).text;
 		}
 	}
 }

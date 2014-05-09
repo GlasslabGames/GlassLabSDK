@@ -39,29 +39,41 @@
 			var response : glsdk_response = popMessageStack();
 			while( response != null && retrievedCount < GET_MESSAGES_MAX ) {
 				
-				// DEBUG - append to canvas stream
-				m_document.updateText( response.m_data );
-				
 				// Check the message type
 				switch( response.m_message ) {
 					case glsdk_const.MESSAGE_CONNECT:
-						trace( "MESSAGE_CONNECT: " + response.m_data );
+						trace( "MESSAGE_CONNECT " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_CONNECT " + response.m_data );
 						break;
 					
 					case glsdk_const.MESSAGE_SESSION_START:
-						trace( "MESSAGE_SESSION_START: " + response.m_data );
+						trace( "MESSAGE_SESSION_START " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_SESSION_START " + response.m_data );
 						break;
 					
 					case glsdk_const.MESSAGE_SESSION_END:
-						trace( "MESSAGE_SESSION_END: " + response.m_data );
+						trace( "MESSAGE_SESSION_END " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_SESSION_END " + response.m_data );
 						break;
 					
 					case glsdk_const.MESSAGE_EVENTS:
-						trace( "MESSAGE_EVENTS: " + response.m_data );
+						trace( "MESSAGE_EVENTS " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_EVENTS " + response.m_data );
 						break;
 					
 					case glsdk_const.MESSAGE_ERROR:
-						trace( "MESSAGE_ERROR: " + response.m_data );
+						trace( "MESSAGE_ERROR " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_ERROR " + response.m_data );
 						break;
 					
 					default:
@@ -87,21 +99,26 @@
 		public function reportKeyDown( event:KeyboardEvent ) : void { 
 			//trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
 			if( event.charCode == 115 ) {
-				trace( "start session" );
+				writeText( "Attempting to call start session..." );
 				startSession();
 			}
 			else if( event.charCode == 101 ) {
-				trace( "end session" );
+				writeText( "Attempting to call end session..." );
 				endSession();
 			}
 			else if( event.charCode == 116 ) {
-				trace( "telemetry" );
+				writeText( "Attempting to send test telemetry..." );
 				addTelemEventValue_string( "key1", "value1" );
 				addTelemEventValue_int( "key2", 2 );
 				addTelemEventValue_uint( "key3", 3 );
 				addTelemEventValue_number( "key4", 4.1 );
 				saveTelemEvent( "test_telem" );
 			}
+		}
+		
+		public override function writeText( text:String ) : void {
+			// DEBUG - append to canvas stream
+			m_document.updateText( text );
 		}
 	}
 }
