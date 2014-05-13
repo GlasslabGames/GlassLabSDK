@@ -1,4 +1,16 @@
-﻿package {
+﻿/**
+* glsdk.as
+* GlassLab SDK
+*
+* Sample API subclass to the glsdk_core base class. This sample demonstrates
+* how to communicate with the core base class to make server calls and receive
+* response information.
+*
+* @author Ben Dapkiewicz
+*
+* Copyright (c) 2014 GlassLab. All rights reserved.
+*/
+package {
 	
 	import GlassLabSDK.*;
 	
@@ -24,6 +36,9 @@
 		private var m_getMessagesTimer : Timer;		// Timer for SDK message retrieval		
 		
 
+		/**
+		* Default constructor creates a timer to check for server messages.
+		*/
 		public function glsdk() {
 			// Initialize the SDK message timer
 			m_getMessagesTimer = new Timer( GET_MESSAGES_INTERVAL );
@@ -31,7 +46,14 @@
 			m_getMessagesTimer.start();
 		}
 		
-		
+		/**
+		* Function is called at a defined interval to check for server response messages.
+		* This function will call popMessageQueue from the glsdk_core base class and 
+		* receive a glsdk_response object as a result. It then checks for the returned
+		* message type and prints the data.
+		*
+		* @param event A reference to the TimerEvent object sent along with the listener.
+		*/
 		private function getServerMessages( event:TimerEvent ) : void {
 			var retrievedCount : int = 0;
 			
@@ -87,10 +109,8 @@
 		}
 		
 		
-		////////////////////////////////////////////////////////////////////////////////////////////
-		
 		/*
-		 * The Below code is for debugging purposes.
+		 * Keep a reference to the document class so we can print to the screen.
 		 */
 		private var m_document : Document;
 		public function setDocument( doc:Document ) : void {
@@ -98,6 +118,22 @@
 			m_instance.m_document.addEventListener( KeyboardEvent.KEY_DOWN, reportKeyDown );
 		}
 		
+		/**
+		* Listen for keyboard buttons to call certain glsdk_core functions:
+		* - The 'S' key calls startSession
+		* - The 'E' key calls endSession
+		* - The 'T' key sends a predefined telemetry event with addTelemEventValue_[type] and saveTelemEvent
+		*
+		* @param event A reference to the KeyboardEvent object sent along with the listener.
+		*
+		* @see startSession
+		* @see endSession
+		* @see addTelemEventValue_string
+		* @see addTelemEventValue_int
+		* @see addTelemEventValue_uint
+		* @see addTelemEventValue_number
+		* @see saveTelemEvent
+		*/
 		public function reportKeyDown( event:KeyboardEvent ) : void { 
 			//trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
 			if( event.charCode == 115 ) {
@@ -118,6 +154,11 @@
 			}
 		}
 		
+		/**
+		* Function writes text to display in the canvas.
+		*
+		* @param text The text to display.
+		*/
 		public override function writeText( text:String ) : void {
 			// DEBUG - append to canvas stream
 			m_document.updateText( text );
