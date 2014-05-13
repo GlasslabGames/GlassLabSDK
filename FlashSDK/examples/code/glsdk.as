@@ -36,7 +36,7 @@
 			var retrievedCount : int = 0;
 			
 			// Get the next server message
-			var response : glsdk_response = popMessageStack();
+			var response : glsdk_response = popMessageQueue();
 			while( response != null && retrievedCount < GET_MESSAGES_MAX ) {
 				
 				// Check the message type
@@ -82,7 +82,7 @@
 				
 				// Update the retrieved count and get the next message
 				retrievedCount++;
-				response = popMessageStack();
+				response = popMessageQueue();
 			}
 		}
 		

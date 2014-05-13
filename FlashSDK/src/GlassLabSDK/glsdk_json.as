@@ -1,13 +1,20 @@
-﻿package GlassLabSDK {
+﻿/**
+* glsdk_json.as
+* GlassLab SDK
+*
+* JSON wrapper allows for Flash Player 10+ compliance.
+* Flash Player 10 uses as3corelib for JSON, which includes "encode" and "decode"
+* Flash Player 11+ uses a native JSON library, which includes "stringify" and "parse"
+*
+* @author Ben Dapkiewicz
+*
+* Copyright (c) 2014 GlassLab. All rights reserved.
+*/
+package GlassLabSDK {
 	
 	import com.adobe.serialization.json.JSON;
 
 	
-	/**
-	 * JSON wrapper allows for Flash Player 10+ compliance.
-	 * Flash Player 10 uses as3corelib for JSON, which includes "encode" and "decode"
-	 * Flash Player 11+ uses a native JSON library, which includes "stringify" and "parse"
-	 */
 	public class glsdk_json {
 		
 		// Singleton instance
