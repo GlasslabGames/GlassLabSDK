@@ -146,7 +146,7 @@
 			trace( "startSession_Done: " + event.target.data );
 			
 			// Parse the returned JSON and retrieve the game session Id
-			var parsedJSON : Object = JSON.parse( event.target.data );
+			var parsedJSON : Object = glsdk_json.instance().parse( event.target.data );
 			if( parsedJSON.hasOwnProperty( "gameSessionId" ) ) {
 				m_gameSessionId = parsedJSON.gameSessionId;
 				trace( "Found game session Id: " + m_gameSessionId );
@@ -219,7 +219,7 @@
 			
 			// Set the request data if this is a POST request
 			if( dispatch.m_method == URLRequestMethod.POST ) {
-				var dataAsJSON : String = JSON.stringify( dispatch.m_postData );
+				var dataAsJSON : String = glsdk_json.instance().stringify( dispatch.m_postData );
 				
 				// Search for gameSessionId tag and replace it with the value
 				req.data = dataAsJSON.split( "$gameSessionId$" ).join( m_gameSessionId );
