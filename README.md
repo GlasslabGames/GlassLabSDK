@@ -1,6 +1,5 @@
-==========================
-=== GlassLab Flash SDK ===
-==========================
+GlassLab Flash SDK
+===================
 
 This Flash-compatible GlassLab SDK allows games and other applications to connect
 to the GlassLab Games Services platform. The primary purpose of integrating this
@@ -19,8 +18,8 @@ native JSON functionality will be used instead for a performance boost. Note tha
 only a small subset of this library is used: serialization.)
 
 
- Integration
-=============
+Integration
+===========
 
 There are two ways you can integrate the SDK into your project: linking the .swc or
 using the source code directly.
@@ -40,15 +39,15 @@ in the file you wish to reference it from:
 - import GlassLabSDK.*
 
 
- Establish a connection
-========================
+Establish a connection
+======================
 
 To begin, you can establish a connection with a GlassLab server by calling the connect
 function in glsdk_core.
 
 
- API subclass
-==============
+API subclass
+============
 
 It is recommended to create an API subclass that inherits from glsdk_core.as in order
 to make calls to the SDK and receive response information from the server.
@@ -64,8 +63,8 @@ message from the server with a message type and associated JSON data. A list of 
 messages can be found in glsdk_cosnt.as.
 
 
- Sample API
-============
+Sample API
+==========
 
 A sample API is provided in the examples folder.
 
