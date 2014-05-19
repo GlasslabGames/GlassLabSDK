@@ -122,5 +122,11 @@ event because it was flushed after the "Player_take_damage" event was saved.
 A few more examples:
 
 ```
+// The player selected the "Read More" Icon in the game
+SDK.saveTelemEvent( "action_Read_More" );
 
+// The player explains reasoning using the wheel interface
+// Her reasoning was considered correct
+SDK.addTelemEventValue_int( "correct", 1 );
+SDK.saveTelemEvent( "RWheel" );
 ```
