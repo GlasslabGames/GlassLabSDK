@@ -107,20 +107,20 @@ named "eventName" and then reset.
 
 The code below demonstrates how we can write the aforementioned telemetry examples:
 
-'''
+```
 // Send the "Player_take_damage" event with amount parameter
 SDK.addTelemEventValue_int( "amount", 10 );
 SDK.saveTelemEvent( "Player_take_damage" );
 
 // Send the "Player_jump" event
 SDK.saveTelemEvent( "Player_jump" );
-'''
+```
 
 Note that the parameter "amount" with value "10" will not be sent along with the "Player_jump"
 event because it was flushed after the "Player_take_damage" event was saved.
 
 A few more examples:
 
-'''
+```
 
-'''
+```
