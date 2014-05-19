@@ -77,3 +77,56 @@ Success and failure from the server is determined by order of calls received.
 Keep the following in mind:
 - You cannot send telemetry if no session is active. Call start session first.
 - You cannot close a session that doesn't exist. Call start session first.
+
+
+Telemetry Format and Examples
+=============================
+
+Adding custom telemetry to the server message queue is fairly straightforward and allows for
+some flexibility. Telemetry events adhere to a specific data schema that the SDK will construct
+automatically. When creating a new telemetry event to be sent to the system, the user specifies
+the name of the event and as many custom parameters as necessary. Telemetry events can be as 
+simple as triggers, containing no custom paramters:
+ - "Player_jump" : {}
+Or they can be more descriptive and reusable:
+ - "Player_take_damage" : { amount : "10" }
+
+The SDK functions required to write telemetry events are as follows:
+ - addTelemEventValue_string( key, value )
+ - addTelemEventValue_int( key, value )
+ - addTelemEventValue_uint( key, value )
+ - addTelemEventValue_number( key, value )
+ - saveTelemEvent( eventName )
+
+The "addTelemEventValue_[type]" functions allow for custom parameters to be sent with each
+telemetry event and are therefore not required. In the above example, we created a parameter
+keyed as "amount" with the value "10". It is important to note that the telemetry parameters
+must be added before a telemetry event is saved. These parameters are simply stored locally
+until "saveTelemEvent( eventName )" is called, at which point they are appended to the event
+named "eventName" and then reset.
+
+The code below demonstrates how we can write the aforementioned telemetry examples:
+
+```
+// Send the "Player_take_damage" event with amount parameter
+SDK.addTelemEventValue_int( "amount", 10 );
+SDK.saveTelemEvent( "Player_take_damage" );
+
+// Send the "Player_jump" event
+SDK.saveTelemEvent( "Player_jump" );
+```
+
+Note that the parameter "amount" with value "10" will not be sent along with the "Player_jump"
+event because it was flushed after the "Player_take_damage" event was saved.
+
+A few more examples:
+
+```
+// The player selected the "Read More" Icon in the game
+SDK.saveTelemEvent( "action_Read_More" );
+
+// The player explains reasoning using the wheel interface
+// Her reasoning was considered correct
+SDK.addTelemEventValue_int( "correct", 1 );
+SDK.saveTelemEvent( "RWheel" );
+```
