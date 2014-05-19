@@ -88,6 +88,7 @@ automatically. When creating a new telemetry event to be sent to the system, the
 the name of the event and as many custom parameters as necessary. Telemetry events can be as 
 simple as triggers, containing no custom paramters:
  - "Player_jump" : {}
+ 
 Or they can be more descriptive and reusable:
  - "Player_take_damage" : { amount : "10" }
 
