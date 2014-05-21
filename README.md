@@ -13,7 +13,7 @@ Libraries used:
 
 
 Integration
-===========
+-----------
 
 There are two ways you can integrate the SDK into your project: linking the .swc or using the source code directly.
 
@@ -29,13 +29,13 @@ The source files are also available to be included in the project. Simply drop t
 
 
 Establish a connection
-======================
+----------------------
 
 To begin, you can establish a connection with a GlassLab server by calling the connect function in glsdk_core.
 
 
 API subclass
-============
+------------
 
 It is recommended to create an API subclass that inherits from glsdk_core.as in order to make calls to the SDK and receive response information from the server.
 
@@ -49,7 +49,7 @@ When popMessageQueue is called the glsdk_core base will return the first receive
 
 
 Sample API
-==========
+----------
 
 A sample API is provided in the examples folder.
 
@@ -64,7 +64,7 @@ Success and failure from the server is determined by order of calls received. Ke
 
 
 Telemetry Format and Examples
-=============================
+-----------------------------
 
 Adding custom telemetry to the server message queue is fairly straightforward and allows for some flexibility. Telemetry events adhere to a specific data schema that the SDK will construct automatically. When creating a new telemetry event to be sent to the system, the user specifies the name of the event and as many custom parameters as necessary. Telemetry events can be as  simple as triggers, containing no custom paramters:
 - "Player_jump" : {}
