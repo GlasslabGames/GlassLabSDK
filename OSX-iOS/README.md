@@ -17,7 +17,7 @@ Integration
 To integrate the SDK into your source, simply import the .dylib (OSX) or .a (iOS) into your source and include "glasslab_sdk.h". This header file is the high-level API into every SDK function your program will need. See below on creating an instance of the SDK and using its functions.
 
 
-###Using C#
+###C-Sharp Wrapper
 
 Included in this project is a sample C# wrapper to the SDK that imports all necessary functions in the core library. The "GlasslabSDK.cs" wrapper can be found in ROOT/platforms/unity/. If you are using Unity3D, include this wrapper and library in the "Plugins" directory of your Unity project.
 
@@ -151,7 +151,7 @@ API Format and Examples
 
 The GlassLabSDK exposes many functions that communicate with the server to perform some operation, whether it is managing sessions, recording data, or enrolling a student in a course. The table below details the functions that are exposed, the information required for dispatch, and what will be returned with the server response.
 
-| SDK function | purpose | response message |
+| SDK Function | Purpose | Response Message |
 | ------------ | ------- | ---------------- |
 | connect(gameId, uri) | establish a connection to the server | MESSAGE_CONNECT |
 | authStatus() | check the authentication status for a given user | MESSAGE_AUTHSTATUS |
@@ -239,16 +239,3 @@ Sample Projects and Wrapper
 A sample OSX project is included to demonstrate how to use the SDK in C++ and Xcode. This sample utilizes the majority of the SDK functions described in this document and implements a simple listener to intercept server responses. This project can be found at ROOT/examples/osx/Glasslab SDK Basic/.
 
 A sample Unity project is also included to demonstrate how to use the SDK in C#. This sample can be found at ROOT/examples/unity/. The C# wrapper, which is required for the Unity sample, can be found at ROOT/platforms/unity/.
-
-
-Heading Test
-------------
-
-###Subheading test
-
-# Heading 1
-## Heading 2
-### Heading 3
-#### Heading 4
-##### Heading 5
-###### Heading 6
