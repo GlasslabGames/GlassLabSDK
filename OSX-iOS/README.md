@@ -39,8 +39,8 @@ The game identifier is a simple string used to define your game. A short code or
 Should the connection be successful, you will receive a "Message_Connect" response, otherwise a "Message_Error" will be returned. The next section describes how to intercept this message in your game code.
 
 There are two ways to make a connection to the server:
-1) Create a new instance of the GlassLabSDK
-2) Call the connect function directly
+1. Create a new instance of the GlassLabSDK
+2. Call the connect function directly
 
 Note: if you are utilizing the C# wrapper, the instantiation and connect API calls are wrapped and exposed appropriately.
 
@@ -244,3 +244,17 @@ Sample Projects and Wrapper
 A sample OSX project is included to demonstrate how to use the SDK in C++ and Xcode. This sample utilizes the majority of the SDK functions described in this document and implements a simple listener to intercept server responses. This project can be found at ROOT/examples/osx/Glasslab SDK Basic/.
 
 A sample Unity project is also included to demonstrate how to use the SDK in C#. This sample can be found at ROOT/examples/unity/. The C# wrapper, which is required for the Unity sample, can be found at ROOT/platforms/unity/.
+
+
+Heading Test
+============
+
+Subheading test
+---------------
+
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+###### Heading 6
