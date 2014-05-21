@@ -12,19 +12,18 @@ Libraries used:
 
 
 Integration
-===========
+-----------
 
 To integrate the SDK into your source, simply import the .dylib (OSX) or .a (iOS) into your source and include "glasslab_sdk.h". This header file is the high-level API into every SDK function your program will need. See below on creating an instance of the SDK and using its functions.
 
 
-Using C#
---------
+###C-Sharp Wrapper
 
 Included in this project is a sample C# wrapper to the SDK that imports all necessary functions in the core library. The "GlasslabSDK.cs" wrapper can be found in ROOT/platforms/unity/. If you are using Unity3D, include this wrapper and library in the "Plugins" directory of your Unity project.
 
 
 Establish a connection
-======================
+----------------------
 
 The first thing you will need to do before recording any sessions or telemetry is to establish a connection to the server. A few parameters are required for a successful connection, including:
 - internal database location
@@ -39,19 +38,19 @@ The game identifier is a simple string used to define your game. A short code or
 Should the connection be successful, you will receive a "Message_Connect" response, otherwise a "Message_Error" will be returned. The next section describes how to intercept this message in your game code.
 
 There are two ways to make a connection to the server:
-1) Create a new instance of the GlassLabSDK
-2) Call the connect function directly
+- Create a new instance of the GlassLabSDK
+- Call the connect function directly
 
 Note: if you are utilizing the C# wrapper, the instantiation and connect API calls are wrapped and exposed appropriately.
 
 
 Dispatch and Response Messages
-==============================
+------------------------------
 
 One of the SDK's primary functions is to maintain the communication channel between game client and server. In order to reduce potential server load, the SDK maintains a queue of messages that are dispatched at a defined interval. The server's response to these messages is generally fast but also unpredictable. Once the SDK intercepts the response, they will be placed in a response queue where they will remain until they are popped by a calling function. It is the client's responsibility to pop this response queue to receive the response information, though it is not required.
 
-Dispatching Messages
---------------------
+
+###Dispatching Messages
 
 Most server requests are dispatched to the server immediately. These server requests are made internally by the SDK for a subset of the exposed functions, including:
 - connect
@@ -71,8 +70,7 @@ The following server requests are stored in an internal dispatch queue and fired
 These dispatches are stored internally before sending to account for potential hiccups in internet connectivity. Should there be a sudden lapse in internet connection, these messages will simply remain in the queue until a connection is re-establishing, preserving the content. This is especially important for games that don't require online play. As such, you should not expect an immediate server response to these messsages.
 
 
-Intercepting Server Responses
------------------------------
+###Intercepting Server Responses
 
 All server requests will return with a response. These response messages are pushed to an internal queue and can be retrieved with the following calling function:
 
@@ -86,8 +84,7 @@ The response message contains two pieces of data:
 - response data, in JSON format
 
 
-Example
--------
+###Example
 
 The following demonstrates an example of how to wrap the server response retrieval:
 
@@ -150,11 +147,12 @@ It is a good practice to run this on a separate thread so your program is free t
 
 
 API Format and Examples
-=======================
+-----------------------
 
 The GlassLabSDK exposes many functions that communicate with the server to perform some operation, whether it is managing sessions, recording data, or enrolling a student in a course. The table below details the functions that are exposed, the information required for dispatch, and what will be returned with the server response.
 
-| SDK function | purpose | response message |
+| SDK Function | Purpose | Response Message |
+| ------------ | ------- | ---------------- |
 | connect(gameId, uri) | establish a connection to the server | MESSAGE_CONNECT |
 | authStatus() | check the authentication status for a given user | MESSAGE_AUTHSTATUS |
 | login(username, password) | attempt to log a user into the system | MESSAGE_LOGIN |
@@ -171,8 +169,7 @@ The above repsonse messages assume a valid and successful request. If the reques
 Detailed below are examples of how to use some of the main SDK functions, including starting and ending sessions, sending telemetry, and sending achievements.
 
 
-Session Management
-------------------
+###Session Management
 
 A game session Id is required for sending telemetry events and can only be obtained by a successful start session request. A session is typically used to describe a specific activity in the game, but there are no restrictions on how to use it. Here is how you can start a new session:
 
@@ -191,8 +188,7 @@ SDK->endSession();
 Note: you can only have one session active at a time per device Id. As explained above, device Ids are used to identify a single user within the game or app. Typically, the users name is prepended to an identifier that defines the device being used.
 
 
-Telemetry
----------
+###Telemetry
 
 Adding custom telemetry to the server message queue is fairly straightforward and allows for some flexibility. Telemetry events adhere to a specific data schema that the SDK will construct automatically. When creating a new telemetry event to be sent to the system, the user specifies the name of the event and as many custom parameters as necessary. Telemetry events can be as  simple as triggers, containing no custom paramters:
 - "Player_jump" : {}
@@ -220,8 +216,7 @@ SDK->saveTelemEvent( "Player_jump" );
 Note that the parameter "amount" with value "10" will not be sent along with the "Player_jump" event because it was flushed after the "Player_take_damage" event was saved.
 
 
-Achievements
-------------
+###Achievements
 
 If your game supports GLGS-linked achievements, you can send achievements via the SDK using the following function:
 
@@ -239,7 +234,7 @@ Each of these three parameters must correspond to entries in the server in order
 
 
 Sample Projects and Wrapper
-===========================
+---------------------------
 
 A sample OSX project is included to demonstrate how to use the SDK in C++ and Xcode. This sample utilizes the majority of the SDK functions described in this document and implements a simple listener to intercept server responses. This project can be found at ROOT/examples/osx/Glasslab SDK Basic/.
 
