@@ -162,6 +162,18 @@ extern "C"
     }
 
 
+    void GlasslabSDK_UpdatePlayerInfoKey_ccp   ( void* inst, const char* key, const char* value )    { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_int8  ( void* inst, const char* key, int8_t value )         { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_int16 ( void* inst, const char* key, int16_t value )        { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_int32 ( void* inst, const char* key, int32_t value )        { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_uint8 ( void* inst, const char* key, uint8_t value )        { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_uint16( void* inst, const char* key, uint16_t value )       { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_uint32( void* inst, const char* key, uint32_t value )       { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_float ( void* inst, const char* key, float value )          { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_double( void* inst, const char* key, double value )         { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_RemovePlayerInfoKey( void* inst, const char* key ) { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->removePlayerInfoKey( key ); }
+
+
     void GlasslabSDK_SetName( void* inst, const char* name ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->setName( name );

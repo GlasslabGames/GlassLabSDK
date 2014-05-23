@@ -78,7 +78,7 @@ namespace nsGlasslabSDK {
             void pushMessageStack( Const::Message msg, const char* data = "{}" );
             Const::Response* popMessageStack();
         
-            // API functions
+            // Primary GLGS API functions
             int connect( const char* gameId, const char* uri = NULL );
             int setUserInfo( const char* json );
             void deviceUpdate();
@@ -92,10 +92,11 @@ namespace nsGlasslabSDK {
             void logout( string cb = "" );
             void startSession( string cb = "" );
             void endSession( string cb = "" );
-            void saveGame(const char* gameData, string cb = "");
+            void saveGame( const char* gameData, string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
             void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
 
+            // Allow the user to cancel a request from being sent to the server, or ignore the response
             void cancelRequest( const char* requestKey );
 
             // Callback map functions
@@ -125,6 +126,19 @@ namespace nsGlasslabSDK {
             void clearAchievementEventValues();
             void saveTelemEvent( const char* name );
             void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
+
+            // These functions allow for control over the user info data structure
+            void updatePlayerInfoKey( const char* key, const char* value );
+            void updatePlayerInfoKey( const char* key, int8_t value );
+            void updatePlayerInfoKey( const char* key, int16_t value );
+            void updatePlayerInfoKey( const char* key, int32_t value );
+            void updatePlayerInfoKey( const char* key, uint8_t value );
+            void updatePlayerInfoKey( const char* key, uint16_t value );
+            void updatePlayerInfoKey( const char* key, uint32_t value );
+            void updatePlayerInfoKey( const char* key, float value );
+            void updatePlayerInfoKey( const char* key, double value );
+            void removePlayerInfoKey( const char* key );
+            void resetPlayerInfo();
 
             // Setters
             void setConnectUri( const char* uri );
@@ -180,6 +194,7 @@ namespace nsGlasslabSDK {
             json_t* m_telemEvents;
             json_t* m_telemEventValues;
             json_t* m_achievementEventValues;
+            json_t* m_playerInfo;
         
             // Status members
             Const::Status m_lastStatus;

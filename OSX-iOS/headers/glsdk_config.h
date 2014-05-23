@@ -26,4 +26,6 @@
 #define API_POST_DEVICE_UPDATE	"/api/v2/data/game/device"
 #define API_POST_SAVEGAME      	"/api/v2/data/game"
 #define API_GET_SAVEGAME      	"/api/v2/data/game"
+#define API_POST_PLAYERINFO		"/api/v2/data/playerinfo"
+#define API_GET_PLAYERINFO		"/api/v2/data/playerinfo"
 #define API_POST_EVENTS       	"/api/v2/data/events"

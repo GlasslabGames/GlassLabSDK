@@ -45,6 +45,7 @@ namespace nsGlasslabSDK {
         m_userId        = 0;
         m_lastStatus    = Const::Status_Ok;
         m_userInfo      = NULL;
+        m_playerInfo    = NULL;
 
         // Set JSON telemetry objects
         m_telemEvents       = NULL;
@@ -54,6 +55,7 @@ namespace nsGlasslabSDK {
         clearTelemEvents();
         clearTelemEventValues();
         clearAchievementEventValues();
+        resetPlayerInfo();
 
         // Store core function callbacks in the hash
         mf_setupCallbacks();
@@ -1633,6 +1635,64 @@ namespace nsGlasslabSDK {
         // If the JSON object wasn't created properly, we have an error
         else {
             displayError( "Core::saveTelemEvent()", "Could not create a new event document, unable to send event." );
+        }
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Allow the user to update the key/values in the user info data structure.
+     */
+    void Core::updatePlayerInfoKey( const char* key, const char* value ) {
+        json_object_set( m_playerInfo, key, json_string( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, int8_t value ) {
+        json_object_set( m_playerInfo, key, json_integer( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, int16_t value ) {
+        json_object_set( m_playerInfo, key, json_integer( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, int32_t value ) {
+        json_object_set( m_playerInfo, key, json_integer( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, uint8_t value ) {
+        json_object_set( m_playerInfo, key, json_integer( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, uint16_t value ) {
+        json_object_set( m_playerInfo, key, json_integer( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, uint32_t value ) {
+        json_object_set( m_playerInfo, key, json_integer( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, float value ) {
+        json_object_set( m_playerInfo, key, json_real( value ) );
+    }
+    void Core::updatePlayerInfoKey( const char* key, double value ) {
+        json_object_set( m_playerInfo, key, json_real( value ) );
+    }
+
+    /**
+     * Allow the user to remove a key/value pair from the user info data structure.
+     */
+    void Core::removePlayerInfoKey( const char* key ) {
+        json_object_del( m_playerInfo, key );
+    }
+
+    /**
+     * Function resets all player info values.
+     */
+    void Core::resetPlayerInfo() {
+        // Decrease the reference count, this way Jansson can release "m_playerInfo" resources
+        if( !m_playerInfo ) {
+            json_decref( m_playerInfo );
+        }
+        
+        // Initialize event values document
+        m_playerInfo = json_loads( "{}", 0, &m_jsonError );
+        if( !m_playerInfo ) {
+            displayError( "Core::resetPlayerInfo()", "There was an error intializing a new player info document after clearing the old one." );
         }
     }
 

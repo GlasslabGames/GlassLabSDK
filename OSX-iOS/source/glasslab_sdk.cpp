@@ -117,6 +117,18 @@ void GlasslabSDK::saveAchievementEvent( const char* item, const char* group, con
 }
 
 
+void GlasslabSDK::updatePlayerInfoKey( const char* key, const char* value ) { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, int8_t value )      { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, int16_t value )     { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, int32_t value )     { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, uint8_t value )     { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, uint16_t value )    { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, uint32_t value )    { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, float value )       { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, double value )      { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::removePlayerInfoKey( const char* key )                    { if( m_core != NULL ) m_core->removePlayerInfoKey( key ); }
+
+
 void GlasslabSDK::setName( const char* name ) {
     if( m_core != NULL ) m_core->setName( name );
 }
