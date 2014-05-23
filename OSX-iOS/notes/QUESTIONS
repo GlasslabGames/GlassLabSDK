@@ -1,0 +1,104 @@
+QUESTIONS
+ - for anonymous users, should data be sent to the server or stored locally?
+   - data will be sent to the server
+ - should we also consider an offline anonymous user?
+ - what is the relationship between a handle and username?
+   - handle is associated with a username
+ - what other information should be stored for offline/anonymous users? class code?
+ - what if kids share iPads?
+
+
+ Offline Mode:
+  - no connection to the Internet
+  - confirmed from connect()
+  - data stored locally with a handle / class code
+
+ Anonymous User:
+  - connection verified
+  - no account or no desire to register
+  - data sent to the server with handle / class code
+
+
+ Telemetry Improvements:
+  - exploration: each interactive/touchable object should have a telemetry script attached
+  - exploration: dialogue buttons need a telemetry script
+
+
+  deviceId + "_" + handle
+  encryptede version of string pii
+
+
+ SQLite Integration:
+  - MSG_QUEUE table for telemetry events
+  - SESSION table for sessions
+  - how do we handle:
+    - login (userId)
+    - sessions
+    - telemetry
+
+
+
+Sessions:
+
+wa_session:49CC49978EE379A2E9F4EDC823675F02
+{
+  "session": "neoCFjVIeD28O0CgkCEtEdps"
+}
+session:neoCFjVIeD28O0CgkCEtEdps
+{
+  "cookie": {
+    "path": "/",
+    "_expires": null,
+    "originalMaxAge": null,
+    "httpOnly": true
+  },
+  "passport": {
+    "user": {
+      "id": 3,
+      "username": "andrew",
+      "lastName": "Dapkiewicz",
+      "firstName": "Andrew",
+      "email": "",
+      "role": "student",
+      "type": null,
+      "loginType": "glasslabv2",
+      "institution": 2,
+      "collectTelemetry": false,
+      "enabled": true,
+      "wa_session": "49CC49978EE379A2E9F4EDC823675F02",
+      "sessionId": "neoCFjVIeD28O0CgkCEtEdps"
+    }
+  }
+}
+
+
+Data:
+
+gd:e:1
+{
+  "deviceId": "607461E9-43C7-4F6C-94E0-4F8E45991E34",
+  "clientTimeStamp": 1394655853,
+  "clientId": "AA-1",
+  "clientVersion": "0.2.500",
+  "eventName": "AA-1_Equip_attack_attach",
+  "eventData": {
+    "description": "Target a bot's weak core.",
+    "name": "Core Device"
+  },
+  "gameSessionId": "3ebcc4f0-aa24-11e3-8ed5-eb00c6ca4465",
+  "serverTimeStamp": 1394655841
+}
+gd:e:2
+{
+  "deviceId": "607461E9-43C7-4F6C-94E0-4F8E45991E34",
+  "clientTimeStamp": 1394655853,
+  "clientId": "AA-1",
+  "clientVersion": "0.2.500",
+  "eventName": "AA-1_Equip_attack_attach",
+  "eventData": {
+    "description": "Target a bot's weak core.",
+    "name": "Core Device"
+  },
+  "gameSessionId": "3ebcc4f0-aa24-11e3-8ed5-eb00c6ca4465",
+  "serverTimeStamp": 1394655841
+}
