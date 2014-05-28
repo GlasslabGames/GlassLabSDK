@@ -93,6 +93,7 @@ namespace nsGlasslabSDK {
             void startSession( string cb = "" );
             void endSession( string cb = "" );
             void saveGame( const char* gameData, string cb = "" );
+            void savePlayerInfo( string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
             void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
 

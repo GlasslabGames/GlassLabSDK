@@ -543,57 +543,57 @@ public class GlasslabSDK {
 		return "";
 		#endif
 	}
-
+	
 	// ----------------------------
 	public void UpdatePlayerInfoKey(string key, string value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_ccp   (mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, sbyte  value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_int8  (mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, short  value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_int16 (mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, int    value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_int32 (mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, byte   value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_uint8 (mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, ushort value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_uint16(mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, uint   value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_uint32(mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, float  value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_float (mInst, key, value);
-		#else
+		#endif
 	}
 	public void UpdatePlayerInfoKey(string key, double value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_double(mInst, key, value);
-		#else
+		#endif
 	}
 	public void RemovePlayerInfoKey(string key) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_RemovePlayerInfoKey(mInst, key);
-		#else
+		#endif
 	}
 	
 	
@@ -732,9 +732,9 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_UpdatePlayerInfoKey_double(System.IntPtr inst, string key, double value);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_RemovePlayerInfoKey(System.IntPtr inst, string key);
-	
-	
-	
+
+
+
 	//[DllImport("<path to DLL>", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	//[return: MarshalAs(UnmanagedType.LPStr)]
 	// ----------------------------

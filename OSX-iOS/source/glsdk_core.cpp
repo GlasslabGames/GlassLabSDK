@@ -924,12 +924,11 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     /**
      * Callback function occurs when API_POST_GAMEDATA is successful.
-     *
      */
     void saveGame_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
         printf( "\n---------------------------\n" );
-        printf( "saveGame_Done" );
+        printf( "saveGame_Done: %s", json );
         printf( "\n---------------------------\n" );
         
         json_t* root;
@@ -947,7 +946,7 @@ namespace nsGlasslabSDK {
             }
         }
         
-        // Push EndSession message
+        // Push GameSave message
         sdkInfo.core->pushMessageStack( returnMessage );
         
         // Run client callback
@@ -959,13 +958,68 @@ namespace nsGlasslabSDK {
     /**
      * SaveGame function communicates with the server to save the game data.
      */
-    void Core::saveGame(const char* gameData, string cb) {
+    void Core::saveGame( const char* gameData, string cb ) {
         printf( "Saving Game Data - %s", gameData );
         string url = API_POST_SAVEGAME;
-        url += "/"+m_gameId;
+        url += "/" + m_gameId;
         
         // Add this message to the message queue
         mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_POST_PLAYERINFO is successful.
+     *
+     */
+    void savePlayerInfo_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        printf( "\n---------------------------\n" );
+        printf( "savePlayerInfo_Done: %s", json );
+        printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_SavePlayerInfo;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                returnMessage = Const::Message_Error;
+            }
+        }
+        
+        // Push SavePlayerInfo message
+        sdkInfo.core->pushMessageStack( returnMessage );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+    
+    /**
+     * SavePlayerInfo function communicates with the server to save player info data.
+     */
+    void Core::savePlayerInfo( string cb ) {
+        // Get the player info JSON as string
+        char* rootJSON = json_dumps( m_playerInfo, JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
+        string jsonOut = rootJSON;
+        free( rootJSON );
+        
+        printf( "Saving Player Info" );
+
+        // Add this message to the queue
+        string url = API_POST_PLAYERINFO;
+        url += "/" + m_gameId;
+        mf_addMessageToDataQueue( url, "savePlayerInfo_Done", cb, jsonOut.c_str(), "application/json" );
     }
 
 
@@ -1061,11 +1115,15 @@ namespace nsGlasslabSDK {
         }
 
 
+        // TODO: fix this hack
         // TEMPORARY interval for flushing the message queue
         tempCounter++;
         if( tempCounter > 100 ) {
             tempCounter = 0;
             m_dataSync->flushMsgQ();
+
+            // In addition to flushing the message queue, do a POST on the player info
+            savePlayerInfo();
         }
     }
 
@@ -1359,6 +1417,11 @@ namespace nsGlasslabSDK {
         saveGame_Structure.coreCB = saveGame_Done;
         saveGame_Structure.cancel = false;
         m_coreCallbackMap[ "saveGame_Done" ] = saveGame_Structure;
+
+        coreCallbackStructure savePlayerInfo_Structure;
+        savePlayerInfo_Structure.coreCB = savePlayerInfo_Done;
+        savePlayerInfo_Structure.cancel = false;
+        m_coreCallbackMap[ "savePlayerInfo_Done" ] = savePlayerInfo_Structure;
 
         coreCallbackStructure sendTelemEvent_Structure;
         sendTelemEvent_Structure.coreCB = sendTelemEvent_Done;
