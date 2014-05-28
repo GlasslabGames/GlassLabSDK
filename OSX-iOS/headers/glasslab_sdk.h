@@ -101,6 +101,18 @@ class GlasslabSDK {
         void saveTelemEvent( const char* name );
         void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
+        // These functions allow for control over the user info data structure
+        void updatePlayerInfoKey( const char* key, const char* value );
+        void updatePlayerInfoKey( const char* key, int8_t value );
+        void updatePlayerInfoKey( const char* key, int16_t value );
+        void updatePlayerInfoKey( const char* key, int32_t value );
+        void updatePlayerInfoKey( const char* key, uint8_t value );
+        void updatePlayerInfoKey( const char* key, uint16_t value );
+        void updatePlayerInfoKey( const char* key, uint32_t value );
+        void updatePlayerInfoKey( const char* key, float value );
+        void updatePlayerInfoKey( const char* key, double value );
+        void removePlayerInfoKey( const char* key );
+
         // Setters
         void setName( const char* name );
         void setVersion ( const char* version );

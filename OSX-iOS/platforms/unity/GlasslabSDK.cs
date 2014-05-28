@@ -4,6 +4,8 @@ using System.Collections;
 using System.Threading;
 using System.Runtime.InteropServices;
 
+//#define TELEMETRY_DEBUG
+
 public class GlasslabSDK {
 	// -------------------------------------------------
 	// Multithreaded Singleton
@@ -67,12 +69,11 @@ public class GlasslabSDK {
 	
 	public delegate void ResponseCallback( string response = "" );
 	public void ResponseCallback_Stub( string response = "" ) {}
-
-
+	
+	
 	// Delegate that a debug window could attach to in order to display all telemetry output
 	public delegate void OutputStringCallback( string output );
 	public static OutputStringCallback TelemetryOutput;
-
 	
 	private GlasslabSDK(){
 		mConnect_CBList 	 = new ArrayList();
@@ -104,7 +105,7 @@ public class GlasslabSDK {
 		}
 		
 		mInst = GlasslabSDK_CreateInstance (dataPath, clientId, deviceUUID, uri);
-
+		
 		Debug.Log ( dataPath );
 		iPhone.SetNoBackupFlag( dataPath + "/glasslabsdk.db" );
 	}
@@ -214,7 +215,7 @@ public class GlasslabSDK {
 			}
 			
 			GlasslabSDK_SendTelemEvents( mInst );
-
+			
 			Thread.Sleep( 100 );
 		}
 	}
@@ -243,9 +244,9 @@ public class GlasslabSDK {
 	public void SetPlayerHandle(string handle) {
 		GlasslabSDK_SetPlayerHandle( mInst, handle );
 	}
-
+	
 	public void RemovePlayerHandle(string handle) {
-
+		
 	}
 	
 	// ----------------------------
@@ -369,15 +370,15 @@ public class GlasslabSDK {
 			mLogin_CBList.Add (tempCB);
 		}
 	}
-
+	
 	public void CancelRequest(string key) {
 		GlasslabSDK_CancelRequest( mInst, key );
 	}
-
+	
 	public void SaveGame( string gameData ) {
-#if !UNITY_EDITOR
+		#if !UNITY_EDITOR
 		GlasslabSDK_SaveGame( mInst, gameData );
-#endif
+		#endif
 	}
 	
 	// ----------------------------
@@ -385,36 +386,46 @@ public class GlasslabSDK {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_ccp   (mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value );
 	}
 	public void AddTelemEventValue(string key, sbyte  value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_int8  (mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, short  value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_int16 (mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, int    value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_int32 (mInst, key, value);
 		#else
+		
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, byte   value) {
@@ -423,43 +434,51 @@ public class GlasslabSDK {
 		#else
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, ushort value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_uint16(mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, uint   value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_uint32(mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, float  value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_float (mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	public void AddTelemEventValue(string key, double value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_AddTelemEventValue_double(mInst, key, value);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---------- EVENT: " + key + ": " + value );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
 	
@@ -467,18 +486,22 @@ public class GlasslabSDK {
 		#if !UNITY_EDITOR
 		GlasslabSDK_SaveTelemEvent (mInst, name);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---- TELEMETRY: " + name );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( "---- EVENT: " + name + "\n" );
 	}
 	public void SaveAchievementEvent(string item, string group, string subGroup) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_SaveAchievementEvent (mInst, item, group, subGroup);
 		#else
+		#if TELEMETRY_DEBUG
 		Debug.Log( "---- ACHIEVEMENT: " + item + ", " + group + ", " + subGroup );
 		#endif
-
+		#endif
+		
 		if( TelemetryOutput != null ) TelemetryOutput( "---- ACHIEVEMENT: " + item + ", " + group + ", " + subGroup );
 	}
 	public void ClearTelemEventValues() {
@@ -486,22 +509,22 @@ public class GlasslabSDK {
 		GlasslabSDK_ClearTelemEventValues (mInst);
 		#endif
 	}
-
+	
 	// ----------------------------
 	public string GetCookie() {
-#if !UNITY_EDITOR
+		#if !UNITY_EDITOR
 		// Get the entire cookie string
 		string cookie = (string)GlasslabSDK_GetCookie(mInst);
-
+		
 		// Parse the cookie portion
 		// Between "connect.sid=" and ";"
 		string parsedCookie = "";
-
+		
 		// Get the index of "connect.sid="
 		int indexOfFirst = cookie.IndexOf( "connect.sid=" );
 		if( indexOfFirst != -1 ) {
 			string sub1 = cookie.Substring( indexOfFirst + 12 );
-
+			
 			// Get the next index of ";"
 			int indexOfSecond = sub1.IndexOf( ";" );
 			if( indexOfSecond != -1 ) {
@@ -510,15 +533,67 @@ public class GlasslabSDK {
 				Debug.Log( "Parsed cookie is: " + parsedCookie );
 			}
 		}
-
+		
 		//connect.sid=s%3AYDGjCfDfV071rTWpki1bFaeK.%2FzUs5B2qi66zYOetVS87ONjBLHFJAS2uezXz7ikzHL4; Path=/
 		//s%3AYDGjCfDfV071rTWpki1bFaeK.%2FzUs5B2qi66zYOetVS87ONjBLHFJAS2uezXz7ikzHL4
-
+		
 		// Returned the parsed cookie
 		return parsedCookie;
-#else
+		#else
 		return "";
-#endif
+		#endif
+	}
+	
+	// ----------------------------
+	public void UpdatePlayerInfoKey(string key, string value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_ccp   (mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, sbyte  value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_int8  (mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, short  value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_int16 (mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, int    value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_int32 (mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, byte   value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_uint8 (mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, ushort value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_uint16(mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, uint   value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_uint32(mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, float  value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_float (mInst, key, value);
+		#endif
+	}
+	public void UpdatePlayerInfoKey(string key, double value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_double(mInst, key, value);
+		#endif
+	}
+	public void RemovePlayerInfoKey(string key) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_RemovePlayerInfoKey(mInst, key);
+		#endif
 	}
 	
 	
@@ -561,7 +636,7 @@ public class GlasslabSDK {
 	
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_SetPlayerHandle(System.IntPtr inst, string handle);
-
+	
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_RemovePlayerHandle(System.IntPtr inst, string handle);
 	
@@ -593,19 +668,19 @@ public class GlasslabSDK {
 	
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_EndSession(System.IntPtr inst);
-
-
+	
+	
 	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_CancelRequest(System.IntPtr inst, string key);
-
-
+	
+	
 	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_SaveGame(System.IntPtr inst, string gameData);
 	
-  
-  	// ----------------------------
+	
+	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_AddTelemEventValue_ccp   (System.IntPtr inst, string key, string value);
 	[DllImport ("__Internal")]
@@ -634,6 +709,31 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_SendTelemEvents(System.IntPtr inst);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_ClearTelemEventValues(System.IntPtr inst);
+	
+	
+	// ----------------------------
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_ccp   (System.IntPtr inst, string key, string value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_int8  (System.IntPtr inst, string key, sbyte value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_int16 (System.IntPtr inst, string key, short value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_int32 (System.IntPtr inst, string key, int value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_uint8 (System.IntPtr inst, string key, byte value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_uint16(System.IntPtr inst, string key, ushort value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_uint32(System.IntPtr inst, string key, uint value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_float (System.IntPtr inst, string key, float value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_double(System.IntPtr inst, string key, double value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_RemovePlayerInfoKey(System.IntPtr inst, string key);
+
+
 
 	//[DllImport("<path to DLL>", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	//[return: MarshalAs(UnmanagedType.LPStr)]
