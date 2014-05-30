@@ -734,10 +734,11 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_RemovePlayerInfoKey(System.IntPtr inst, string key);
 
 
-
+	// ----------------------------
+	[DllImport ("__Internal")]
+	private static extern float GlasslabSDK_GetTotalTimePlayed(System.IntPtr inst);
 	//[DllImport("<path to DLL>", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	//[return: MarshalAs(UnmanagedType.LPStr)]
-	// ----------------------------
 	[DllImport ("__Internal", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	[return: MarshalAs(UnmanagedType.LPStr)]
 	private static extern string GlasslabSDK_GetCookie(System.IntPtr inst);

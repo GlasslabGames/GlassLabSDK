@@ -154,6 +154,15 @@ void GlasslabSDK::removePlayerHandle( const char* handle ) {
 }
 
 
+float GlasslabSDK::getTotalTimePlayed() {
+    if( m_core != NULL ) {
+        return m_core->getTotalTimePlayed();
+    }
+    else {
+        return 0.0;
+    }
+}
+
 const char* GlasslabSDK::getCookie() {
     if( m_core != NULL ) {
         return m_core->getCookie();

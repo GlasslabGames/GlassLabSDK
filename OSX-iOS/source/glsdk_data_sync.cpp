@@ -316,6 +316,15 @@ namespace nsGlasslabSDK {
         }
     }
 
+    /**
+     * MSG_QUEUE operation.
+     *
+     * Returns the current size of the message queue table.
+     */
+    int DataSync::getMessageTableSize() {
+        return m_messageTableSize;
+    }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -537,6 +546,75 @@ namespace nsGlasslabSDK {
     /**
      * SESSION operation.
      *
+     * Updates an existing session with the totalTimePlayed.
+     */
+    void DataSync::updateTotalTimePlayedFromDeviceId( string deviceId, float totalTimePlayed ) {
+        // string stream
+        ostringstream s;
+        
+        try {
+            // Look for an existing entry with the device Id
+            cout << "------------------------------------" << endl;
+            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
+            cout << "session SQL: " << m_sql << endl;
+            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+
+            // Only continue if an entry exists
+            if( !sessionQuery.eof() ) {
+                // Update
+                s << "UPDATE " << m_sessionTableName << " SET totalTimePlayed='" << totalTimePlayed << "' WHERE deviceId='" << deviceId << "'";
+                m_sql = s.str();
+
+                cout << "SQL: " << m_sql << endl;
+                int nRows = m_db.execDML( m_sql.c_str() );
+                cout << nRows << " rows inserted" << endl;
+                cout << "------------------------------------" << endl;
+            }
+        }
+        catch( CppSQLite3Exception e ) {
+            m_core->displayError( "DataSync::updateTotalTimePlayedFromDeviceId()", e.errorMessage() );
+            cout << "Exception in updateTotalTimePlayedFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+        }
+    }
+
+    /**
+     * SESSION operation.
+     *
+     * Get the totalTimePlayed stored in the SESSION table using the deviceId.
+     */
+    float DataSync::getTotalTimePlayedFromDeviceId( string deviceId ) {
+        // string stream
+        ostringstream s;
+        
+        try {
+            // Look for an existing entry with the device Id
+            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
+            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+
+            // If the count is 0, no entry exists with deviceId, return a default value of 0.0
+            if( sessionQuery.eof() ) {
+                cout << "totalTimePlayed does not exist for " << deviceId.c_str() << endl;
+                return 0.0;
+            }
+            // An entry does exist, grab the totalTimePlayed and return it
+            else {
+                float totalTimePlayed = atof( sessionQuery.fieldValue( 4 ) );
+                cout << "totalTimePlayed exists for " << deviceId.c_str() << ": " << totalTimePlayed << endl;
+                return totalTimePlayed;
+            }
+        }
+        catch( CppSQLite3Exception e ) {
+            m_core->displayError( "DataSync::getTotalTimePlayedFromDeviceId()", e.errorMessage() );
+            cout << "Exception in getTotalTimePlayedFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+        }
+
+        // Return 0.0 by default
+        return 0.0;
+    }
+
+    /**
+     * SESSION operation.
+     *
      * Inserts a new session object into SESSION.
      */
     void DataSync::createNewSessionEntry( string deviceId, string cookie, string gameSessionId ) {
@@ -578,10 +656,18 @@ namespace nsGlasslabSDK {
             }
             s << ", ";
 
-            // Include the gameSessionEventOrder (always starts at 1)
+            // Include the gameSessionEventOrder (defaults to 1)
             s << "'";
             s << "1";
             s << "'";
+            s << ", ";
+
+            // Include the totalTimePlayed (defaults to 0.0)
+            s << "'";
+            s << "0.0";
+            s << "'";
+
+            // Close the SQL statement
             s << ");";
 
             // Set the SQLite string to execute
@@ -639,6 +725,7 @@ namespace nsGlasslabSDK {
                 - deviceId
                 - gameSessionId
                 - gameSessionEventOrder
+                - totalTimePlayed
                 */
 
                 // Check the deviceId listed in the message for an entry in the SESSION table
@@ -863,7 +950,8 @@ namespace nsGlasslabSDK {
                 "cookie char(256), "
                 "deviceId char(256), "
                 "gameSessionId char(256), "
-                "gameSessionEventOrder integer"
+                "gameSessionEventOrder integer, "
+                "totalTimePlayed real "
                 ");";
 
                 cout << "SQL: " << m_sql << endl;
@@ -968,7 +1056,8 @@ namespace nsGlasslabSDK {
                 "cookie char(256), "
                 "deviceId char(256), "
                 "gameSessionId char(256), "
-                "gameSessionEventOrder integer"
+                "gameSessionEventOrder integer, "
+                "totalTimePlayed real "
                 ");";
             migrateTable( m_sessionTableName, session_schema );
 

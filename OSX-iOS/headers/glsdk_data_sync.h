@@ -28,6 +28,7 @@ namespace nsGlasslabSDK {
         void addToMsgQ( string deviceId, string path, string coreCB, string clientCB, string postdata, const char* contentType );
         void removeFromMsgQ( int rowId );
         void updateMessageStatus( int rowId, string status );
+        int getMessageTableSize();
 
         // Session (SESSION) table operations
         void updateSessionTableWithCookie( string deviceId, string cookie );
@@ -35,6 +36,8 @@ namespace nsGlasslabSDK {
         void updateSessionTableWithPlayerHandle( string deviceIdWithHandle, string oldDeviceId );
         void removeSessionWithDeviceId( string deviceId );
         const char* getCookieFromDeviceId( string deviceId );
+        void updateTotalTimePlayedFromDeviceId( string deviceId, float totalTimePlayed );
+        float getTotalTimePlayedFromDeviceId( string deviceId );
 
         // Function flushes MSG_QUEUE, converting all stored API events into HTTP requests on Core
         void flushMsgQ();
