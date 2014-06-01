@@ -27,6 +27,7 @@
 #include <map>
 #include <queue>
 #include <cstdio>
+#include <time.h>
 
 #include <signal.h>
 #include <libevent/evhttp.h>
@@ -123,6 +124,7 @@ class GlasslabSDK {
 
         // Getters
         const char* getCookie();
+        float getTotalTimePlayed();
 
     
     private:

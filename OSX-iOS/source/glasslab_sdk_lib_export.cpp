@@ -210,6 +210,15 @@ extern "C"
         }
     }
 
+    float GlasslabSDK_GetTotalTimePlayed( void* inst ) {
+        if( inst != NULL ) {
+            return static_cast<GlasslabSDK *>( inst )->getTotalTimePlayed();
+        }
+        else {
+            return 0.0;
+        }
+    }
+
     char* GlasslabSDK_GetCookie( void* inst ) {
         if( inst != NULL ) {
             std::string string = static_cast<GlasslabSDK *>( inst )->getCookie();

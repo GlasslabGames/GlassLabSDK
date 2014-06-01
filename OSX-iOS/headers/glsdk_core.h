@@ -95,6 +95,7 @@ namespace nsGlasslabSDK {
             void saveGame( const char* gameData, string cb = "" );
             void savePlayerInfo( string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
+            void attemptMessageDispatch();
             void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
 
             // Allow the user to cancel a request from being sent to the server, or ignore the response
@@ -139,6 +140,7 @@ namespace nsGlasslabSDK {
             void updatePlayerInfoKey( const char* key, float value );
             void updatePlayerInfoKey( const char* key, double value );
             void removePlayerInfoKey( const char* key );
+            void setDefaultPlayerInfoKeys();
             void resetPlayerInfo();
 
             // Setters
@@ -157,6 +159,7 @@ namespace nsGlasslabSDK {
             const char* getCookie();
             const char* getSessionId();
             Const::Status getLastStatus();
+            float getTotalTimePlayed();
 
             // Config object
             glConfig config;
@@ -188,14 +191,15 @@ namespace nsGlasslabSDK {
             string m_clientVersion;
         
             // JSON members
-            time_t m_currentTime;
-            time_t m_startTime;
             json_error_t m_jsonError;
             json_t* m_userInfo;
             json_t* m_telemEvents;
             json_t* m_telemEventValues;
             json_t* m_achievementEventValues;
             json_t* m_playerInfo;
+
+            // Timer for delaying telemetry
+            time_t m_telemetryLastTime;
         
             // Status members
             Const::Status m_lastStatus;
@@ -206,9 +210,6 @@ namespace nsGlasslabSDK {
             // Callback function maps
             map<string, coreCallbackStructure> m_coreCallbackMap;
             map<string, ClientCallback_Func> m_clientCallbackMap;
-
-
-            int tempCounter;    // TEMPORARY
     };
 };
 #pragma GCC visibility pop

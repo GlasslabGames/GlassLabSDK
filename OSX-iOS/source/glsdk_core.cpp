@@ -55,20 +55,28 @@ namespace nsGlasslabSDK {
         clearTelemEvents();
         clearTelemEventValues();
         clearAchievementEventValues();
-        resetPlayerInfo();
 
         // Store core function callbacks in the hash
         mf_setupCallbacks();
         // Create the SQLite data sync object
         printf( "Data path set: %s\n", dataPath );
         m_dataSync = new DataSync( this, dataPath );
-            
 
-        // Attempt a connection
+        // Reset the player info
+        resetPlayerInfo();
+
+        // Set default throttle variables
+        config.eventsDetailLevel = THROTTLE_PRIORITY_DEFAULT;
+        config.eventsPeriodSecs = THROTTLE_INTERVAL_DEFAULT;
+        config.eventsMinSize = THROTTLE_MIN_SIZE_DEFAULT;
+        config.eventsMaxSize = THROTTLE_MAX_SIZE_DEFAULT;
+
+        // Set the last time since telemetry was fired
+        m_telemetryLastTime = time( NULL );
+
+
+        // Attempt a connection now that the SDK is created
         connect( gameId, uri );
-
-
-        tempCounter = 0;    // only temporary
     }
 
     /**
@@ -202,7 +210,9 @@ namespace nsGlasslabSDK {
         }
         
         // Make the request
-        mf_httpGetRequest( API_GET_CONFIG, "getConfig_Done");
+        string url = API_GET_CONFIG;
+        url += "/" + m_gameId;
+        mf_httpGetRequest( url, "getConfig_Done");
         
         // Success
         return 0;
@@ -1013,8 +1023,13 @@ namespace nsGlasslabSDK {
         char* rootJSON = json_dumps( m_playerInfo, JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
         string jsonOut = rootJSON;
         free( rootJSON );
-        
-        printf( "Saving Player Info" );
+
+        // Replace $totalTimePlayed$ with totalTimePlayed
+        string totalTimePlayedTag = "$totalTimePlayed$";
+        string::size_type n = jsonOut.find( totalTimePlayedTag );
+        if( n != string::npos ) {
+            jsonOut.replace( n, totalTimePlayedTag.size(), "totalTimePlayed" );
+        }
 
         // Add this message to the queue
         string url = API_POST_PLAYERINFO;
@@ -1093,8 +1108,8 @@ namespace nsGlasslabSDK {
             free( rootJSON );
             
             printf( "\n---------------------------\n" );
-            printf( "sendTelemEvents: %i", m_telemEvents );
-            //printf( "sendTelemEvents: %s", jsonOut.c_str() );
+            //printf( "sendTelemEvents: %i", m_telemEvents );
+            printf( "sendTelemEvents: %s", jsonOut.c_str() );
             printf( "\n---------------------------\n" );
 
             // Add this message to the queue
@@ -1114,12 +1129,43 @@ namespace nsGlasslabSDK {
             coreCallback( sdkInfo );
         }
 
+        // Update the totalTimePlayed in the SQLite database
+        m_dataSync->updateTotalTimePlayedFromDeviceId( m_deviceId, getTotalTimePlayed() );
 
-        // TODO: fix this hack
-        // TEMPORARY interval for flushing the message queue
-        tempCounter++;
-        if( tempCounter > 100 ) {
-            tempCounter = 0;
+
+        // Attempt to dispatch the message queue
+        attemptMessageDispatch();
+    }
+
+    /**
+     * Function attempts to dispatch the telemetry events in the message queue, based on the
+     * interval timer, minimum number of events, and maximum number of allowed events.
+     */
+    void Core::attemptMessageDispatch() {
+        // Get the current time
+        time_t currentTime = time( NULL );
+        // Measure the time between last and current (in seconds)
+        float secondsElapsed = difftime( currentTime, m_telemetryLastTime );
+        //printf( "Current elapsed: %f\n", secondsElapsed );
+
+        // If the seconds elapsed exceeds our interval, reset the current telemetry clock and
+        // flush the message queue
+        if( secondsElapsed > config.eventsPeriodSecs ) {
+
+            // Check that we exceed the minimum number of events to send data
+            if( m_dataSync->getMessageTableSize() > config.eventsMinSize ) {
+                printf( "Seconds elapsed for flush: %f with %i events\n", secondsElapsed, m_dataSync->getMessageTableSize() );
+                m_telemetryLastTime = currentTime;
+                m_dataSync->flushMsgQ();
+
+                // In addition to flushing the message queue, do a POST on the player info
+                savePlayerInfo();
+            }
+        }
+        // Or send events if we've exceeded the table size limit
+        else if( m_dataSync->getMessageTableSize() > config.eventsMaxSize ) {
+            printf( "reached max number of events: %i\n", m_dataSync->getMessageTableSize() );
+            m_telemetryLastTime = currentTime;
             m_dataSync->flushMsgQ();
 
             // In addition to flushing the message queue, do a POST on the player info
@@ -1606,6 +1652,7 @@ namespace nsGlasslabSDK {
             json_object_set( event, "gameId",  json_string( m_gameId.c_str() ) );
             json_object_set( event, "gameSessionId", json_string( "$gameSessionId$" ) );
             json_object_set( event, "gameSessionEventOrder", json_string( "$gameSessionEventOrder$" ) );
+
             // Set the deviceId if it exists
             if( m_deviceId.length() > 0 ) {
                 json_object_set( event, "deviceId", json_string( m_deviceId.c_str() ) );
@@ -1620,6 +1667,9 @@ namespace nsGlasslabSDK {
             }
             // Set the eventData as a separate JSON document using the values
             json_object_set( event, "eventData", m_telemEventValues );
+
+            // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
+            json_object_set( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
             
             // Append the final event structure to the telemetry events JSON object
             json_array_append( m_telemEvents, event );
@@ -1663,6 +1713,8 @@ namespace nsGlasslabSDK {
             json_object_set( event, "eventName", json_string( "$Achievement" ) );
             json_object_set( event, "gameId",  json_string( m_gameId.c_str() ) );
             json_object_set( event, "gameSessionId", json_string( "$gameSessionId$" ) );
+            json_object_set( event, "gameSessionEventOrder", json_string( "$gameSessionEventOrder$" ) );
+
             // Set the deviceId if it exists
             if( m_deviceId.length() > 0 ) {
                 json_object_set( event, "deviceId", json_string( m_deviceId.c_str() ) );
@@ -1680,6 +1732,9 @@ namespace nsGlasslabSDK {
             json_object_set( m_achievementEventValues, "group", json_string( group ) );
             json_object_set( m_achievementEventValues, "subGroup", json_string( subGroup ) );
             json_object_set( event, "eventData", m_achievementEventValues );
+
+            // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
+            json_object_set( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
             
             // Append the final event structure to the telemetry events JSON object
             json_array_append( m_telemEvents, event );
@@ -1706,7 +1761,7 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     //--------------------------------------
     /**
-     * Allow the user to update the key/values in the user info data structure.
+     * Allow the user to update the key/values in the user player data structure.
      */
     void Core::updatePlayerInfoKey( const char* key, const char* value ) {
         json_object_set( m_playerInfo, key, json_string( value ) );
@@ -1740,7 +1795,19 @@ namespace nsGlasslabSDK {
      * Allow the user to remove a key/value pair from the user info data structure.
      */
     void Core::removePlayerInfoKey( const char* key ) {
+        // Don't allow totalTimePlayed to be deleted
+        if( key == "$totalTimePlayed$" ) {
+            return;
+        }
+
         json_object_del( m_playerInfo, key );
+    }
+
+    /**
+     * Set platform required default key-value pairs in the player info data structure.
+     */
+    void Core::setDefaultPlayerInfoKeys() {
+        json_object_set( m_playerInfo, "$totalTimePlayed$", json_real( m_dataSync->getTotalTimePlayedFromDeviceId( m_deviceId ) ) );
     }
 
     /**
@@ -1757,6 +1824,9 @@ namespace nsGlasslabSDK {
         if( !m_playerInfo ) {
             displayError( "Core::resetPlayerInfo()", "There was an error intializing a new player info document after clearing the old one." );
         }
+
+        // Set default keys in the blob
+        setDefaultPlayerInfoKeys();
     }
 
 
@@ -1787,12 +1857,6 @@ namespace nsGlasslabSDK {
     }
 
     void Core::setPlayerHandle( const char* handle ) {
-        // First, check if this player handle already exists
-        /*if( m_playerHandle == handle ) {
-            // Ignore the rest
-            return;
-        }*/
-
         printf( "player handle to set: %s\n", handle );
 
         m_playerHandle = handle;
@@ -1806,7 +1870,7 @@ namespace nsGlasslabSDK {
         // Update the database with this information
         if( m_dataSync != NULL ) {
             printf( "setting new device Id using player handle: %s\n", newDeviceId );
-            m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId, m_deviceId /* m_deviceId not used anymore */ );
+            m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId );
 
             // Get the cookie stored for this device Id
             m_cookie = m_dataSync->getCookieFromDeviceId( newDeviceId );
@@ -1814,6 +1878,10 @@ namespace nsGlasslabSDK {
 
         // Set the new device Id
         m_deviceId = newDeviceId;
+
+        // Send the current player info and reset it for this user
+        savePlayerInfo();
+        resetPlayerInfo();
 
         // Call the update device Id API
         //deviceUpdate();
@@ -1876,6 +1944,19 @@ namespace nsGlasslabSDK {
 
     Const::Status Core::getLastStatus() {
         return m_lastStatus;
+    }
+
+    float Core::getTotalTimePlayed() {
+        // Get the JSON value from player info
+        json_t* totalTimePlayedAsJSON = json_object_get( m_playerInfo, "$totalTimePlayed$" );
+        // Verify it exists and is the right type
+        if( totalTimePlayedAsJSON && json_is_real( totalTimePlayedAsJSON ) ) {
+            // Return it
+            return (float)json_real_value( totalTimePlayedAsJSON );
+        }
+
+        // Otherwise, return default
+        return -1;
     }
 
 
