@@ -55,13 +55,15 @@ namespace nsGlasslabSDK {
         clearTelemEvents();
         clearTelemEventValues();
         clearAchievementEventValues();
-        resetPlayerInfo();
 
         // Store core function callbacks in the hash
         mf_setupCallbacks();
         // Create the SQLite data sync object
         printf( "Data path set: %s\n", dataPath );
         m_dataSync = new DataSync( this, dataPath );
+
+        // Reset the player info
+        resetPlayerInfo();
 
         // Set default throttle variables
         config.eventsDetailLevel = THROTTLE_PRIORITY_DEFAULT;
@@ -1106,7 +1108,8 @@ namespace nsGlasslabSDK {
             free( rootJSON );
             
             printf( "\n---------------------------\n" );
-            printf( "sendTelemEvents: %i", m_telemEvents );
+            //printf( "sendTelemEvents: %i", m_telemEvents );
+            printf( "sendTelemEvents: %s", jsonOut.c_str() );
             printf( "\n---------------------------\n" );
 
             // Add this message to the queue
@@ -1148,10 +1151,10 @@ namespace nsGlasslabSDK {
         // If the seconds elapsed exceeds our interval, reset the current telemetry clock and
         // flush the message queue
         if( secondsElapsed > config.eventsPeriodSecs ) {
-            printf( "Seconds elapsed for flush: %f\n", secondsElapsed );
 
             // Check that we exceed the minimum number of events to send data
             if( m_dataSync->getMessageTableSize() > config.eventsMinSize ) {
+                printf( "Seconds elapsed for flush: %f with %i events\n", secondsElapsed, m_dataSync->getMessageTableSize() );
                 m_telemetryLastTime = currentTime;
                 m_dataSync->flushMsgQ();
 
@@ -1161,6 +1164,7 @@ namespace nsGlasslabSDK {
         }
         // Or send events if we've exceeded the table size limit
         else if( m_dataSync->getMessageTableSize() > config.eventsMaxSize ) {
+            printf( "reached max number of events: %i\n", m_dataSync->getMessageTableSize() );
             m_telemetryLastTime = currentTime;
             m_dataSync->flushMsgQ();
 
@@ -1803,7 +1807,7 @@ namespace nsGlasslabSDK {
      * Set platform required default key-value pairs in the player info data structure.
      */
     void Core::setDefaultPlayerInfoKeys() {
-        json_object_set( m_playerInfo, "$totalTimePlayed$", json_real( 0 ) );
+        json_object_set( m_playerInfo, "$totalTimePlayed$", json_real( m_dataSync->getTotalTimePlayedFromDeviceId( m_deviceId ) ) );
     }
 
     /**
@@ -1853,12 +1857,6 @@ namespace nsGlasslabSDK {
     }
 
     void Core::setPlayerHandle( const char* handle ) {
-        // First, check if this player handle already exists
-        /*if( m_playerHandle == handle ) {
-            // Ignore the rest
-            return;
-        }*/
-
         printf( "player handle to set: %s\n", handle );
 
         m_playerHandle = handle;
@@ -1872,7 +1870,7 @@ namespace nsGlasslabSDK {
         // Update the database with this information
         if( m_dataSync != NULL ) {
             printf( "setting new device Id using player handle: %s\n", newDeviceId );
-            m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId, m_deviceId /* m_deviceId not used anymore */ );
+            m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId );
 
             // Get the cookie stored for this device Id
             m_cookie = m_dataSync->getCookieFromDeviceId( newDeviceId );
@@ -1880,6 +1878,10 @@ namespace nsGlasslabSDK {
 
         // Set the new device Id
         m_deviceId = newDeviceId;
+
+        // Send the current player info and reset it for this user
+        savePlayerInfo();
+        resetPlayerInfo();
 
         // Call the update device Id API
         //deviceUpdate();

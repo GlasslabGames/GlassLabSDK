@@ -33,7 +33,7 @@ namespace nsGlasslabSDK {
         // Session (SESSION) table operations
         void updateSessionTableWithCookie( string deviceId, string cookie );
         void updateSessionTableWithGameSessionId( string deviceId, string gameSessionId );
-        void updateSessionTableWithPlayerHandle( string deviceIdWithHandle, string oldDeviceId );
+        void updateSessionTableWithPlayerHandle( string deviceIdWithHandle );
         void removeSessionWithDeviceId( string deviceId );
         const char* getCookieFromDeviceId( string deviceId );
         void updateTotalTimePlayedFromDeviceId( string deviceId, float totalTimePlayed );

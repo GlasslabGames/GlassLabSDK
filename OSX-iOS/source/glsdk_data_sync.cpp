@@ -445,7 +445,7 @@ namespace nsGlasslabSDK {
      * Updates an existing session with a replacement deviceId, or inserts a new entry with
      * the deviceId. The new deviceId will include a player handle, in the form of "handle_deviceId".
      */
-    void DataSync::updateSessionTableWithPlayerHandle( string deviceIdWithHandle, string oldDeviceId ) {
+    void DataSync::updateSessionTableWithPlayerHandle( string deviceIdWithHandle ) {
         // string stream
         ostringstream s;
         
@@ -554,9 +554,9 @@ namespace nsGlasslabSDK {
         
         try {
             // Look for an existing entry with the device Id
-            cout << "------------------------------------" << endl;
+            //cout << "------------------------------------" << endl;
             m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            cout << "session SQL: " << m_sql << endl;
+            //cout << "session SQL: " << m_sql << endl;
             CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
 
             // Only continue if an entry exists
@@ -565,10 +565,10 @@ namespace nsGlasslabSDK {
                 s << "UPDATE " << m_sessionTableName << " SET totalTimePlayed='" << totalTimePlayed << "' WHERE deviceId='" << deviceId << "'";
                 m_sql = s.str();
 
-                cout << "SQL: " << m_sql << endl;
+                //cout << "SQL: " << m_sql << endl;
                 int nRows = m_db.execDML( m_sql.c_str() );
-                cout << nRows << " rows inserted" << endl;
-                cout << "------------------------------------" << endl;
+                //cout << nRows << " rows inserted" << endl;
+                //cout << "------------------------------------" << endl;
             }
         }
         catch( CppSQLite3Exception e ) {
@@ -597,7 +597,7 @@ namespace nsGlasslabSDK {
                 return 0.0;
             }
             // An entry does exist, grab the totalTimePlayed and return it
-            else {
+            else if( sessionQuery.fieldValue( 4 ) != NULL ) {
                 float totalTimePlayed = atof( sessionQuery.fieldValue( 4 ) );
                 cout << "totalTimePlayed exists for " << deviceId.c_str() << ": " << totalTimePlayed << endl;
                 return totalTimePlayed;
@@ -1098,6 +1098,7 @@ namespace nsGlasslabSDK {
                 cout << "SQL: " << m_sql << endl;
                 string t2 = m_sql;
                 r = m_db.execDML( t2.c_str() );
+                printf( "result: %i\n", r );
 
 
                 // Get the schema for both the backup and current tables
@@ -1115,7 +1116,9 @@ namespace nsGlasslabSDK {
                     // We need to check this backup table field for existence in the current table
                     for( int c = 0; c < current_q.numFields(); c++ ) {
                         // If we have a match, append the value to the insert string
-                        if( backup_q.fieldName( b ) == current_q.fieldName( c ) ) {
+                        //printf( "comparing %s with %s\n", backup_q.fieldName( b ), current_q.fieldName( c ) );
+                        if( strcmp( backup_q.fieldName( b ), current_q.fieldName( c ) ) == 0 ) {
+                            //printf( "found!\n" );
                             insertString += backup_q.fieldName( b );
                             matchFound = true;
                             break;
@@ -1133,6 +1136,10 @@ namespace nsGlasslabSDK {
                     }
                 }
 
+                // Finalize the two select statements
+                backup_q.finalize();
+                current_q.finalize();
+
 
                 // Insert shared values the from current into the backup
                 m_sql = "insert into " + table + "_backup "
@@ -1141,6 +1148,7 @@ namespace nsGlasslabSDK {
                 cout << "SQL: " << m_sql << endl;
                 t2 = m_sql;
                 r = m_db.execDML( t2.c_str() );
+                printf( "result: %i\n", r );
 
                 // Drop the current table
                 m_sql = "drop table " + table + ";";
@@ -1148,6 +1156,7 @@ namespace nsGlasslabSDK {
                 cout << "SQL: " << m_sql << endl;
                 t2 = m_sql;
                 r = m_db.execDML( t2.c_str() );
+                printf( "result: %i\n", r );
 
                 // Alter the backup table to rename it as current
                 m_sql = "alter table " + table + "_backup "
@@ -1156,6 +1165,7 @@ namespace nsGlasslabSDK {
                 cout << "SQL: " << m_sql << endl;
                 t2 = m_sql;
                 r = m_db.execDML( t2.c_str() );
+                printf( "result: %i\n", r );
 
                 // Print final results
                 cout << "Migration results:" << r << endl;

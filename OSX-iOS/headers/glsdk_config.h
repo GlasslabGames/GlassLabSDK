@@ -9,7 +9,7 @@
 //
 
 
-#define SDK_VERSION	"0.2"
+#define SDK_VERSION	"0.21"
 
 #define DB_MESSAGE_CAP 32000
 
