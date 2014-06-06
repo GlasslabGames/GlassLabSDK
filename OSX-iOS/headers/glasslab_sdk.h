@@ -96,6 +96,7 @@ class GlasslabSDK {
         void addTelemEventValue( const char* key, uint32_t value );
         void addTelemEventValue( const char* key, float value );
         void addTelemEventValue( const char* key, double value );
+        void addTelemEventValue( const char* key, bool value );
 
         // Telemetry event helpers
         void clearTelemEventValues();
@@ -112,6 +113,7 @@ class GlasslabSDK {
         void updatePlayerInfoKey( const char* key, uint32_t value );
         void updatePlayerInfoKey( const char* key, float value );
         void updatePlayerInfoKey( const char* key, double value );
+        void updatePlayerInfoKey( const char* key, bool value );
         void removePlayerInfoKey( const char* key );
 
         // Setters
@@ -122,9 +124,12 @@ class GlasslabSDK {
         void setPlayerHandle( const char* handle );
         void removePlayerHandle( const char* handle );
 
+        // Game timer functions
+        void startGameTimer();
+        void stopGameTimer();
+
         // Getters
         const char* getCookie();
-        float getTotalTimePlayed();
 
     
     private:

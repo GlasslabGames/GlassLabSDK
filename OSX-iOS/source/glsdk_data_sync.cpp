@@ -126,6 +126,9 @@ namespace nsGlasslabSDK {
                         performMigration = true;
                     }
                 }
+
+                // Finalize the query
+                q.finalize();
             }
 
             // Reset the tables if we need to
@@ -369,6 +372,9 @@ namespace nsGlasslabSDK {
                 s << "UPDATE " << m_sessionTableName << " SET cookie='" << cookie << "' WHERE deviceId='" << deviceId << "'";
                 m_sql = s.str();
             }
+
+            // Finalize the query
+            //sessionQuery.finalize();
         
             cout << "SQL: " << m_sql << endl;
             int nRows = m_db.execDML( m_sql.c_str() );
@@ -424,6 +430,9 @@ namespace nsGlasslabSDK {
                 s << "UPDATE " << m_sessionTableName << " SET gameSessionId='" << gameSessionId << "', gameSessionEventOrder='" << 1 << "' WHERE deviceId='" << deviceId << "'";
                 m_sql = s.str();
             }
+
+            // Finalize the query
+            //sessionQuery.finalize();
         
             cout << "SQL: " << m_sql << endl;
             int nRows = m_db.execDML( m_sql.c_str() );
@@ -476,6 +485,9 @@ namespace nsGlasslabSDK {
             else {
                 cout << "FOUND entry with new device Id, we can ignore\n";
             }
+
+            // Finalize the query
+            //sessionQuery.finalize();
             
             displayTable( m_sessionTableName );
         }
@@ -521,6 +533,9 @@ namespace nsGlasslabSDK {
             m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
             CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
 
+            // Finalize the query
+            //sessionQuery.finalize();
+
             // If the count is 0, no entry exists with deviceId, return an empty string
             // The empty string will tell the next get request that we need one to store
             if( sessionQuery.eof() ) {
@@ -546,9 +561,9 @@ namespace nsGlasslabSDK {
     /**
      * SESSION operation.
      *
-     * Updates an existing session with the totalTimePlayed.
+     * Updates an existing session with player info, including total time played and the current game session event order.
      */
-    void DataSync::updateTotalTimePlayedFromDeviceId( string deviceId, float totalTimePlayed ) {
+    void DataSync::updatePlayerInfoFromDeviceId( string deviceId, float totalTimePlayed, int gameSessionEventOrder ) {
         // string stream
         ostringstream s;
         
@@ -562,7 +577,7 @@ namespace nsGlasslabSDK {
             // Only continue if an entry exists
             if( !sessionQuery.eof() ) {
                 // Update
-                s << "UPDATE " << m_sessionTableName << " SET totalTimePlayed='" << totalTimePlayed << "' WHERE deviceId='" << deviceId << "'";
+                s << "UPDATE " << m_sessionTableName << " SET totalTimePlayed='" << totalTimePlayed << "', gameSessionEventOrder='" << gameSessionEventOrder << "' WHERE deviceId='" << deviceId << "'";
                 m_sql = s.str();
 
                 //cout << "SQL: " << m_sql << endl;
@@ -570,10 +585,13 @@ namespace nsGlasslabSDK {
                 //cout << nRows << " rows inserted" << endl;
                 //cout << "------------------------------------" << endl;
             }
+
+            // Finalize the query
+            //sessionQuery.finalize();
         }
         catch( CppSQLite3Exception e ) {
-            m_core->displayError( "DataSync::updateTotalTimePlayedFromDeviceId()", e.errorMessage() );
-            cout << "Exception in updateTotalTimePlayedFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            m_core->displayError( "DataSync::updatePlayerInfoFromDeviceId()", e.errorMessage() );
+            cout << "Exception in updatePlayerInfoFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -583,13 +601,13 @@ namespace nsGlasslabSDK {
      * Get the totalTimePlayed stored in the SESSION table using the deviceId.
      */
     float DataSync::getTotalTimePlayedFromDeviceId( string deviceId ) {
-        // string stream
-        ostringstream s;
-        
         try {
             // Look for an existing entry with the device Id
             m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
             CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+
+            // Finalize the query
+            //sessionQuery.finalize();
 
             // If the count is 0, no entry exists with deviceId, return a default value of 0.0
             if( sessionQuery.eof() ) {
@@ -610,6 +628,64 @@ namespace nsGlasslabSDK {
 
         // Return 0.0 by default
         return 0.0;
+    }
+
+    /**
+     * SESSION operation.
+     *
+     * Update the gameSessionEventOrder stored in the SESSION table using the deviceId.
+     */
+    void DataSync::updateGameSessionEventOrderWithDeviceId( string deviceId, int gameSessionEventOrder ) {
+        // string stream
+        ostringstream s;
+        
+        try {
+            // Update the SESSION table with the new gameSessionEventOrder value
+            s << "UPDATE " << m_sessionTableName << " SET gameSessionEventOrder='" << gameSessionEventOrder << "' WHERE deviceId='" << deviceId << "';";
+            m_sql = s.str();
+            cout << "update SQL: " << m_sql << endl;
+            int r = m_db.execDML( m_sql.c_str() );
+            cout << "Updating gameSessionEventOrder result: " << r << endl;
+        }
+        catch( CppSQLite3Exception e ) {
+            m_core->displayError( "DataSync::updateGameSessionEventOrderWithDeviceId()", e.errorMessage() );
+            cout << "Exception in updateGameSessionEventOrderWithDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+        }
+    }
+
+    /**
+     * SESSION operation.
+     *
+     * Get the gameSessionEventOrder stored in the SESSION table using the deviceId.
+     */
+    int DataSync::getGameSessionEventOrderFromDeviceId( string deviceId ) {
+        try {
+            // Look for an existing entry with the device Id
+            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
+            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+
+            // Finalize the query
+            //sessionQuery.finalize();
+
+            // If the count is 0, no entry exists with deviceId, return a default value of 1
+            if( sessionQuery.eof() ) {
+                cout << "gameSessionEventOrder does not exist for " << deviceId.c_str() << endl;
+                return 1;
+            }
+            // An entry does exist, grab the gameSessionEventOrder and return it
+            else if( sessionQuery.fieldValue( 3 ) != NULL ) {
+                int gameSessionEventOrder = atoi( sessionQuery.fieldValue( 3 ) );
+                cout << "gameSessionEventOrder exists for " << deviceId.c_str() << ": " << gameSessionEventOrder << endl;
+                return gameSessionEventOrder;
+            }
+        }
+        catch( CppSQLite3Exception e ) {
+            m_core->displayError( "DataSync::getGameSessionEventOrderFromDeviceId()", e.errorMessage() );
+            cout << "Exception in getGameSessionEventOrderFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+        }
+
+        // Return 1 by default
+        return 1;
     }
 
     /**
@@ -699,6 +775,9 @@ namespace nsGlasslabSDK {
             cout << "msgQ SQL: " << m_sql << endl;
             CppSQLite3Query msgQuery = m_db.execQuery( m_sql.c_str() );
 
+            // Finalize the query
+            //msgQuery.finalize();
+
             // Iterate 
             while ( !msgQuery.eof() )
             {
@@ -739,6 +818,9 @@ namespace nsGlasslabSDK {
                     m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
                     cout << "session SQL: " << m_sql << endl;
                     CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+
+                    // Finalize the query
+                    //sessionQuery.finalize();
 
                     // Only continue if we received an entry from SESSION
                     if( !sessionQuery.eof() ) {
@@ -787,7 +869,7 @@ namespace nsGlasslabSDK {
                                 }
 
                                 // If this is a telemetry event, update the postdata with the correct gameSessionEventOrder and increment it
-                                if( apiPath == API_POST_EVENTS ) {
+                                /*if( apiPath == API_POST_EVENTS ) {
                                     // Get the current gameSessionEventOrder from the SESSION table
                                     const char* gameSessionEventOrderAsString = sessionQuery.fieldValue( 3 );
                                     int gameSessionEventOrder;
@@ -819,11 +901,12 @@ namespace nsGlasslabSDK {
                                     }
 
                                     // Update the SESSION table with the new gameSessionEventOrder value
+                                    updateGameSessionEventOrderWithDeviceId( deviceId, atoi( orderStream.str() ) );
                                     m_sql = "UPDATE " + m_sessionTableName + " SET gameSessionEventOrder='" + orderStream.str() + "' WHERE deviceId='" + deviceId + "';";
                                     cout << "update SQL: " << m_sql << endl;
                                     int r = m_db.execDML( m_sql.c_str() );
                                     cout << "Updating gameSessionEventOrder result: " << r << endl;
-                                }
+                                }*/
 
 
                                 // Debug printing

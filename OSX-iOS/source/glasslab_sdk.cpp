@@ -103,6 +103,7 @@ void GlasslabSDK::addTelemEventValue( const char* key, uint16_t value )    { if(
 void GlasslabSDK::addTelemEventValue( const char* key, uint32_t value )    { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 void GlasslabSDK::addTelemEventValue( const char* key, float value )       { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 void GlasslabSDK::addTelemEventValue( const char* key, double value )      { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
+void GlasslabSDK::addTelemEventValue( const char* key, bool value )        { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 
 void GlasslabSDK::clearTelemEventValues() {
     if( m_core != NULL ) m_core->clearTelemEventValues();
@@ -126,6 +127,7 @@ void GlasslabSDK::updatePlayerInfoKey( const char* key, uint16_t value )    { if
 void GlasslabSDK::updatePlayerInfoKey( const char* key, uint32_t value )    { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
 void GlasslabSDK::updatePlayerInfoKey( const char* key, float value )       { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
 void GlasslabSDK::updatePlayerInfoKey( const char* key, double value )      { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
+void GlasslabSDK::updatePlayerInfoKey( const char* key, bool value )        { if( m_core != NULL ) m_core->updatePlayerInfoKey( key, value ); }
 void GlasslabSDK::removePlayerInfoKey( const char* key )                    { if( m_core != NULL ) m_core->removePlayerInfoKey( key ); }
 
 
@@ -154,14 +156,14 @@ void GlasslabSDK::removePlayerHandle( const char* handle ) {
 }
 
 
-float GlasslabSDK::getTotalTimePlayed() {
-    if( m_core != NULL ) {
-        return m_core->getTotalTimePlayed();
-    }
-    else {
-        return 0.0;
-    }
+void GlasslabSDK::startGameTimer() {
+    if( m_core != NULL ) m_core->startGameTimer();
 }
+
+void GlasslabSDK::stopGameTimer() {
+    if( m_core != NULL ) m_core->stopGameTimer();
+}
+
 
 const char* GlasslabSDK::getCookie() {
     if( m_core != NULL ) {

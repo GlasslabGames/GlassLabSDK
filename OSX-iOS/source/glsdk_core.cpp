@@ -73,6 +73,11 @@ namespace nsGlasslabSDK {
 
         // Set the last time since telemetry was fired
         m_telemetryLastTime = time( NULL );
+        // Get the game session event order to update
+        m_gameSessionEventOrder = m_dataSync->getGameSessionEventOrderFromDeviceId( m_deviceId );
+
+        // The game timer is initially deactivated
+        m_gameTimerActive = false;
 
 
         // Attempt a connection now that the SDK is created
@@ -304,6 +309,9 @@ namespace nsGlasslabSDK {
         if( sdkInfo.clientCB != NULL ) {
             sdkInfo.clientCB();
         }
+
+        // Get the player info
+        sdkInfo.core->getPlayerInfo();
     }
 
     /**
@@ -412,6 +420,80 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     //--------------------------------------
     /**
+     * Callback function occurs when API_GET_PLAYERINFO is successful.
+     *
+     * Parses player info returned from the server.
+     */
+    void getPlayerInfo_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        printf( "\n---------------------------\n" );
+        printf( "getPlayerInfo_Done: %s", json );
+        printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetPlayerInfo;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                returnMessage = Const::Message_Error;
+            }
+
+            // Parse JSON data if there was no error
+            if( returnMessage != Const::Message_Error ) {
+                // Get the client totalTimePlayed value to do a comparison
+                float clientTotalTimePlayed = sdkInfo.core->getTotalTimePlayed();
+                
+                // Parse the totalTimePlayed received from the server
+                float serverTotalTimePlayed = 0.0;
+                json_t* totalTimePlayed = json_object_get( root, "totalTimePlayed" );
+                if( totalTimePlayed && json_is_integer( totalTimePlayed ) ) {
+                    serverTotalTimePlayed = (float)json_integer_value( totalTimePlayed );
+                }
+
+                printf( "client time: %f, server time: %f\n", clientTotalTimePlayed, serverTotalTimePlayed );
+                
+                // If the client is greater than the server, the info is already stored in the player
+                // info and database, no need to do anything. Otherwise, set the local values.
+                if( clientTotalTimePlayed < serverTotalTimePlayed ) {
+                    sdkInfo.core->updatePlayerInfoKey( "$totalTimePlayed$", serverTotalTimePlayed );
+                    sdkInfo.core->mf_updateTotalTimePlayedInSessionTable( serverTotalTimePlayed );
+                    printf( "using server time: %f\n", serverTotalTimePlayed );
+                }
+                else {
+                    printf( "using client time: %f\n", clientTotalTimePlayed );
+                }
+            }
+        }
+        
+        // Push SavePlayerInfo message
+        sdkInfo.core->pushMessageStack( returnMessage );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * GetPlayerInfo function will grab player info as JSON from server. This info
+     * contains total time played and achievement infofmration.
+     */
+    void Core::getPlayerInfo( string cb ) {
+        // Set the URL
+        string url = API_GET_PLAYERINFO;
+        url += "/" + m_gameId + "/playInfo";
+        
+        // Make the request
+        mf_httpGetRequest( url, "getPlayerInfo_Done", cb );
+    }
+
+    /**
      * Extract userInfo from login_Done callback.
      * Grabs userId information.
      */
@@ -484,6 +566,9 @@ namespace nsGlasslabSDK {
 
         // Call the update device Id API
         sdkInfo.core->deviceUpdate();
+
+        // Get the player info
+        sdkInfo.core->getPlayerInfo();
     }
 
     /**
@@ -845,11 +930,21 @@ namespace nsGlasslabSDK {
             dataOut += "&courseId=";
             dataOut += courseOut;
         }*/
+
+        // Reset the gameSessionEventOrder in the SQLite database
+        m_gameSessionEventOrder = 1;
+        m_dataSync->updateGameSessionEventOrderWithDeviceId( m_deviceId, m_gameSessionEventOrder );
+
         // Append gameLevel info to the postdata if it exists
         if(m_gameLevel.length() > 0){
             dataOut += "&gameLevel=";
             dataOut += m_gameLevel;
         }
+
+        // Append the gameId
+        dataOut += "&gameId=";
+        dataOut += m_gameId;
+
         // Append timestamp info to the postdata
         char t[21];
         sprintf(t, "%d", (int)time(NULL));
@@ -1032,9 +1127,66 @@ namespace nsGlasslabSDK {
         }
 
         // Add this message to the queue
-        string url = API_POST_PLAYERINFO;
-        url += "/" + m_gameId;
-        mf_addMessageToDataQueue( url, "savePlayerInfo_Done", cb, jsonOut.c_str(), "application/json" );
+        //string url = API_POST_PLAYERINFO;
+        //url += "/" + m_gameId;
+        //mf_addMessageToDataQueue( url, "savePlayerInfo_Done", cb, jsonOut.c_str(), "application/json" );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_POST_PLAYERINFO is successful.
+     *
+     */
+    void sendTotalTimePlayed_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        printf( "\n---------------------------\n" );
+        printf( "sendTotalTimePlayed_Done: %s", json );
+        printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_SendTotalTimePlayed;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                returnMessage = Const::Message_Error;
+            }
+        }
+        
+        // Push SavePlayerInfo message
+        sdkInfo.core->pushMessageStack( returnMessage );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+    
+    /**
+     * SendTotalTimePlayed function communicates with the server to send totalTimePlayed data.
+     */
+    void Core::sendTotalTimePlayed( string cb ) {
+        // Append the totalTimePlayed to the postdata
+        string dataOut = "";
+        dataOut += "{\"setTime\":";
+        // Append the timestamp to the postdata
+        char t[21];
+        sprintf(t, "%.2f", getTotalTimePlayed());
+        dataOut += t;
+        dataOut += "}";
+
+        // Add this message to the queue
+        string url = API_POST_TOTAL_TIME_PLAYED;
+        url += "/" + m_gameId + "/totalTimePlayed";
+        mf_addMessageToDataQueue( url, "sendTotalTimePlayed_Done", cb, dataOut, "application/json" );
     }
 
 
@@ -1082,6 +1234,25 @@ namespace nsGlasslabSDK {
      * events exist, it will call the callbacks normally.
      */
     void Core::sendTelemEvents( string clientCB, string coreCB ) {
+
+        // Get the current total time played for updating and setting in the internal database
+        float newTime = getTotalTimePlayed();
+
+        // First, increment the game timer if it is active
+        if( m_gameTimerActive ) {
+            // Get the current time
+            time_t currentTime = time( NULL );
+
+            // Measure the time between last game time and current (in seconds)
+            float delta = difftime( currentTime, m_gameTimerLast );
+            m_gameTimerLast = currentTime;
+
+            // Increment the total time played and set it
+            newTime += delta;
+            updatePlayerInfoKey( "$totalTimePlayed$", newTime );
+        }
+
+
         //printf( "send telem event\n%s\n%s", clientCB.c_str(), coreCB.c_str() );
         // Set the initial JSON postdata string
         string jsonOut = "";
@@ -1122,7 +1293,7 @@ namespace nsGlasslabSDK {
         else {
             p_glSDKInfo sdkInfo;
             sdkInfo.sdk = m_sdk; // exposed sdk
-            sdkInfo.core = this;  // hidden core
+            sdkInfo.core = this; // hidden core
             ClientCallback_Func clientCallback = getClientCallback( clientCB );
             sdkInfo.clientCB = clientCallback;
             CoreCallback_Func coreCallback = getCoreCallback( cb );//cb(sdkInfo);
@@ -1130,7 +1301,7 @@ namespace nsGlasslabSDK {
         }
 
         // Update the totalTimePlayed in the SQLite database
-        m_dataSync->updateTotalTimePlayedFromDeviceId( m_deviceId, getTotalTimePlayed() );
+        m_dataSync->updatePlayerInfoFromDeviceId( m_deviceId, newTime, m_gameSessionEventOrder );
 
 
         // Attempt to dispatch the message queue
@@ -1154,23 +1325,23 @@ namespace nsGlasslabSDK {
 
             // Check that we exceed the minimum number of events to send data
             if( m_dataSync->getMessageTableSize() > config.eventsMinSize ) {
+                // In addition to flushing the message queue, do a POST on the totalTimePlayed
+                sendTotalTimePlayed();
+
                 printf( "Seconds elapsed for flush: %f with %i events\n", secondsElapsed, m_dataSync->getMessageTableSize() );
                 m_telemetryLastTime = currentTime;
                 m_dataSync->flushMsgQ();
-
-                // In addition to flushing the message queue, do a POST on the player info
-                savePlayerInfo();
             }
         }
         // Or send events if we've exceeded the table size limit
-        else if( m_dataSync->getMessageTableSize() > config.eventsMaxSize ) {
-            printf( "reached max number of events: %i\n", m_dataSync->getMessageTableSize() );
+        /*else if( m_dataSync->getMessageTableSize() > config.eventsMaxSize ) {
+            printf( "reached max number of events: %i with %f elapsed with %i\n", m_dataSync->getMessageTableSize(), secondsElapsed, config.eventsPeriodSecs );
             m_telemetryLastTime = currentTime;
             m_dataSync->flushMsgQ();
 
             // In addition to flushing the message queue, do a POST on the player info
             savePlayerInfo();
-        }
+        }*/
     }
 
 
@@ -1424,6 +1595,11 @@ namespace nsGlasslabSDK {
         register_Structure.cancel = false;
         m_coreCallbackMap[ "register_Done" ] = register_Structure;
 
+        coreCallbackStructure getPlayerInfo_Structure;
+        getPlayerInfo_Structure.coreCB = getPlayerInfo_Done;
+        getPlayerInfo_Structure.cancel = false;
+        m_coreCallbackMap[ "getPlayerInfo_Done" ] = getPlayerInfo_Structure;
+
         coreCallbackStructure login_Structure;
         login_Structure.coreCB = login_Done;
         login_Structure.cancel = false;
@@ -1468,6 +1644,11 @@ namespace nsGlasslabSDK {
         savePlayerInfo_Structure.coreCB = savePlayerInfo_Done;
         savePlayerInfo_Structure.cancel = false;
         m_coreCallbackMap[ "savePlayerInfo_Done" ] = savePlayerInfo_Structure;
+
+        coreCallbackStructure sendTotalTimePlayed_Structure;
+        sendTotalTimePlayed_Structure.coreCB = sendTotalTimePlayed_Done;
+        sendTotalTimePlayed_Structure.cancel = false;
+        m_coreCallbackMap[ "sendTotalTimePlayed_Done" ] = sendTotalTimePlayed_Structure;
 
         coreCallbackStructure sendTelemEvent_Structure;
         sendTelemEvent_Structure.coreCB = sendTelemEvent_Done;
@@ -1552,6 +1733,20 @@ namespace nsGlasslabSDK {
         }
     }
 
+    /**
+     * Function updates the totalTimePlayed for the user associated with the parameter devieceId 
+     * in the SQLite session table.
+     */
+    void Core::mf_updateTotalTimePlayedInSessionTable( float totalTimePlayed ) {
+        // Only proceed if the data sync object exists
+        if( m_dataSync != NULL ) {
+            m_dataSync->updatePlayerInfoFromDeviceId( m_deviceId, totalTimePlayed, m_gameSessionEventOrder );
+        }
+        else {
+            displayError( "Core::mf_updateTotalTimePlayedInSessionTable()", "Tried to update the totalTimePlayed in the SESSION table but the sync object was NULL!" );
+        }
+    }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -1586,6 +1781,9 @@ namespace nsGlasslabSDK {
     }
     void Core::addTelemEventValue( const char* key, double value ) {
         json_object_set( m_telemEventValues, key, json_real( value ) );
+    }
+    void Core::addTelemEventValue( const char* key, bool value ) {
+        json_object_set( m_telemEventValues, key, json_boolean( value ) );
     }
 
     /**
@@ -1651,7 +1849,7 @@ namespace nsGlasslabSDK {
             json_object_set( event, "eventName", json_string( name ) );
             json_object_set( event, "gameId",  json_string( m_gameId.c_str() ) );
             json_object_set( event, "gameSessionId", json_string( "$gameSessionId$" ) );
-            json_object_set( event, "gameSessionEventOrder", json_string( "$gameSessionEventOrder$" ) );
+            json_object_set( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );//"$gameSessionEventOrder$" ) );
 
             // Set the deviceId if it exists
             if( m_deviceId.length() > 0 ) {
@@ -1713,7 +1911,7 @@ namespace nsGlasslabSDK {
             json_object_set( event, "eventName", json_string( "$Achievement" ) );
             json_object_set( event, "gameId",  json_string( m_gameId.c_str() ) );
             json_object_set( event, "gameSessionId", json_string( "$gameSessionId$" ) );
-            json_object_set( event, "gameSessionEventOrder", json_string( "$gameSessionEventOrder$" ) );
+            json_object_set( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );// "$gameSessionEventOrder$" ) );
 
             // Set the deviceId if it exists
             if( m_deviceId.length() > 0 ) {
@@ -1790,6 +1988,9 @@ namespace nsGlasslabSDK {
     void Core::updatePlayerInfoKey( const char* key, double value ) {
         json_object_set( m_playerInfo, key, json_real( value ) );
     }
+    void Core::updatePlayerInfoKey( const char* key, bool value ) {
+        json_object_set( m_playerInfo, key, json_boolean( value ) );
+    }
 
     /**
      * Allow the user to remove a key/value pair from the user info data structure.
@@ -1827,6 +2028,28 @@ namespace nsGlasslabSDK {
 
         // Set default keys in the blob
         setDefaultPlayerInfoKeys();
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Game timer function for starting. This function also resets the timer to be current.
+     */
+    void Core::startGameTimer() {
+        // Only reset the last time if we were previously inactive
+        if( !m_gameTimerActive ) {
+            m_gameTimerActive = true;
+            m_gameTimerLast = time( NULL );
+        }
+    }
+
+    /**
+     * Game timer function for stopping.
+     */
+    void Core::stopGameTimer() {
+        m_gameTimerActive = false;
     }
 
 
@@ -1883,6 +2106,9 @@ namespace nsGlasslabSDK {
         savePlayerInfo();
         resetPlayerInfo();
 
+        // Get the game session event order to update
+        m_gameSessionEventOrder = m_dataSync->getGameSessionEventOrderFromDeviceId( m_deviceId );
+
         // Call the update device Id API
         //deviceUpdate();
     }
@@ -1920,6 +2146,9 @@ namespace nsGlasslabSDK {
         if( m_dataSync != NULL ) {
             printf( "setting game session Id: %s\n", m_sessionId.c_str() );
             m_dataSync->updateSessionTableWithGameSessionId( m_deviceId, m_sessionId );
+
+            // Get the game session event order to update
+            m_gameSessionEventOrder = m_dataSync->getGameSessionEventOrderFromDeviceId( m_deviceId );
         }
     }
 
