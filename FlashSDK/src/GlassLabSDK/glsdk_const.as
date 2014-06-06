@@ -28,13 +28,19 @@ package GlassLabSDK {
 		
 		public static const MESSAGE_CONNECT 		: int = 0;
 		public static const MESSAGE_DEVICE_UPDATE 	: int = 1;
-		public static const MESSAGE_SESSION_START 	: int = 2;
-		public static const MESSAGE_SESSION_END 	: int = 3;
-		public static const MESSAGE_EVENTS 			: int = 4;
-		public static const MESSAGE_ERROR 			: int = 5;
+		public static const MESSAGE_AUTH_STATUS		: int = 2;
+		public static const MESSAGE_SESSION_START 	: int = 3;
+		public static const MESSAGE_SESSION_END 	: int = 4;
+		public static const MESSAGE_EVENTS 			: int = 5;
+		public static const MESSAGE_ERROR 			: int = 6;
 		
 		
-		public static const TELEMETRY_DISPATCH_TIMER : int = 500;	// In milliseconds
 		public static const TELEMETRY_DISPATCH_CHUNK : int = 32;	// Dispatch a number of telemetry events per tick
+		
+		
+		public static const THROTTLE_PRIORITY_DEFAULT : int = 10;		// Default priority level for throttling telemetry
+		public static const THROTTLE_INTERVAL_DEFAULT : int = 30000;	// Default request interval to throttle telemetry (milliseconds)
+		public static const THROTTLE_MIN_SIZE_DEFAULT : int = 5;		// Minimum number of events to reach before sending telemetry
+		public static const THROTTLE_MAX_SIZE_DEFAULT : int = 100;		// Maximum number of events reached will send telemetry
 	}
 }

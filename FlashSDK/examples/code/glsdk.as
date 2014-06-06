@@ -70,6 +70,13 @@ package {
 						writeText( "MESSAGE_CONNECT " + response.m_data );
 						break;
 					
+					case glsdk_const.MESSAGE_AUTH_STATUS:
+						trace( "MESSAGE_AUTH_STATUS " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_AUTH_STATUS " + response.m_data );
+						break;
+					
 					case glsdk_const.MESSAGE_SESSION_START:
 						trace( "MESSAGE_SESSION_START " + response.m_data );
 					
@@ -135,7 +142,7 @@ package {
 		* @see saveTelemEvent
 		*/
 		public function reportKeyDown( event:KeyboardEvent ) : void { 
-			//trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
+			trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
 			if( event.charCode == 115 ) {
 				writeText( "Attempting to call start session..." );
 				startSession();
@@ -150,7 +157,12 @@ package {
 				addTelemEventValue_int( "key2", 2 );
 				addTelemEventValue_uint( "key3", 3 );
 				addTelemEventValue_number( "key4", 4.1 );
+				addTelemEventValue_bool( "key5", true );
 				saveTelemEvent( "test_telem" );
+			}
+			else if( event.charCode == 97 ) {
+				writeText( "Attempting to get auth status..." );
+				getAuthStatus();
 			}
 		}
 		

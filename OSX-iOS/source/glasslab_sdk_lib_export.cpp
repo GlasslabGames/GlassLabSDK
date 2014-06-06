@@ -142,6 +142,7 @@ extern "C"
     void GlasslabSDK_AddTelemEventValue_uint32( void* inst, const char* key, uint32_t value )       { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->addTelemEventValue( key, value ); }
     void GlasslabSDK_AddTelemEventValue_float ( void* inst, const char* key, float value )          { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->addTelemEventValue( key, value ); }
     void GlasslabSDK_AddTelemEventValue_double( void* inst, const char* key, double value )         { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->addTelemEventValue( key, value ); }
+    void GlasslabSDK_AddTelemEventValue_bool  ( void* inst, const char* key, bool value )           { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->addTelemEventValue( key, value ); }
 
     void GlasslabSDK_ClearTelemEventValues( void* inst ) {
         if( inst != NULL ) {
@@ -171,6 +172,7 @@ extern "C"
     void GlasslabSDK_UpdatePlayerInfoKey_uint32( void* inst, const char* key, uint32_t value )       { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
     void GlasslabSDK_UpdatePlayerInfoKey_float ( void* inst, const char* key, float value )          { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
     void GlasslabSDK_UpdatePlayerInfoKey_double( void* inst, const char* key, double value )         { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
+    void GlasslabSDK_UpdatePlayerInfoKey_bool  ( void* inst, const char* key, bool value )           { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->updatePlayerInfoKey( key, value ); }
     void GlasslabSDK_RemovePlayerInfoKey( void* inst, const char* key ) { if( inst != NULL ) static_cast<GlasslabSDK *>( inst )->removePlayerInfoKey( key ); }
 
 
@@ -210,14 +212,19 @@ extern "C"
         }
     }
 
-    float GlasslabSDK_GetTotalTimePlayed( void* inst ) {
+
+    void GlasslabSDK_StartGameTimer( void* inst ) {
         if( inst != NULL ) {
-            return static_cast<GlasslabSDK *>( inst )->getTotalTimePlayed();
-        }
-        else {
-            return 0.0;
+            static_cast<GlasslabSDK *>( inst )->startGameTimer();
         }
     }
+
+    void GlasslabSDK_StopGameTimer( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->stopGameTimer();
+        }
+    }
+    
 
     char* GlasslabSDK_GetCookie( void* inst ) {
         if( inst != NULL ) {

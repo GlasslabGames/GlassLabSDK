@@ -85,6 +85,7 @@ namespace nsGlasslabSDK {
             void authStatus();
             void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
             void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true, string cb = "" );
+            void getPlayerInfo( string cb = "" );
             void login( const char* username, const char* password, const char* type = NULL, string cb = "" );
             void enroll( const char* courseCode, string cb = "" );
             void unenroll( const char* courseId, string cb = "" );
@@ -94,6 +95,7 @@ namespace nsGlasslabSDK {
             void endSession( string cb = "" );
             void saveGame( const char* gameData, string cb = "" );
             void savePlayerInfo( string cb = "" );
+            void sendTotalTimePlayed( string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
             void attemptMessageDispatch();
             void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
@@ -110,6 +112,8 @@ namespace nsGlasslabSDK {
             // SQLite message queue functions
             void mf_addMessageToDataQueue( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL );
             void mf_updateMessageStatusInDataQueue( int rowId, string status );
+            // SQLite session table functions
+            void mf_updateTotalTimePlayedInSessionTable( float totalTimePlayed );
         
             // Telemetry event values
             void addTelemEventValue( const char* key, const char* value );
@@ -121,6 +125,7 @@ namespace nsGlasslabSDK {
             void addTelemEventValue( const char* key, uint32_t value );
             void addTelemEventValue( const char* key, float value );
             void addTelemEventValue( const char* key, double value );
+            void addTelemEventValue( const char* key, bool value );
 
             // Telemetry event helpers
             void clearTelemEventValues();
@@ -139,9 +144,14 @@ namespace nsGlasslabSDK {
             void updatePlayerInfoKey( const char* key, uint32_t value );
             void updatePlayerInfoKey( const char* key, float value );
             void updatePlayerInfoKey( const char* key, double value );
+            void updatePlayerInfoKey( const char* key, bool value );
             void removePlayerInfoKey( const char* key );
             void setDefaultPlayerInfoKeys();
             void resetPlayerInfo();
+
+            // Game timer functions
+            void startGameTimer();
+            void stopGameTimer();
 
             // Setters
             void setConnectUri( const char* uri );
@@ -200,6 +210,13 @@ namespace nsGlasslabSDK {
 
             // Timer for delaying telemetry
             time_t m_telemetryLastTime;
+            
+            // Local variable for event order
+            int m_gameSessionEventOrder;
+
+            // Game timer variables used for total time played
+            time_t m_gameTimerLast;
+            bool m_gameTimerActive;
         
             // Status members
             Const::Status m_lastStatus;

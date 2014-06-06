@@ -481,6 +481,17 @@ public class GlasslabSDK {
 		
 		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
 	}
+	public void AddTelemEventValue(string key, bool value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_AddTelemEventValue_bool(mInst, key, value);
+		#else
+		#if TELEMETRY_DEBUG
+		Debug.Log( "---------- EVENT: " + key + ": " + value );
+		#endif
+		#endif
+		
+		if( TelemetryOutput != null ) TelemetryOutput( key + ": " + value.ToString() );
+	}
 	
 	public void SaveTelemEvent(string name) {
 		#if !UNITY_EDITOR
@@ -590,9 +601,26 @@ public class GlasslabSDK {
 		GlasslabSDK_UpdatePlayerInfoKey_double(mInst, key, value);
 		#endif
 	}
+	public void UpdatePlayerInfoKey(string key, bool value) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_UpdatePlayerInfoKey_bool(mInst, key, value);
+		#endif
+	}
 	public void RemovePlayerInfoKey(string key) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_RemovePlayerInfoKey(mInst, key);
+		#endif
+	}
+
+	// ----------------------------
+	public void StartGameTimer() {
+		#if !UNITY_EDITOR
+		GlasslabSDK_StartGameTimer(mInst);
+		#endif
+	}
+	public void StopGameTimer() {
+		#if !UNITY_EDITOR
+		GlasslabSDK_StopGameTimer(mInst);
 		#endif
 	}
 	
@@ -699,6 +727,8 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_AddTelemEventValue_float (System.IntPtr inst, string key, float value);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_AddTelemEventValue_double(System.IntPtr inst, string key, double value);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_AddTelemEventValue_bool	(System.IntPtr inst, string key, bool value);
 	
 	// ----------------------------
 	[DllImport ("__Internal")]
@@ -731,12 +761,18 @@ public class GlasslabSDK {
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_UpdatePlayerInfoKey_double(System.IntPtr inst, string key, double value);
 	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_UpdatePlayerInfoKey_bool	 (System.IntPtr inst, string key, bool value);
+	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_RemovePlayerInfoKey(System.IntPtr inst, string key);
 
 
 	// ----------------------------
 	[DllImport ("__Internal")]
-	private static extern float GlasslabSDK_GetTotalTimePlayed(System.IntPtr inst);
+	private static extern void GlasslabSDK_StartGameTimer(System.IntPtr inst);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_StopGameTimer(System.IntPtr inst);
+
+
 	//[DllImport("<path to DLL>", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	//[return: MarshalAs(UnmanagedType.LPStr)]
 	[DllImport ("__Internal", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]

@@ -36,8 +36,10 @@ namespace nsGlasslabSDK {
         void updateSessionTableWithPlayerHandle( string deviceIdWithHandle );
         void removeSessionWithDeviceId( string deviceId );
         const char* getCookieFromDeviceId( string deviceId );
-        void updateTotalTimePlayedFromDeviceId( string deviceId, float totalTimePlayed );
+        void updatePlayerInfoFromDeviceId( string deviceId, float totalTimePlayed, int gameSessionEventOrder );
         float getTotalTimePlayedFromDeviceId( string deviceId );
+        void updateGameSessionEventOrderWithDeviceId( string deviceId, int gameSessionEventOrder );
+        int getGameSessionEventOrderFromDeviceId( string deviceId );
 
         // Function flushes MSG_QUEUE, converting all stored API events into HTTP requests on Core
         void flushMsgQ();

@@ -41,9 +41,15 @@ package GlassLabSDK {
 		private var m_deviceId : String;		// Unique Id accompanied with the session indicating device
 		private var m_gameSessionId : String;	// Unique Id denoting a game session, set on startSession success
 		
+		// Config object
+		private var m_config : Object;	// Object contains config variables used for throttling telemetry	
+		
 		// JSON helpers
 		private var m_telemEvents : Array;			// Array containing queued telemetry events ready for dispatch
 		private var m_telemEventValues : Object;	// Array containing unique event values for a single event
+		
+		// Default telemetry properties
+		private var m_gameSessionEventOrder : int;	// This is an incremented counter attached to each telemetry event, resets with every new session
 		
 		// Dispatches and Responses
 		private var m_telemetryQueue : Array;		// Server dispatches queued up, ready to be sent to the server
@@ -63,13 +69,23 @@ package GlassLabSDK {
 			m_clientVersion = "";
 			m_clientLevel = "";
 			
+			// Create the object to contain connect callback config variables
+			m_config = new Object();
+			m_config.eventsDetailLevel = glsdk_const.THROTTLE_PRIORITY_DEFAULT;
+			m_config.eventsPeriodSecs = glsdk_const.THROTTLE_INTERVAL_DEFAULT;
+			m_config.eventsMinSize = glsdk_const.THROTTLE_MIN_SIZE_DEFAULT;
+			m_config.eventsMaxSize = glsdk_const.THROTTLE_MAX_SIZE_DEFAULT;
+			
 			// Default JSON object variables
 			clearTelemEvents();
 			clearTelemEventValues();
 			
-			// Initialize the telemetry queue and dispatch timer
+			// Default telemetry properties
+			m_gameSessionEventOrder = 1;
+			
+			// Initialize the telemetry queue and dispatch timer with default throttling
 			m_telemetryQueue = new Array();
-			m_telemetryQueueTimer = new Timer( glsdk_const.TELEMETRY_DISPATCH_TIMER );
+			m_telemetryQueueTimer = new Timer( m_config.eventsPeriodSecs );
 			m_telemetryQueueTimer.addEventListener( TimerEvent.TIMER, telemetryDispatch );
 			m_telemetryQueueTimer.start();
 			
@@ -106,6 +122,25 @@ package GlassLabSDK {
 		}
 		
 		/**
+		* This function acts as a helper to push dispatch messages to the telemetry queue.
+		* This will be called by start session, end session, and telemetry SDK functions.
+		* It will be responsible for forcing server requests if the max number of events
+		* has been reached, regardless of the timer.
+		*
+		* @param dispatch The dispatch object containing request data.
+		*/
+		private function pushTelemetryQueue( dispatch:glsdk_dispatch ) : void {
+			m_telemetryQueue.push( dispatch );
+			
+			// If we've reached the max number of events, force the dispatch and reset the timer
+			if( m_telemetryQueue.length >= m_config.eventsMaxSize ) {
+				telemetryDispatch( null );
+				m_telemetryQueueTimer.reset();
+				m_telemetryQueueTimer.start();
+			}
+		}
+		
+		/**
 		* This function will dispatch queued messages to the server. We dispatch messages
 		* at a defined interval in an effort to reduce server load, rather than at the
 		* time of request. The dispatch interval and chunk size can be found in
@@ -117,6 +152,11 @@ package GlassLabSDK {
 		*/
 		private function telemetryDispatch( event:TimerEvent ) : void {
 			var dispatchCount : int = 0;
+			
+			// Must meet the minimum number of events before proceeding
+			if( m_telemetryQueue.length < m_config.eventsMinSize ) {
+				return;
+			}
 			
 			// Iterate through the telemetry queue as long as it is populated
 			while( m_telemetryQueue.length > 0 && dispatchCount < glsdk_const.TELEMETRY_DISPATCH_CHUNK ) {
@@ -162,6 +202,26 @@ package GlassLabSDK {
 		*/
 		private function connect_Done( event:Event) : void {
 			trace( "connect_Done: " + event.target.data );
+			
+			// Parse the returned JSON and retrieve the telemetry throttle parameters
+			var parsedJSON : Object = glsdk_json.instance().parse( event.target.data );
+			if( parsedJSON.hasOwnProperty( "eventsDetailLevel" ) ) {
+				m_config.eventsDetailLevel = parsedJSON.eventsDetailLevel;
+				trace( "Found config info eventsDetailLevel: " + m_config.eventsDetailLevel );
+			}
+			if( parsedJSON.hasOwnProperty( "eventsPeriodSecs" ) ) {
+				m_config.eventsPeriodSecs = parsedJSON.eventsPeriodSecs;
+				m_telemetryQueueTimer.delay = m_config.eventsPeriodSecs * 1000;	// account for milliseconds
+				trace( "Found config info eventsPeriodSecs: " + m_config.eventsPeriodSecs );
+			}
+			if( parsedJSON.hasOwnProperty( "eventsMinSize" ) ) {
+				m_config.eventsMinSize = parsedJSON.eventsMinSize;
+				trace( "Found config info eventsMinSize: " + m_config.eventsMinSize );
+			}
+			if( parsedJSON.hasOwnProperty( "eventsMaxSize" ) ) {
+				m_config.eventsMaxSize = parsedJSON.eventsMaxSize;
+				trace( "Found config info eventsMaxSize: " + m_config.eventsMaxSize );
+			}
 			
 			pushMessageQueue( glsdk_const.MESSAGE_CONNECT, event.target.data );
 		}
@@ -234,6 +294,47 @@ package GlassLabSDK {
 			httpRequest( new glsdk_dispatch( glsdk_const.API_POST_DEVICE_UPDATE, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, deviceUpdate_Done, deviceUpdate_Fail ) );
 		}
 		
+		
+		/**
+		* Failure callback function for the getAuthStatus() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getAuthStatus_Fail( event:IOErrorEvent ) : void {
+			trace( "getAuthStatus_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+		}
+		/**
+		* Success callback function for the getAuthStatus() http request. Adds a AUTH_STATUS response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getAuthStatus_Done( event:Event ) : void {
+			trace( "getAuthStatus_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_AUTH_STATUS, event.target.data );
+		}
+		/**
+		* Helper function for getting the authentication status for the cookie. This particular request
+		* will not be inserted into the queue. Instead, it is called immediately.
+		*
+		* If this request is successful, MESSAGE_AUTH_STATUS will be the response, otherwise
+		* MESSAGE_ERROR.
+		*
+		* @see httpRequest
+		*/
+		public function getAuthStatus() : void {
+			// Perform the request
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_AUTH_STATUS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAuthStatus_Done, getAuthStatus_Fail ) );
+		}
+		
 
 		/**
 		* Failure callback function for the startSession() http request. Adds an ERROR response
@@ -285,8 +386,11 @@ package GlassLabSDK {
 			postData.gameLevel = m_clientLevel;
 			postData.timestamp = date.time;
 			
+			// Reset the telemetry counter
+			m_gameSessionEventOrder = 1;
+			
 			// Store the dispatch message to be called later
-			m_telemetryQueue.push( new glsdk_dispatch( glsdk_const.API_POST_SESSION_START, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, startSession_Done, startSession_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SESSION_START, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, startSession_Done, startSession_Fail ) );
 		}
 		
 		
@@ -334,7 +438,7 @@ package GlassLabSDK {
 			postData.timestamp = date.time;
 			
 			// Store the dispatch message to be called later
-			m_telemetryQueue.push( new glsdk_dispatch( glsdk_const.API_POST_SESSION_END, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, endSession_Done, endSession_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SESSION_END, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, endSession_Done, endSession_Fail ) );
 		}
 		
 		
@@ -372,7 +476,7 @@ package GlassLabSDK {
 		*/
 		public function sendTelemEvents() : void {
 			// Store the dispatch message to be called later
-			m_telemetryQueue.push( new glsdk_dispatch( glsdk_const.API_POST_EVENTS, "POST", m_telemEvents, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_EVENTS, "POST", m_telemEvents, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
 		}
 		
 		
@@ -458,6 +562,15 @@ package GlassLabSDK {
 			m_telemEventValues[ key ] = value;
 		}
 		/**
+		* Adds a new boolean data field to be consumed by the next telemetry event.
+		*
+		* @param key The event key.
+		* @param value The event value as a boolean.
+		*/
+		public function addTelemEventValue_bool( key:String, value:Boolean ) : void {
+			m_telemEventValues[ key ] = value;
+		}
+		/**
 		* Adds a new number data field to be consumed by the next telemetry event.
 		*
 		* @param key The event key.
@@ -511,10 +624,11 @@ package GlassLabSDK {
 			
 			// Set default information
 			var telemEvent : Object = {};
-			telemEvent.clientTimeStamp = date.time;
+			telemEvent.clientTimeStamp = (int)( date.time / 1000 );
 			telemEvent.eventName = p_eventName;
 			telemEvent.gameId = m_clientId;
 			telemEvent.gameSessionId = "$gameSessionId$";
+			telemEvent.gameSessionEventOrder = m_gameSessionEventOrder++;
 			
 			// Set the device Id if it is valid
 			if( m_deviceId != "" ) {
@@ -534,7 +648,7 @@ package GlassLabSDK {
 			
 			// Append this event to the events JSON object
 			//m_telemEvents.push( telemEvent );
-			m_telemetryQueue.push( new glsdk_dispatch( glsdk_const.API_POST_EVENTS, "POST", telemEvent, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_EVENTS, "POST", telemEvent, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
 			
 			// Clear the event values
 			clearTelemEventValues();
