@@ -28,7 +28,8 @@ package {
 			
 			// Set the client level and connect to a server
 			glsdk.instance().clientLevel = "Argument Wars";
-			glsdk.instance().connect( "AW-1", "test_device", "http://192.168.2.16:9080" );
+			//glsdk.instance().connect( "AW-1", "test_device", "http://192.168.2.16" );
+			glsdk.instance().connect( "AW-1", "test_device", "http://aw.glgames.org" );
 		}
 		
 		/**
