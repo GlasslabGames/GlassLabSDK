@@ -21,8 +21,11 @@ package GlassLabSDK {
 	
 	import flash.net.URLRequest;
 	import flash.net.URLRequestMethod;
+	import flash.net.URLRequestHeader;
 	import flash.net.URLVariables;
 	import flash.net.URLLoader;
+	
+	import flash.external.ExternalInterface;
 	
 	import flash.events.*;
 	import flash.utils.Timer;
@@ -133,11 +136,11 @@ package GlassLabSDK {
 			m_telemetryQueue.push( dispatch );
 			
 			// If we've reached the max number of events, force the dispatch and reset the timer
-			if( m_telemetryQueue.length >= m_config.eventsMaxSize ) {
+			/*if( m_telemetryQueue.length >= m_config.eventsMaxSize ) {
 				telemetryDispatch( null );
 				m_telemetryQueueTimer.reset();
 				m_telemetryQueueTimer.start();
-			}
+			}*/
 		}
 		
 		/**
@@ -155,7 +158,7 @@ package GlassLabSDK {
 			
 			// Must meet the minimum number of events before proceeding
 			if( m_telemetryQueue.length < m_config.eventsMinSize ) {
-				return;
+				//return;
 			}
 			
 			// Iterate through the telemetry queue as long as it is populated
@@ -169,6 +172,8 @@ package GlassLabSDK {
 					m_gameSessionId == "" ) {
 					break;
 				}
+				
+				trace( "Dispatching: " + dispatch.m_path );
 				
 				// Perform the request
 				httpRequest( m_telemetryQueue.shift() as glsdk_dispatch );
@@ -211,7 +216,7 @@ package GlassLabSDK {
 			}
 			if( parsedJSON.hasOwnProperty( "eventsPeriodSecs" ) ) {
 				m_config.eventsPeriodSecs = parsedJSON.eventsPeriodSecs;
-				m_telemetryQueueTimer.delay = m_config.eventsPeriodSecs * 1000;	// account for milliseconds
+				//m_telemetryQueueTimer.delay = m_config.eventsPeriodSecs * 1000;	// account for milliseconds
 				trace( "Found config info eventsPeriodSecs: " + m_config.eventsPeriodSecs );
 			}
 			if( parsedJSON.hasOwnProperty( "eventsMinSize" ) ) {
@@ -508,6 +513,23 @@ package GlassLabSDK {
 				// Search for gameSessionId tag and replace it with the value
 				req.data = dataAsJSON.split( "$gameSessionId$" ).join( m_gameSessionId );
 			}
+			
+			
+			/*if( ExternalInterface.available ) {
+				var cookie : String = ExternalInterface.call( "function() { return document.cookie; }" );
+				if( cookie != null ) {
+					cookie = cookie.split("\n\r").join("");
+					writeText( cookie );
+					
+					var headers:Array = new Array();
+					var cookieHeader : URLRequestHeader = new URLRequestHeader( "cookie", cookie );
+					headers.push( cookieHeader );
+					req.requestHeaders = headers;
+					writeText( req.requestHeaders.toString() );
+				}
+			}*/
+			
+			
 			
 			// Create a URL loader to load the request
 			var loader : URLLoader = new URLLoader();
