@@ -142,7 +142,8 @@ package {
 		* @see saveTelemEvent
 		*/
 		public function reportKeyDown( event:KeyboardEvent ) : void { 
-			trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
+			//trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
+			
 			if( event.charCode == 115 ) {
 				writeText( "Attempting to call start session..." );
 				startSession();

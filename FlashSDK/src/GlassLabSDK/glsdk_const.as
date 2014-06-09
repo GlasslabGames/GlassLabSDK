@@ -39,7 +39,7 @@ package GlassLabSDK {
 		
 		
 		public static const THROTTLE_PRIORITY_DEFAULT : int = 10;		// Default priority level for throttling telemetry
-		public static const THROTTLE_INTERVAL_DEFAULT : int = 5000;		// Default request interval to throttle telemetry (milliseconds)
+		public static const THROTTLE_INTERVAL_DEFAULT : int = 30000;	// Default request interval to throttle telemetry (milliseconds)
 		public static const THROTTLE_MIN_SIZE_DEFAULT : int = 5;		// Minimum number of events to reach before sending telemetry
 		public static const THROTTLE_MAX_SIZE_DEFAULT : int = 100;		// Maximum number of events reached will send telemetry
 	}

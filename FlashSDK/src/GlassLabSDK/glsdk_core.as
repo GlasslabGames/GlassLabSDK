@@ -56,8 +56,14 @@ package GlassLabSDK {
 		
 		// Dispatches and Responses
 		private var m_telemetryQueue : Array;		// Server dispatches queued up, ready to be sent to the server
-		private var m_telemetryQueueTimer : Timer	// Server dispatches will be dequeued at a defined interval
+		private var m_telemetryQueueTimer : Timer;	// Server dispatches will be dequeued at a defined interval
 		private var m_messageQueue : Array;			// Server responses to be returned to the client
+		
+		// Dispatch variables
+		private var m_flushQueueOnEndSession : Boolean;	// If necessary, the dispatch queue can be flushed when end session is called
+		private var m_forceFlushInEffect : Boolean;		// Indicates if the queue is currently being force-flushed
+		private var m_dispatchCount : int;				// Local counter for dispatching telemetry
+		private var m_dispatching : Boolean;			// Indicates if the SDK is in the middle of dispatching events
 		
 
 		/**
@@ -91,6 +97,12 @@ package GlassLabSDK {
 			m_telemetryQueueTimer = new Timer( m_config.eventsPeriodSecs );
 			m_telemetryQueueTimer.addEventListener( TimerEvent.TIMER, telemetryDispatch );
 			m_telemetryQueueTimer.start();
+			
+			// Set force flush variables to default
+			m_flushQueueOnEndSession = true;
+			m_forceFlushInEffect = false;
+			m_dispatchCount = 0;
+			m_dispatching = false;
 			
 			// Initialize the message queue
 			m_messageQueue = new Array();
@@ -136,11 +148,30 @@ package GlassLabSDK {
 			m_telemetryQueue.push( dispatch );
 			
 			// If we've reached the max number of events, force the dispatch and reset the timer
-			/*if( m_telemetryQueue.length >= m_config.eventsMaxSize ) {
+			if( m_telemetryQueue.length >= m_config.eventsMaxSize ) {
 				telemetryDispatch( null );
 				m_telemetryQueueTimer.reset();
 				m_telemetryQueueTimer.start();
-			}*/
+			}
+		}
+		
+		/**
+		* This function is called when the dispatch timer is complete or we've reached the max number
+		* of events in the queue. Sets a flag indicating we're dispatching and dispatches the first
+		* event.
+		*
+		* @param event A reference to the TimerEvent object sent along with the listener.
+		*
+		* @see httpRequest
+		*/
+		private function telemetryDispatch( event:TimerEvent ) : void {
+			// Indicate that we are dispatching and reset the count
+			m_dispatching = true;
+			m_dispatchCount = 0;
+			
+			// Dispatch the next event
+			dispatchNext();
+			return;
 		}
 		
 		/**
@@ -149,38 +180,35 @@ package GlassLabSDK {
 		* time of request. The dispatch interval and chunk size can be found in
 		* glsdk_const.
 		*
-		* @param event A reference to the TimerEvent object sent along with the listener.
-		*
 		* @see httpRequest
 		*/
-		private function telemetryDispatch( event:TimerEvent ) : void {
-			var dispatchCount : int = 0;
-			
-			// Must meet the minimum number of events before proceeding
-			if( m_telemetryQueue.length < m_config.eventsMinSize ) {
-				//return;
+		private function dispatchNext() : void {
+			// Exit if we're not actual supposed to dispatch, the telemetry queue is empty, or we've exceeded the chunk we can send
+			if( !m_dispatching || m_telemetryQueue.length == 0 || m_dispatchCount >= glsdk_const.TELEMETRY_DISPATCH_CHUNK ) {
+				m_dispatching = false;
+				return;
 			}
 			
-			// Iterate through the telemetry queue as long as it is populated
-			while( m_telemetryQueue.length > 0 && dispatchCount < glsdk_const.TELEMETRY_DISPATCH_CHUNK ) {
-				// Get the dispatch object
-				var dispatch : Object = m_telemetryQueue[ 0 ];
-				
-				// Only proceed with telemetry and end session dispatches if a game session Id exists
-				if( ( dispatch.m_path == glsdk_const.API_POST_EVENTS ||
-					dispatch.m_path == glsdk_const.API_POST_SESSION_END ) &&
-					m_gameSessionId == "" ) {
-					break;
+			// Get the dispatch object
+			var dispatch : Object = m_telemetryQueue[ 0 ];
+			
+			// Only proceed with telemetry and end session dispatches if a game session Id exists
+			if( dispatch.m_path == glsdk_const.API_POST_EVENTS || dispatch.m_path == glsdk_const.API_POST_SESSION_END ) {
+				// If the game session Id does not exist, break out of the loop
+				if( m_gameSessionId == "" ) {
+					return;
 				}
-				
-				trace( "Dispatching: " + dispatch.m_path );
-				
-				// Perform the request
-				httpRequest( m_telemetryQueue.shift() as glsdk_dispatch );
-				
-				// Update the dispatched count
-				dispatchCount++;
+				// Else we need to replace the tag with the actual value
+				else {
+					m_telemetryQueue[ 0 ].m_postData.gameSessionId = m_gameSessionId;
+				}
 			}
+			
+			// Perform the request
+			httpRequest( m_telemetryQueue.shift() as glsdk_dispatch );
+			
+			// Increment the dispatched count
+			m_dispatchCount++;
 		}
 		
 
@@ -216,7 +244,7 @@ package GlassLabSDK {
 			}
 			if( parsedJSON.hasOwnProperty( "eventsPeriodSecs" ) ) {
 				m_config.eventsPeriodSecs = parsedJSON.eventsPeriodSecs;
-				//m_telemetryQueueTimer.delay = m_config.eventsPeriodSecs * 1000;	// account for milliseconds
+				m_telemetryQueueTimer.delay = m_config.eventsPeriodSecs * 1000;	// account for milliseconds
 				trace( "Found config info eventsPeriodSecs: " + m_config.eventsPeriodSecs );
 			}
 			if( parsedJSON.hasOwnProperty( "eventsMinSize" ) ) {
@@ -375,6 +403,7 @@ package GlassLabSDK {
 			}
 			
 			pushMessageQueue( glsdk_const.MESSAGE_SESSION_START, event.target.data );
+			dispatchNext();
 		}
 		/**
 		* Helper function for starting a new session. The start session request will append the
@@ -388,6 +417,7 @@ package GlassLabSDK {
 			
 			var postData : Object = new Object();
 			postData.deviceId = m_deviceId;
+			postData.gameId = m_clientId;
 			postData.gameLevel = m_clientLevel;
 			postData.timestamp = date.time;
 			
@@ -427,6 +457,7 @@ package GlassLabSDK {
 			m_gameSessionId = "";
 			
 			pushMessageQueue( glsdk_const.MESSAGE_SESSION_END, event.target.data );
+			dispatchNext();
 		}
 		/**
 		* Helper function for ending a session. The end session request will append the gameSessionId
@@ -444,6 +475,14 @@ package GlassLabSDK {
 			
 			// Store the dispatch message to be called later
 			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SESSION_END, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, endSession_Done, endSession_Fail ) );
+				
+			// Flush the queue if necessary
+			if( m_flushQueueOnEndSession ) {
+				//m_forceFlushInEffect = true;
+				telemetryDispatch( null );
+				m_telemetryQueueTimer.reset();
+				m_telemetryQueueTimer.start();
+			}
 		}
 		
 		
@@ -472,6 +511,7 @@ package GlassLabSDK {
 			trace( "sendTelemEvents_Done: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_EVENTS, event.target.data );
+			dispatchNext();
 		}
 		/**
 		* Helper function for adding a telemetry event to the dispatch queue.
@@ -509,9 +549,7 @@ package GlassLabSDK {
 			// Set the request data if this is a POST request
 			if( dispatch.m_method == URLRequestMethod.POST ) {
 				var dataAsJSON : String = glsdk_json.instance().stringify( dispatch.m_postData );
-				
-				// Search for gameSessionId tag and replace it with the value
-				req.data = dataAsJSON.split( "$gameSessionId$" ).join( m_gameSessionId );
+				req.data = dataAsJSON;
 			}
 			
 			
