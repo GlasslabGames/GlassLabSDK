@@ -169,7 +169,7 @@ namespace nsGlasslabSDK {
         ostringstream s;
         
         try {
-            cout << "------------------------------------" << endl;
+            //cout << "------------------------------------" << endl;
             s << "INSERT INTO " << m_hmqTableName << ""
             " (deviceId, path, coreCB, clientCB, postdata, contentType, status) "
             "VALUES ('" << deviceId << "', ";
@@ -217,7 +217,6 @@ namespace nsGlasslabSDK {
                 string characterToReplace = "''";
                 string::size_type n = 0;
                 while( ( n = postdata.find( characterToSearch, n ) ) != string::npos ) {
-                    cout << "FOUND APOSTROPHE CHARACTER!" << endl;
                     postdata.replace( n, 1, characterToReplace );
                     n += 2;
                 }
@@ -242,10 +241,10 @@ namespace nsGlasslabSDK {
             m_sql = s.str();
         
             // Execute the insertion
-            cout << "SQL: " << m_sql << endl;
+            //cout << "SQL: " << m_sql << endl;
             int nRows = m_db.execDML( m_sql.c_str() );
-            cout << nRows << " rows inserted" << endl;
-            cout << "------------------------------------" << endl;
+            //cout << nRows << " rows inserted" << endl;
+            //cout << "------------------------------------" << endl;
 
             // Set the message table size
             //m_sql = "select * from " + m_hmqTableName;
@@ -253,7 +252,7 @@ namespace nsGlasslabSDK {
             m_messageTableSize++;
             
             // Debug display
-            displayTable( m_hmqTableName );
+            //displayTable( m_hmqTableName );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::addToMsgQ()", e.errorMessage() );
@@ -274,9 +273,9 @@ namespace nsGlasslabSDK {
             // Remove the entry at rowId
             s << "delete from " << m_hmqTableName << " where id=" << rowId;
             m_sql = s.str();
-            cout << "delete SQL: " << m_sql << endl;
+            //cout << "delete SQL: " << m_sql << endl;
             int r = m_db.execDML( m_sql.c_str() );
-            cout << "Deleting result: " << r << endl;
+            //cout << "Deleting result: " << r << endl;
 
             // Set the message table size
             //m_sql = "select * from " + m_hmqTableName;
@@ -298,6 +297,7 @@ namespace nsGlasslabSDK {
         try {
             // If the status is success, remove the entry from the db
             if( status == "success" ) {
+                cout << "Successful request, removing entry from database." << endl;
                 removeFromMsgQ( rowId );
             }
             // Else, update the entry's status field
@@ -308,9 +308,9 @@ namespace nsGlasslabSDK {
                 // Execute the update operation
                 s << "UPDATE " << m_hmqTableName << " SET status='" << status << "' WHERE id='" << rowId << "'";
                 m_sql = s.str();
-                cout << "update SQL: " << m_sql << endl;
+                //cout << "update SQL: " << m_sql << endl;
                 int r = m_db.execDML( m_sql.c_str() );
-                cout << "Updating result: " << r << endl;
+                //cout << "Updating result: " << r << endl;
             }
         }
         catch( CppSQLite3Exception e ) {
@@ -344,7 +344,7 @@ namespace nsGlasslabSDK {
         
         try {
             // Display the session table
-            displayTable( m_sessionTableName );
+            //displayTable( m_sessionTableName );
             
             // Look for an existing entry with the device Id
             cout << "------------------------------------" << endl;
@@ -402,7 +402,7 @@ namespace nsGlasslabSDK {
         
         try {
             // Display the session table
-            displayTable( m_sessionTableName );
+            //displayTable( m_sessionTableName );
             
             // Look for an existing entry with the device Id
             cout << "------------------------------------" << endl;
@@ -460,7 +460,7 @@ namespace nsGlasslabSDK {
         
         try {
             // Display the session table
-            displayTable( m_sessionTableName );
+            //displayTable( m_sessionTableName );
             
             // Look for an existing entry with the device Id
             cout << "------------------------------------" << endl;
@@ -778,15 +778,18 @@ namespace nsGlasslabSDK {
             // Finalize the query
             //msgQuery.finalize();
 
+            // Keep a counter for the number of requests made so we can limit it
+            int requestsMade = 0;
+
             // Iterate 
             while ( !msgQuery.eof() )
             {
                 // Print the entry to consider
-                cout << "Entry: ";
+                /*cout << "Entry: ";
                 for( int fld = 0; fld < msgQuery.numFields(); fld++ ) {
                     cout << msgQuery.fieldValue( fld ) << "|";
                 }
-                cout << endl;
+                cout << endl;*/
 
                 /*
                 This message will contain the following information:
@@ -816,7 +819,7 @@ namespace nsGlasslabSDK {
                     // Select all entries in SESSION with deviceId
                     displayTable( m_sessionTableName );
                     m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-                    cout << "session SQL: " << m_sql << endl;
+                    //cout << "session SQL: " << m_sql << endl;
                     CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
 
                     // Finalize the query
@@ -829,18 +832,18 @@ namespace nsGlasslabSDK {
 
                         // Only continue if the cookie exists
                         if( cookie.c_str() != NULL ) {
-                            cout << "cookie is: " << cookie << endl;
+                            //cout << "cookie is: " << cookie << endl;
 
                             // Get the path from MSG_QUEUE
                             string apiPath = msgQuery.fieldValue( 2 );
-                            cout << "api path is: " << apiPath << endl;
+                            //cout << "api path is: " << apiPath << endl;
 
                             // We only care about startsession, endsession, and sendtelemetry
                             // Anything else should be ignored (and not present in the queue)
                             // Only continue with endsession and sendtelemetry if gameSessionId
                             // exists in the SESSION entry
                             string gameSessionId = sessionQuery.fieldValue( 2 );
-                            cout << "game session Id is: " << gameSessionId << endl;
+                            //cout << "game session Id is: " << gameSessionId << endl;
                             if( apiPath == API_POST_SESSION_START ||
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
                                 strstr( apiPath.c_str(), API_POST_PLAYERINFO ) ||
@@ -849,7 +852,7 @@ namespace nsGlasslabSDK {
                                 )
                               ) {
 
-                                cout << "performing the GET request for: " << apiPath << endl;
+                                //cout << "performing the GET request for: " << apiPath << endl;
 
                                 // Get the event information
                                 string coreCB = msgQuery.fieldValue( 3 );
@@ -868,63 +871,19 @@ namespace nsGlasslabSDK {
                                     }
                                 }
 
-                                // If this is a telemetry event, update the postdata with the correct gameSessionEventOrder and increment it
-                                /*if( apiPath == API_POST_EVENTS ) {
-                                    // Get the current gameSessionEventOrder from the SESSION table
-                                    const char* gameSessionEventOrderAsString = sessionQuery.fieldValue( 3 );
-                                    int gameSessionEventOrder;
-                                    // If the value is NULL, default it
-                                    if( gameSessionEventOrderAsString == NULL ) {
-                                        gameSessionEventOrder = 1;
-                                    }
-                                    else {
-                                        gameSessionEventOrder = atoi( gameSessionEventOrderAsString );
-                                    }
-                                    
-                                    // Get the order in string form for the searching
-                                    ostringstream orderStream;
-                                    orderStream << gameSessionEventOrder;
-
-                                    // The tag to search and replace
-                                    string gameSessionEventOrderTag = "$gameSessionEventOrder$";
-
-                                    string::size_type n = 0;
-                                    while( ( n = postdata.find( gameSessionEventOrderTag, n ) ) != string::npos ) {
-                                        postdata.replace( n, gameSessionEventOrderTag.size(), ( orderStream.str() ) );
-                                        n += 1;
-                                        
-                                        gameSessionEventOrder++;
-
-                                        orderStream.str( "" );
-                                        orderStream.clear();
-                                        orderStream << gameSessionEventOrder;
-                                    }
-
-                                    // Update the SESSION table with the new gameSessionEventOrder value
-                                    updateGameSessionEventOrderWithDeviceId( deviceId, atoi( orderStream.str() ) );
-                                    m_sql = "UPDATE " + m_sessionTableName + " SET gameSessionEventOrder='" + orderStream.str() + "' WHERE deviceId='" + deviceId + "';";
-                                    cout << "update SQL: " << m_sql << endl;
-                                    int r = m_db.execDML( m_sql.c_str() );
-                                    cout << "Updating gameSessionEventOrder result: " << r << endl;
-                                }*/
-
-
-                                // Debug printing
-                                cout << "additional data:\n---coreCB: " << coreCB << "\n---clientCB: " << clientCB << "\n---postdata: " << postdata << "\n---contentType: " << contentType << endl;
-
-
                                 // string stream
                                 ostringstream s;
 
                                 // Update the entry's status field
                                 s << "UPDATE " << m_hmqTableName << " SET status='pending' WHERE id='" << rowId << "'";
                                 m_sql = s.str();
-                                cout << "update SQL: " << m_sql << endl;
+                                //cout << "update SQL: " << m_sql << endl;
                                 int r = m_db.execDML( m_sql.c_str() );
-                                cout << "Updating result: " << r << endl;
+                                //cout << "Updating result: " << r << endl;
 
                                 // Perform the get request using the message information
                                 m_core->mf_httpGetRequest( apiPath, coreCB, clientCB, postdata, contentType, rowId );
+                                requestsMade++;
                             }
                             else {
                                 m_core->displayWarning( "DataSync::flushMsgQ()", "The API path specified was invalid. Removing the entry from the queue." );
@@ -944,8 +903,15 @@ namespace nsGlasslabSDK {
                     removeFromMsgQ( rowId );
                 }
 
+                // If we've exceeded the max number of requests we can make per flush, exit
+                // The next batch of events will be picked up during the next flush
+                if( requestsMade >= m_core->config.eventsMaxSize ) {
+                    cout << "Exceeded max number of requests we can make, exit." << endl;
+                    break;
+                }
+
                 // Get the next row in MSG_QUEUE
-                cout << "--- get the next entry in MSG_QUEUE ---" << endl;
+                //cout << "--- get the next entry in MSG_QUEUE ---" << endl;
                 msgQuery.nextRow();
             }
         }
@@ -957,8 +923,8 @@ namespace nsGlasslabSDK {
         // End display out
         cout << "reached the end of MSG_QUEUE" << endl;
         cout << "-----------------------------------\n\n\n" << endl;
-        displayTable( m_hmqTableName );
-        displayTable( m_sessionTableName );
+        //displayTable( m_hmqTableName );
+        //displayTable( m_sessionTableName );
     }
 
 
@@ -1265,7 +1231,7 @@ namespace nsGlasslabSDK {
      * Functions displays the contents of a given table.
      */
     void DataSync::displayTable( string table ) {
-        try {
+        /*try {
             // display out
             cout << "------------------------------------" << endl;
             cout << "all rows in " << table << endl;
@@ -1295,7 +1261,7 @@ namespace nsGlasslabSDK {
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::displayTable()", e.errorMessage() );
             cout << "Exception in displayTable() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
-        }
+        }*/
     }
     
 }; // end nsGlasslabSDK

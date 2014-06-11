@@ -171,6 +171,10 @@ namespace nsGlasslabSDK {
             Const::Status getLastStatus();
             float getTotalTimePlayed();
 
+            // Functions for the connected state
+            void setConnectedState( bool state );
+            bool getConnectedState();
+
             // Config object
             glConfig config;
 
@@ -186,6 +190,9 @@ namespace nsGlasslabSDK {
 
             // SQLite Message Queue
             DataSync* m_dataSync;
+
+            // State indicates if the user is connected
+            bool m_connected;
 
             // General members
             string m_connectUri;
@@ -210,7 +217,7 @@ namespace nsGlasslabSDK {
 
             // Timer for delaying telemetry
             time_t m_telemetryLastTime;
-            
+
             // Local variable for event order
             int m_gameSessionEventOrder;
 

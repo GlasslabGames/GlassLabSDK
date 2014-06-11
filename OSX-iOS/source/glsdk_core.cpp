@@ -81,6 +81,7 @@ namespace nsGlasslabSDK {
 
 
         // Attempt a connection now that the SDK is created
+        m_connected = false;
         connect( gameId, uri );
     }
 
@@ -154,6 +155,9 @@ namespace nsGlasslabSDK {
                 //returnMessage = Const::Message_Error;
             }
             else {
+                // Set the connected state
+                sdkInfo.core->setConnectedState( true );
+
                 json_t* eventsDetailLevel = json_object_get( root, "eventsDetailLevel" );
                 if( eventsDetailLevel && json_is_integer( eventsDetailLevel ) ) {
                     sdkInfo.core->config.eventsDetailLevel = (int)json_integer_value( eventsDetailLevel );
@@ -213,6 +217,9 @@ namespace nsGlasslabSDK {
             displayError( "Core::connect()", "The gameId was not set or is invalid." );
             return 1;
         }
+
+        // Reset the connected state
+        setConnectedState( false );
         
         // Make the request
         string url = API_GET_CONFIG;
@@ -799,9 +806,9 @@ namespace nsGlasslabSDK {
      */
     void startSession_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "startSession_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        //printf( "\n---------------------------\n" );
+        //printf( "startSession_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
         
         json_t* root;
         json_error_t error;
@@ -966,9 +973,9 @@ namespace nsGlasslabSDK {
      */
     void endSession_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "endSession_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        //printf( "\n---------------------------\n" );
+        //printf( "endSession_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -1032,9 +1039,9 @@ namespace nsGlasslabSDK {
      */
     void saveGame_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "saveGame_Done: %s", json );
-        printf( "\n---------------------------\n" );
+        //printf( "\n---------------------------\n" );
+        //printf( "saveGame_Done: %s", json );
+        //printf( "\n---------------------------\n" );
         
         json_t* root;
         json_error_t error;
@@ -1064,7 +1071,7 @@ namespace nsGlasslabSDK {
      * SaveGame function communicates with the server to save the game data.
      */
     void Core::saveGame( const char* gameData, string cb ) {
-        printf( "Saving Game Data - %s", gameData );
+        //printf( "Saving Game Data - %s", gameData );
         string url = API_POST_SAVEGAME;
         url += "/" + m_gameId;
         
@@ -1082,9 +1089,9 @@ namespace nsGlasslabSDK {
      */
     void savePlayerInfo_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "savePlayerInfo_Done: %s", json );
-        printf( "\n---------------------------\n" );
+        //printf( "\n---------------------------\n" );
+        //printf( "savePlayerInfo_Done: %s", json );
+        //printf( "\n---------------------------\n" );
         
         json_t* root;
         json_error_t error;
@@ -1142,9 +1149,9 @@ namespace nsGlasslabSDK {
      */
     void sendTotalTimePlayed_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "sendTotalTimePlayed_Done: %s", json );
-        printf( "\n---------------------------\n" );
+        //printf( "\n---------------------------\n" );
+        //printf( "sendTotalTimePlayed_Done: %s", json );
+        //printf( "\n---------------------------\n" );
         
         json_t* root;
         json_error_t error;
@@ -1278,10 +1285,10 @@ namespace nsGlasslabSDK {
             jsonOut = rootJSON;
             free( rootJSON );
             
-            printf( "\n---------------------------\n" );
+            /*printf( "\n---------------------------\n" );
             //printf( "sendTelemEvents: %i", m_telemEvents );
             printf( "sendTelemEvents: %s", jsonOut.c_str() );
-            printf( "\n---------------------------\n" );
+            printf( "\n---------------------------\n" );*/
 
             // Add this message to the queue
             mf_addMessageToDataQueue( API_POST_EVENTS, cb, clientCB, jsonOut.c_str(), "application/json" );
@@ -1330,7 +1337,11 @@ namespace nsGlasslabSDK {
 
                 printf( "Seconds elapsed for flush: %f with %i events\n", secondsElapsed, m_dataSync->getMessageTableSize() );
                 m_telemetryLastTime = currentTime;
-                m_dataSync->flushMsgQ();
+
+                // Only flush the queue if we are connected
+                if( getConnectedState() ) {
+                    m_dataSync->flushMsgQ();
+                }
             }
         }
         // Or send events if we've exceeded the table size limit
@@ -1469,6 +1480,14 @@ namespace nsGlasslabSDK {
                 else if( request->clientCB != NULL ) {
                     request->clientCB();
                 }
+
+
+                // Terminate event_base_dispatch()
+                event_base_loopbreak( request->base );
+                //evhttp_request_free(request->req);
+                //evhttp_connection_free(request->conn);
+                // We're done, clean up the request
+                //delete request;
             }
         }
     }
@@ -1728,7 +1747,7 @@ namespace nsGlasslabSDK {
     void Core::mf_updateMessageStatusInDataQueue( int rowId, string status ) {
         // Only proceed if the data sync object exists
         if( m_dataSync != NULL && rowId != -1 ) {
-            printf( "Marking object at %i as %s\n", rowId, status.c_str() );
+            //printf( "Marking object at %i as %s\n", rowId, status.c_str() );
             m_dataSync->updateMessageStatus( rowId, status );
         }
     }
@@ -2193,21 +2212,36 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     //--------------------------------------
     /**
+     * Helper functions for the connected state.
+     */
+    void Core::setConnectedState( bool state ) {
+        m_connected = state;
+    }
+
+    bool Core::getConnectedState() {
+        return m_connected;
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
      * Helper function for displaying warning messages.
      */
     void Core::displayWarning( string location, string warning ) {
-        printf( "\n\n\t\tWARNING:\n" );
-        printf( "\t\t\t%s\n\n", location.c_str() );
-        printf( "\t\t\t%s\n\n", warning.c_str() );
+        //printf( "\n\n\t\tWARNING:\n" );
+        //printf( "\t\t\t%s\n\n", location.c_str() );
+        //printf( "\t\t\t%s\n\n", warning.c_str() );
     }
 
     /**
      * Helper function for displaying error messages.
      */
     void Core::displayError( string location, string error ) {
-        printf( "\n\n\t\tERROR:\n" );
-        printf( "\t\t\t%s\n\n", location.c_str() );
-        printf( "\t\t\t%s\n\n", error.c_str() );
+        //printf( "\n\n\t\tERROR:\n" );
+        //printf( "\t\t\t%s\n\n", location.c_str() );
+        //printf( "\t\t\t%s\n\n", error.c_str() );
     }
 
     /**

@@ -16,7 +16,7 @@
 #define THROTTLE_PRIORITY_DEFAULT 10
 #define THROTTLE_INTERVAL_DEFAULT 30
 #define THROTTLE_MIN_SIZE_DEFAULT 5
-#define THROTTLE_MAX_SIZE_DEFAULT 100
+#define THROTTLE_MAX_SIZE_DEFAULT 50
 
 #define API_POST_REGISTER			"/api/v2/auth/user/register"
 #define API_GET_AUTH_STATUS			"/api/v2/auth/login/status"
