@@ -53,6 +53,11 @@ package GlassLabSDK {
 		
 		// Default telemetry properties
 		private var m_gameSessionEventOrder : int;	// This is an incremented counter attached to each telemetry event, resets with every new session
+		private var m_totalTimePlayed : Number;		// Total amount of time played for the user
+		
+		// Update timer and other total time played variables
+		private var m_updateTimer : Timer;	// Timer calls a function to update the total time played
+		private var m_lastUpdateTime : int;	// Time since last update
 		
 		// Dispatches and Responses
 		private var m_telemetryQueue : Array;		// Server dispatches queued up, ready to be sent to the server
@@ -61,7 +66,6 @@ package GlassLabSDK {
 		
 		// Dispatch variables
 		private var m_flushQueueOnEndSession : Boolean;	// If necessary, the dispatch queue can be flushed when end session is called
-		private var m_forceFlushInEffect : Boolean;		// Indicates if the queue is currently being force-flushed
 		private var m_dispatchCount : int;				// Local counter for dispatching telemetry
 		private var m_dispatching : Boolean;			// Indicates if the SDK is in the middle of dispatching events
 		
@@ -91,6 +95,11 @@ package GlassLabSDK {
 			
 			// Default telemetry properties
 			m_gameSessionEventOrder = 1;
+			m_totalTimePlayed = 0;
+			
+			// Create the update timer
+			m_updateTimer = new Timer( glsdk_const.UPDATE_TIMER * 1000 );
+			m_updateTimer.addEventListener( TimerEvent.TIMER, update );
 			
 			// Initialize the telemetry queue and dispatch timer with default throttling
 			m_telemetryQueue = new Array();
@@ -100,7 +109,6 @@ package GlassLabSDK {
 			
 			// Set force flush variables to default
 			m_flushQueueOnEndSession = true;
-			m_forceFlushInEffect = false;
 			m_dispatchCount = 0;
 			m_dispatching = false;
 			
@@ -211,6 +219,18 @@ package GlassLabSDK {
 			m_dispatchCount++;
 		}
 		
+		
+		/**
+		* Update function is called at an interval defined by UPDATE_TIMER. This function 
+		* updates the total time played and queues up a dispatch for setting it.
+		*
+		* @param event A reference to the TimerEvent object sent along with the listener.
+		*/
+		private function update( event:TimerEvent ) : void {
+			m_totalTimePlayed += glsdk_const.UPDATE_TIMER;
+			sendTotalTimePlayed();
+		}
+		
 
 		/**
 		* Failure callback function for the connect() http request. Adds an ERROR response
@@ -257,6 +277,9 @@ package GlassLabSDK {
 			}
 			
 			pushMessageQueue( glsdk_const.MESSAGE_CONNECT, event.target.data );
+			
+			// Once we have a successful connection, get the player info
+			getPlayerInfo();
 		}
 		/**
 		* Helper function for connecting directly with the server. This particular request will not
@@ -366,6 +389,62 @@ package GlassLabSDK {
 		public function getAuthStatus() : void {
 			// Perform the request
 			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_AUTH_STATUS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAuthStatus_Done, getAuthStatus_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the getPlayerInfo() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getPlayerInfo_Fail( event:IOErrorEvent ) : void {
+			trace( "getPlayerInfo_Fail: " + event.target.data );
+			
+			// Set totalTimePlayed to 0 and start the timer
+			m_totalTimePlayed = 0;
+			m_updateTimer.start();
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+		}
+		/**
+		* Success callback function for the getPlayerInfo() http request. Adds a MESSAGE_GET_PLAYER_INFO
+		* response to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getPlayerInfo_Done( event:Event ) : void {
+			trace( "getPlayerInfo_Done: " + event.target.data );
+			
+			// Parse the returned JSON and retrieve the total time played
+			var parsedJSON : Object = glsdk_json.instance().parse( event.target.data );
+			if( parsedJSON.hasOwnProperty( "totalTimePlayed" ) ) {
+				m_totalTimePlayed = parsedJSON.totalTimePlayed;
+				writeText( "Found totalTimePlayed: " + m_totalTimePlayed );
+			}
+			
+			// Set the last time and start the update timer
+			m_updateTimer.start();
+			
+			pushMessageQueue( glsdk_const.MESSAGE_GET_PLAYER_INFO, event.target.data );
+		}
+		/**
+		* Helper function for getting the total time played for the current session. This
+		* particular request will not be inserted into the queue. Instead, it is called
+		* immediately.
+		*
+		* If this request is successful, MESSAGE_GET_PLAYER_INFO will be the response, otherwise
+		* MESSAGE_ERROR.
+		*
+		* @see httpRequest
+		*/
+		public function getPlayerInfo() : void {
+			// Perform the request
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_PLAYER_INFO + "/" + m_clientId + "/playInfo", "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
 		}
 		
 
@@ -478,7 +557,6 @@ package GlassLabSDK {
 				
 			// Flush the queue if necessary
 			if( m_flushQueueOnEndSession ) {
-				//m_forceFlushInEffect = true;
 				telemetryDispatch( null );
 				m_telemetryQueueTimer.reset();
 				m_telemetryQueueTimer.start();
@@ -526,6 +604,50 @@ package GlassLabSDK {
 		
 		
 		/**
+		* Failure callback function for the sendTotalTimePlayed() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function sendTotalTimePlayed_Fail( event:IOErrorEvent ) : void {
+			trace( "sendTotalTimePlayed_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+		}
+		/**
+		* Success callback function for the sendTotalTimePlayed() http request. Adds an END_SESSION response
+		* to the message queue. This callback should also reset the current gameSessionId.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function sendTotalTimePlayed_Done( event:Event ) : void {
+			trace( "sendTotalTimePlayed_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_POST_TOTAL_TIME_PLAYED, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for sending the total time played to the server.
+		*
+		* If this request is successful, MESSAGE_POST_TOTAL_TIME_PLAYED will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function sendTotalTimePlayed() : void {
+			var date:Date = new Date();
+			
+			var postData : Object = new Object();
+			postData.setTime = m_totalTimePlayed;
+			
+			// Store the dispatch message to be called later
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_TOTAL_TIME_PLAYED + "/" + m_clientId + "/totalTimePlayed", "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
+		}
+		
+		
+		/**
 		* Function will create a new URLRequest for server communication. The data that populates
 		* the request is passed along in the glsdk_dispatch object.
 		*
@@ -552,23 +674,6 @@ package GlassLabSDK {
 				req.data = dataAsJSON;
 			}
 			
-			
-			/*if( ExternalInterface.available ) {
-				var cookie : String = ExternalInterface.call( "function() { return document.cookie; }" );
-				if( cookie != null ) {
-					cookie = cookie.split("\n\r").join("");
-					writeText( cookie );
-					
-					var headers:Array = new Array();
-					var cookieHeader : URLRequestHeader = new URLRequestHeader( "cookie", cookie );
-					headers.push( cookieHeader );
-					req.requestHeaders = headers;
-					writeText( req.requestHeaders.toString() );
-				}
-			}*/
-			
-			
-			
 			// Create a URL loader to load the request
 			var loader : URLLoader = new URLLoader();
 			loader.load( req );
@@ -576,7 +681,7 @@ package GlassLabSDK {
 			// Add necessary loader listeners
 			loader.addEventListener( Event.COMPLETE, dispatch.m_successCallback );
 			loader.addEventListener( IOErrorEvent.IO_ERROR, dispatch.m_failureCallback );
-            loader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onSecurityError );
+			loader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onSecurityError );
 		}
 		
 		/**
@@ -689,6 +794,7 @@ package GlassLabSDK {
 			telemEvent.gameId = m_clientId;
 			telemEvent.gameSessionId = "$gameSessionId$";
 			telemEvent.gameSessionEventOrder = m_gameSessionEventOrder++;
+			telemEvent.totalTimePlayed = m_totalTimePlayed;
 			
 			// Set the device Id if it is valid
 			if( m_deviceId != "" ) {

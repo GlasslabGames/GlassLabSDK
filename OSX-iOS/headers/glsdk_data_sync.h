@@ -14,6 +14,10 @@
 #define GLASSLABSDK_DATASYNC
 /* ---------------------------- */
 
+#define CONFIG_TABLE_NAME "CONFIG"
+#define MSG_QUEUE_TABLE_NAME "MSG_QUEUE"
+#define SESSION_TABLE_NAME "SESSION"
+
 
 namespace nsGlasslabSDK {
 

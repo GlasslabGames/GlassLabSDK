@@ -77,6 +77,13 @@ package {
 						writeText( "MESSAGE_AUTH_STATUS " + response.m_data );
 						break;
 					
+					case glsdk_const.MESSAGE_GET_PLAYER_INFO:
+						trace( "MESSAGE_GET_PLAYER_INFO " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_GET_PLAYER_INFO " + response.m_data );
+						break;
+					
 					case glsdk_const.MESSAGE_SESSION_START:
 						trace( "MESSAGE_SESSION_START " + response.m_data );
 					
@@ -96,6 +103,13 @@ package {
 					
 						// DEBUG - append to canvas stream
 						writeText( "MESSAGE_EVENTS " + response.m_data );
+						break;
+					
+					case glsdk_const.MESSAGE_POST_TOTAL_TIME_PLAYED:
+						trace( "MESSAGE_POST_TOTAL_TIME_PLAYED " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_POST_TOTAL_TIME_PLAYED " + response.m_data );
 						break;
 					
 					case glsdk_const.MESSAGE_ERROR:
