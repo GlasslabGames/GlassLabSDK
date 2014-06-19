@@ -181,7 +181,11 @@ namespace nsGlasslabSDK {
             // Helper function for displaying warnings and errors
             void displayWarning( string location, string warning );
             void displayError( string location, string error );
+            void logMessage( const char* message, const char* data = NULL );
             bool mf_checkForJSONErrors( json_t* root );
+
+            // Debug logging pop
+            const char* popLogQueue();
 
 
         private:
@@ -228,6 +232,9 @@ namespace nsGlasslabSDK {
             // Status members
             Const::Status m_lastStatus;
             std::queue<Const::Response*> m_msgQueue;
+
+            // Debug logging queue
+            std::queue<std::string> m_logQueue;
 
             // Helper function for callback setup
             void mf_setupCallbacks();

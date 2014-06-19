@@ -114,7 +114,7 @@ public class GlasslabSDK {
 		while(true) {
 			System.IntPtr responsePtr = GlasslabSDK_PopMessageStack (mInst);
 			Response response = (Response)System.Runtime.InteropServices.Marshal.PtrToStructure( responsePtr, typeof( Response ) );
-			
+
 			int msg = (int)response.m_message;
 			//Debug.Log( "RESPONSE: " + response.m_message + ", " + response.m_data );
 			
@@ -556,6 +556,22 @@ public class GlasslabSDK {
 	}
 	
 	// ----------------------------
+	public string PopLogQueue() {
+		#if !UNITY_EDITOR
+		// Get the entire cookie string
+		string log = (string)GlasslabSDK_PopLogQueue(mInst);
+		if( log != null ) {
+			return log;
+		}
+		else {
+			return "";
+		}
+		#else
+		return "";
+		#endif
+	}
+	
+	// ----------------------------
 	public void UpdatePlayerInfoKey(string key, string value) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_UpdatePlayerInfoKey_ccp   (mInst, key, value);
@@ -611,7 +627,7 @@ public class GlasslabSDK {
 		GlasslabSDK_RemovePlayerInfoKey(mInst, key);
 		#endif
 	}
-
+	
 	// ----------------------------
 	public void StartGameTimer() {
 		#if !UNITY_EDITOR
@@ -764,18 +780,24 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_UpdatePlayerInfoKey_bool	 (System.IntPtr inst, string key, bool value);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_RemovePlayerInfoKey(System.IntPtr inst, string key);
-
-
+	
+	
 	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_StartGameTimer(System.IntPtr inst);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_StopGameTimer(System.IntPtr inst);
-
-
+	
+	
 	//[DllImport("<path to DLL>", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	//[return: MarshalAs(UnmanagedType.LPStr)]
 	[DllImport ("__Internal", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
 	[return: MarshalAs(UnmanagedType.LPStr)]
 	private static extern string GlasslabSDK_GetCookie(System.IntPtr inst);
+	
+	
+	// ----------------------------
+	[DllImport ("__Internal", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]
+	[return: MarshalAs(UnmanagedType.LPStr)]
+	private static extern string GlasslabSDK_PopLogQueue(System.IntPtr inst);
 }

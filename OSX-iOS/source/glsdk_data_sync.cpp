@@ -27,13 +27,14 @@ namespace nsGlasslabSDK {
         strcpy( result, dbPath );
         strcat( result, "/glasslabsdk.db" );
 
-        cout << "Database file: " << result << endl;
+        m_core->logMessage( "Database file:", result );
+        //cout << "Database file: " << result << endl;
 
         // Set database and table names
         m_dbName = result;
-        m_configTableName = "CONFIG";
-        m_hmqTableName = "MSG_QUEUE";
-        m_sessionTableName = "SESSION";
+        m_configTableName = CONFIG_TABLE_NAME;// "CONFIG";
+        m_hmqTableName = MSG_QUEUE_TABLE_NAME;//"MSG_QUEUE";
+        m_sessionTableName = SESSION_TABLE_NAME;//"SESSION";
         
         // Open the database
         initDB();
@@ -55,7 +56,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::~DataSync()", e.errorMessage() );
-            cout << "Exception in ~DataSync() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in ~DataSync() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -76,7 +77,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::initDB()", e.errorMessage() );
-            cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -144,7 +145,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::validateSDKVersion()", e.errorMessage() );
-            cout << "Exception in validateSDKVersion() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in validateSDKVersion() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -256,7 +257,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::addToMsgQ()", e.errorMessage() );
-            cout << "Exception in addToMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in addToMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -284,7 +285,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::removeFromMsgQ()", e.errorMessage() );
-            cout << "Exception in removeFromMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in removeFromMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -315,7 +316,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateMessageStatus()", e.errorMessage() );
-            cout << "Exception in updateMessageStatus() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in updateMessageStatus() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -386,7 +387,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithCookie()", e.errorMessage() );
-            cout << "Exception in updateSessionTableWithCookie() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in updateSessionTableWithCookie() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -444,7 +445,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithGameSessionId()", e.errorMessage() );
-            cout << "Exception in updateSessionTableWithGameSessionId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in updateSessionTableWithGameSessionId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -493,7 +494,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithPlayerHandle()", e.errorMessage() );
-            cout << "Exception in updateSessionTableWithPlayerHandle() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in updateSessionTableWithPlayerHandle() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -512,7 +513,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::removeSessionWithDeviceId()", e.errorMessage() );
-            cout << "Exception in removeSessionWithDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in removeSessionWithDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -551,7 +552,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::getCookieFromDeviceId()", e.errorMessage() );
-            cout << "Exception in getCookieFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in getCookieFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
 
         // Return empty string by default
@@ -591,7 +592,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updatePlayerInfoFromDeviceId()", e.errorMessage() );
-            cout << "Exception in updatePlayerInfoFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in updatePlayerInfoFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -623,7 +624,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::getTotalTimePlayedFromDeviceId()", e.errorMessage() );
-            cout << "Exception in getTotalTimePlayedFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in getTotalTimePlayedFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
 
         // Return 0.0 by default
@@ -649,7 +650,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateGameSessionEventOrderWithDeviceId()", e.errorMessage() );
-            cout << "Exception in updateGameSessionEventOrderWithDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in updateGameSessionEventOrderWithDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -681,7 +682,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::getGameSessionEventOrderFromDeviceId()", e.errorMessage() );
-            cout << "Exception in getGameSessionEventOrderFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in getGameSessionEventOrderFromDeviceId() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
 
         // Return 1 by default
@@ -751,7 +752,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::createNewSessionEntry()", e.errorMessage() );
-            cout << "Exception in createNewSessionEntry() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in createNewSessionEntry() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -767,8 +768,9 @@ namespace nsGlasslabSDK {
     void DataSync::flushMsgQ() {
         try {
             // Begin display out
-            cout << "\n\n\n-----------------------------------" << endl;
+            //cout << "\n\n\n-----------------------------------" << endl;
             cout << "\tflushing MSG_QUEUE: " << m_messageTableSize << endl;
+            m_core->logMessage( "flushing MSG_QUEUE" );
 
             // Select all entries in MSG_QUEUE
             m_sql = "select * from " + m_hmqTableName + ";";
@@ -872,13 +874,15 @@ namespace nsGlasslabSDK {
                                 }
 
                                 // string stream
-                                ostringstream s;
-
+                                //ostringstream s;
+                                char sqlString[ 255 ];
                                 // Update the entry's status field
-                                s << "UPDATE " << m_hmqTableName << " SET status='pending' WHERE id='" << rowId << "'";
-                                m_sql = s.str();
+                                //s << "UPDATE " << m_hmqTableName << " SET status='pending' WHERE id='" << rowId << "'";
+                                sprintf( sqlString, "UPDATE %s SET status='pending' WHERE id='%d'", m_hmqTableName.c_str(), rowId );
+                                //m_sql = s.str();
+
                                 //cout << "update SQL: " << m_sql << endl;
-                                int r = m_db.execDML( m_sql.c_str() );
+                                int r = m_db.execDML( sqlString );// m_sql.c_str() );
                                 //cout << "Updating result: " << r << endl;
 
                                 // Perform the get request using the message information
@@ -917,12 +921,13 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::flushMsgQ()", e.errorMessage() );
-            cout << "Exception in flushMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in flushMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
 
         // End display out
-        cout << "reached the end of MSG_QUEUE" << endl;
-        cout << "-----------------------------------\n\n\n" << endl;
+        //cout << "reached the end of MSG_QUEUE" << endl;
+        //cout << "-----------------------------------\n\n\n" << endl;
+        m_core->logMessage( "reached the end of MSG_QUEUE" );
         //displayTable( m_hmqTableName );
         //displayTable( m_sessionTableName );
     }
@@ -1018,7 +1023,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::createTables()", e.errorMessage() );
-            cout << "Exception in createTables() " << e.errorMessage() << " (" << e.errorCode() << ") " << CppSQLite3Exception::errorCodeAsString( e.errorCode() ) << endl;
+            //cout << "Exception in createTables() " << e.errorMessage() << " (" << e.errorCode() << ") " << CppSQLite3Exception::errorCodeAsString( e.errorCode() ) << endl;
         }
     }
 
@@ -1070,7 +1075,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::dropTables()", e.errorMessage() );
-            cout << "Exception in dropTables() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in dropTables() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -1117,7 +1122,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::migrateTables()", e.errorMessage() );
-            cout << "Exception in migrateTables() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in migrateTables() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -1223,7 +1228,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::migrateTable()", e.errorMessage() );
-            cout << "Exception in migrateTable() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in migrateTable() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
 
@@ -1260,7 +1265,7 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::displayTable()", e.errorMessage() );
-            cout << "Exception in displayTable() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            //cout << "Exception in displayTable() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }*/
     }
     

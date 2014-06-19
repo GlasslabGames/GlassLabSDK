@@ -19,7 +19,7 @@ namespace nsGlasslabSDK {
      * Core constructor to setup the SDK and perform an initial connection to the server.
      */
     Core::Core( GlasslabSDK* sdk, const char* dataPath, const char* gameId, const char* deviceId, const char* uri ) {
-        printf( "Initializing the SDK\n" );
+        logMessage( "Initializing the SDK" );
 
         // set device ID only if not null and contains a string of length 0
         if( ( deviceId != NULL ) && strlen( deviceId ) > 0 ) {
@@ -59,7 +59,8 @@ namespace nsGlasslabSDK {
         // Store core function callbacks in the hash
         mf_setupCallbacks();
         // Create the SQLite data sync object
-        printf( "Data path set: %s\n", dataPath );
+        //printf( "Data path set: %s\n", dataPath );
+        logMessage( "Data path set: ", dataPath );
         m_dataSync = new DataSync( this, dataPath );
 
         // Reset the player info
@@ -137,9 +138,12 @@ namespace nsGlasslabSDK {
      */
     void getConfig_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "getConfig_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getConfig_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getConfig_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
         
         json_t* root;
         json_error_t error;
@@ -199,7 +203,7 @@ namespace nsGlasslabSDK {
         // If the URI was set properly, record it
         if( ( uri != NULL ) && strcmp( uri, "" ) != 0 ) {
             m_connectUri = uri;
-            printf( "connectUri set: %s\n", m_connectUri.c_str() );
+            logMessage( "connectUri set:", m_connectUri.c_str() );
         }
         // URI was not set properly
         else {
@@ -210,7 +214,7 @@ namespace nsGlasslabSDK {
         // If the gameId was set properly, record it
         if( ( gameId != NULL ) && strcmp( gameId, "" ) != 0 ) {
             m_gameId = gameId;
-            printf( "gameId set: %s\n", m_gameId.c_str() );
+            logMessage( "gameId set:", m_gameId.c_str() );
         }
         // gameId was not set properly
         else {
@@ -238,9 +242,12 @@ namespace nsGlasslabSDK {
      */
     void deviceUpdate_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "deviceUpdate_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "deviceUpdate_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "deviceUpdate_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -290,9 +297,12 @@ namespace nsGlasslabSDK {
      */
     void authStatus_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "authStatus_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "authStatus_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "authStatus_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -341,9 +351,12 @@ namespace nsGlasslabSDK {
      */
     void register_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "register_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "register_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "register_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -433,9 +446,12 @@ namespace nsGlasslabSDK {
      */
     void getPlayerInfo_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "getPlayerInfo_Done: %s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getPlayerInfo_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getPlayerInfo_Done: %s", json );
+        //printf( "\n---------------------------\n" );
         
         json_t* root;
         json_error_t error;
@@ -463,17 +479,17 @@ namespace nsGlasslabSDK {
                     serverTotalTimePlayed = (float)json_integer_value( totalTimePlayed );
                 }
 
-                printf( "client time: %f, server time: %f\n", clientTotalTimePlayed, serverTotalTimePlayed );
+                //printf( "client time: %f, server time: %f\n", clientTotalTimePlayed, serverTotalTimePlayed );
                 
                 // If the client is greater than the server, the info is already stored in the player
                 // info and database, no need to do anything. Otherwise, set the local values.
                 if( clientTotalTimePlayed < serverTotalTimePlayed ) {
                     sdkInfo.core->updatePlayerInfoKey( "$totalTimePlayed$", serverTotalTimePlayed );
                     sdkInfo.core->mf_updateTotalTimePlayedInSessionTable( serverTotalTimePlayed );
-                    printf( "using server time: %f\n", serverTotalTimePlayed );
+                    //printf( "using server time: %f\n", serverTotalTimePlayed );
                 }
                 else {
-                    printf( "using client time: %f\n", clientTotalTimePlayed );
+                    //printf( "using client time: %f\n", clientTotalTimePlayed );
                 }
             }
         }
@@ -539,9 +555,12 @@ namespace nsGlasslabSDK {
      */
     void login_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "login_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "login_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "login_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -610,9 +629,12 @@ namespace nsGlasslabSDK {
      */
     void enroll_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "enroll_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "enroll_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "enroll_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -657,9 +679,12 @@ namespace nsGlasslabSDK {
      */
     void unenroll_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "unenroll_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "unenroll_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "unenroll_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -708,9 +733,12 @@ namespace nsGlasslabSDK {
      */
     void getCourses_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "getCourses_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getCourses_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getCourses_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -755,9 +783,12 @@ namespace nsGlasslabSDK {
      */
     void logout_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
-        printf( "\n---------------------------\n" );
-        printf( "logout_Done: \n%s", json );
-        printf( "\n---------------------------\n" );
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "logout_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "logout_Done: \n%s", json );
+        //printf( "\n---------------------------\n" );
 
         json_t* root;
         json_error_t error;
@@ -806,6 +837,9 @@ namespace nsGlasslabSDK {
      */
     void startSession_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "startSession_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
         //printf( "\n---------------------------\n" );
         //printf( "startSession_Done: \n%s", json );
         //printf( "\n---------------------------\n" );
@@ -830,7 +864,7 @@ namespace nsGlasslabSDK {
                 // The gameSessionId must be valid
                 if( sessionId && json_is_string( sessionId ) ) {
                     sdkInfo.core->setSessionId( json_string_value( sessionId ) );
-                    printf( "sessionId: %s\n", sdkInfo.core->getSessionId() );
+                    //printf( "sessionId: %s\n", sdkInfo.core->getSessionId() );
                     
                     // Decrease the reference count, this way Jansson can release "sessionId" resources
                     json_decref( root );
@@ -885,7 +919,7 @@ namespace nsGlasslabSDK {
 
         // Check if the course information exists
         if( m_userInfo == NULL ) {
-            printf( "\n---------\n----------\t\t\tuser info is null\t\t\t\n------------\n-----------" );
+            //printf( "\n---------\n----------\t\t\tuser info is null\t\t\t\n------------\n-----------" );
         }
         /*json_t* courses = json_object_get( m_userInfo, "courses" );
         if( courses && json_is_array( courses ) ) {
@@ -973,6 +1007,9 @@ namespace nsGlasslabSDK {
      */
     void endSession_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "endSession_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
         //printf( "\n---------------------------\n" );
         //printf( "endSession_Done: \n%s", json );
         //printf( "\n---------------------------\n" );
@@ -1039,6 +1076,9 @@ namespace nsGlasslabSDK {
      */
     void saveGame_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "saveGame_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
         //printf( "\n---------------------------\n" );
         //printf( "saveGame_Done: %s", json );
         //printf( "\n---------------------------\n" );
@@ -1089,6 +1129,9 @@ namespace nsGlasslabSDK {
      */
     void savePlayerInfo_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "savePlayerInfo_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
         //printf( "\n---------------------------\n" );
         //printf( "savePlayerInfo_Done: %s", json );
         //printf( "\n---------------------------\n" );
@@ -1149,6 +1192,9 @@ namespace nsGlasslabSDK {
      */
     void sendTotalTimePlayed_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "sendTotalTimePlayed_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
         //printf( "\n---------------------------\n" );
         //printf( "sendTotalTimePlayed_Done: %s", json );
         //printf( "\n---------------------------\n" );
@@ -1207,6 +1253,9 @@ namespace nsGlasslabSDK {
      */
     void sendTelemEvent_Done( p_glSDKInfo sdkInfo ) {
         const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "sendTelemEvent_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
         //printf( "\n---------------------------\n" );
         //printf( "sendTelemEvent_Done: \n%s", json );
         //printf( "\n---------------------------\n" );
@@ -1336,12 +1385,13 @@ namespace nsGlasslabSDK {
                 sendTotalTimePlayed();
 
                 printf( "Seconds elapsed for flush: %f with %i events\n", secondsElapsed, m_dataSync->getMessageTableSize() );
-                m_telemetryLastTime = currentTime;
 
                 // Only flush the queue if we are connected
                 if( getConnectedState() ) {
                     m_dataSync->flushMsgQ();
                 }
+
+                m_telemetryLastTime = currentTime;
             }
         }
         // Or send events if we've exceeded the table size limit
@@ -1381,7 +1431,7 @@ namespace nsGlasslabSDK {
                 // Get the cookie if it was passed along from the server
                 const char* setCookie = evhttp_find_header(req->input_headers, "set-cookie" );
                 if( setCookie ) {
-                    printf( "+++++++ SETTING COOKIE TO: %s +++++++\n", setCookie );
+                    //printf( "+++++++ SETTING COOKIE TO: %s +++++++\n", setCookie );
                     request->core->setCookie( setCookie );
                     //printf( "----------------------------------\n" );
                     //printf( "set-cookie: %s\n", request->core->getCookie() );
@@ -1419,7 +1469,7 @@ namespace nsGlasslabSDK {
                 if( request->coreCBKey != "" ) {
                     if( request->core->getCoreCallbackCancelState( request->coreCBKey ) ) {
                         request->core->setCoreCallbackCancelState( request->coreCBKey, false );
-                        printf( "\n\t\t request ignored because it was cancelled" );
+                        request->core->logMessage( "\n\t\t request ignored because it was cancelled" );
                     }
                     else {
                         p_glSDKInfo sdkInfo;
@@ -1465,7 +1515,7 @@ namespace nsGlasslabSDK {
                 if( request->coreCBKey != "" ) {
                     if( request->core->getCoreCallbackCancelState( request->coreCBKey ) ) {
                         request->core->setCoreCallbackCancelState( request->coreCBKey, false );
-                        printf( "\n\t\t request ignored because it was cancelled" );
+                        request->core->logMessage( "\n\t\t request ignored because it was cancelled" );
                     }
                     else {
                         p_glSDKInfo sdkInfo;
@@ -2099,7 +2149,7 @@ namespace nsGlasslabSDK {
     }
 
     void Core::setPlayerHandle( const char* handle ) {
-        printf( "player handle to set: %s\n", handle );
+        logMessage( "player handle to set:", handle );
 
         m_playerHandle = handle;
 
@@ -2111,7 +2161,7 @@ namespace nsGlasslabSDK {
 
         // Update the database with this information
         if( m_dataSync != NULL ) {
-            printf( "setting new device Id using player handle: %s\n", newDeviceId );
+            logMessage( "setting new device Id using player handle:", newDeviceId );
             m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId );
 
             // Get the cookie stored for this device Id
@@ -2133,7 +2183,7 @@ namespace nsGlasslabSDK {
     }
 
     void Core::removePlayerHandle( const char* handle ) {
-        printf( "attempting to remove player handle from db: %s\n", handle );
+        logMessage( "attempting to remove player handle from db:", handle );
 
         // The device Id is handle_deviceId
         char deviceIdToRemove[256];
@@ -2143,7 +2193,7 @@ namespace nsGlasslabSDK {
 
         // Update the database with this information
         if( m_dataSync != NULL ) {
-            printf( "device Id to remove: %s\n", deviceIdToRemove );
+            logMessage( "device Id to remove:", deviceIdToRemove );
             m_dataSync->removeSessionWithDeviceId( deviceIdToRemove );
         }
     }
@@ -2153,7 +2203,7 @@ namespace nsGlasslabSDK {
 
         // Set the cookie in the SESSION table
         if( m_dataSync != NULL ) {
-            printf( "setting cookie: %s\n", m_cookie.c_str() );
+            logMessage( "setting cookie:", m_cookie.c_str() );
             m_dataSync->updateSessionTableWithCookie( m_deviceId, m_cookie );
         }
     }
@@ -2163,7 +2213,7 @@ namespace nsGlasslabSDK {
 
         // Set the gameSessionId in the SESSION table
         if( m_dataSync != NULL ) {
-            printf( "setting game session Id: %s\n", m_sessionId.c_str() );
+            logMessage( "setting game session Id:", m_sessionId.c_str() );
             m_dataSync->updateSessionTableWithGameSessionId( m_deviceId, m_sessionId );
 
             // Get the game session event order to update
@@ -2233,6 +2283,7 @@ namespace nsGlasslabSDK {
         //printf( "\n\n\t\tWARNING:\n" );
         //printf( "\t\t\t%s\n\n", location.c_str() );
         //printf( "\t\t\t%s\n\n", warning.c_str() );
+        logMessage( location.c_str(), warning.c_str() );
     }
 
     /**
@@ -2242,6 +2293,40 @@ namespace nsGlasslabSDK {
         //printf( "\n\n\t\tERROR:\n" );
         //printf( "\t\t\t%s\n\n", location.c_str() );
         //printf( "\t\t\t%s\n\n", error.c_str() );
+        logMessage( location.c_str(), error.c_str() );
+    }
+
+    /**
+     * Helper function for recording and displaying general messages to be surfaced in the client.
+     */
+    void Core::logMessage( const char* message, const char* data ) {
+        cout << message;
+        cout << data;
+        cout << endl;
+
+        string concat;
+        if( data == NULL ) {
+            concat = string(message);
+        }
+        else {
+            concat = string(message) + string(data);
+        }
+        
+        m_logQueue.push( concat );
+    }
+
+    /**
+     * Helper function to pop from the logging queue.
+     */
+    const char* Core::popLogQueue() {
+        if( m_logQueue.empty() ) {
+            return "";
+        }
+        else {
+            std::string nextLog = m_logQueue.front();
+            m_logQueue.pop();
+            return nextLog.c_str();
+        }
     }
 
     /**

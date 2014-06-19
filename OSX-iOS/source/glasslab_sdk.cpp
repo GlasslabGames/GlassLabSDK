@@ -173,3 +173,13 @@ const char* GlasslabSDK::getCookie() {
         return "";
     }
 }
+
+
+const char* GlasslabSDK::popLogQueue() {
+    if( m_core != NULL ) {
+        return m_core->popLogQueue();
+    }
+    else {
+        return "";
+    }
+}

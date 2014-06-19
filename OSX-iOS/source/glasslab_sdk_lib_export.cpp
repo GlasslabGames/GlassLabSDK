@@ -241,4 +241,21 @@ extern "C"
             return "";
         }
     }
+
+
+    char* GlasslabSDK_PopLogQueue( void* inst ) {
+        if( inst != NULL ) {
+            std::string string = static_cast<GlasslabSDK *>( inst )->popLogQueue();
+            size_t stringSize = strlen( string.c_str() ) + sizeof(char);
+            char* cReturn;
+            cReturn = (char*)malloc( stringSize );
+            strcpy(cReturn, string.c_str());
+            
+            //size_t size = strlen(static_cast<GlasslabSDK *>( inst )->getCookie())
+            return cReturn;// static_cast<GlasslabSDK *>( inst )->getCookie();
+        }
+        else {
+            return NULL;
+        }
+    }
 }

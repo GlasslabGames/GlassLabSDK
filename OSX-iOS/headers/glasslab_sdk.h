@@ -131,6 +131,9 @@ class GlasslabSDK {
         // Getters
         const char* getCookie();
 
+        // Debug logging pop
+        const char* popLogQueue();
+
     
     private:
         // Core SDK

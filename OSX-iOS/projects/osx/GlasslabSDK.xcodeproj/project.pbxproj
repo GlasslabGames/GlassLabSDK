@@ -504,6 +504,7 @@
 					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/lib,
 				);
 				MACH_O_TYPE = staticlib;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = GlasslabSDK_i386;
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
@@ -527,6 +528,7 @@
 					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/lib,
 				);
 				MACH_O_TYPE = staticlib;
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = GlasslabSDK_i386;
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
