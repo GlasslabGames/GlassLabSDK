@@ -38,13 +38,6 @@ namespace nsGlasslabSDK {
         bool cancel;
     } coreCallbackStructure;
 
-    typedef struct _glConfig {
-        int eventsPeriodSecs;
-        int eventsMinSize;
-        int eventsMaxSize;
-        int eventsDetailLevel;
-    } glConfig;
-
     typedef struct _p_glSDKInfo {
         GlasslabSDK*        sdk;
         Core*               core;
@@ -71,12 +64,15 @@ namespace nsGlasslabSDK {
     // TODO: check for de-allocate pointers!!
     class Core {
         public:
-            Core( GlasslabSDK* client, const char* dataPath, const char* gameId, const char* deviceId = NULL, const char* uri = NULL );
+            Core( GlasslabSDK* client, const char* gameId, const char* deviceId = NULL, const char* dataPath = NULL, const char* uri = NULL );
             ~Core();
 
             // Message stack functions
             void pushMessageStack( Const::Message msg, const char* data = "{}" );
-            Const::Response* popMessageStack();
+            Const::Response popMessageStack();
+            Const::Message readTopMessageCode();
+            string readTopMessageString();
+        
         
             // Primary GLGS API functions
             int connect( const char* gameId, const char* uri = NULL );
@@ -128,9 +124,7 @@ namespace nsGlasslabSDK {
             void addTelemEventValue( const char* key, bool value );
 
             // Telemetry event helpers
-            void clearTelemEventValues();
             void clearTelemEvents();
-            void clearAchievementEventValues();
             void saveTelemEvent( const char* name );
             void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
@@ -159,6 +153,8 @@ namespace nsGlasslabSDK {
             void setVersion( const char* version );
             void setGameLevel( const char* gameLevel );
             void setUserId( int userId );
+            void setConfig( nsGlasslabSDK::glConfig config );
+            void setTime( time_t time );
             void setPlayerHandle( const char* handle );
             void removePlayerHandle( const char* handle );
             void setCookie( const char* cookie );
@@ -210,6 +206,7 @@ namespace nsGlasslabSDK {
             string m_playerHandle;
             string m_clientName;
             string m_clientVersion;
+            time_t m_currentTime;
         
             // JSON members
             json_error_t m_jsonError;

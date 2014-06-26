@@ -18,15 +18,16 @@
 #define MSG_QUEUE_TABLE_NAME "MSG_QUEUE"
 #define SESSION_TABLE_NAME "SESSION"
 
-
 namespace nsGlasslabSDK {
 
     class Core;
     
     class DataSync {
     public:
-        DataSync( Core* core, const char* dbPath );
+        DataSync( Core* core, const char* dbPath = NULL );
         ~DataSync();
+        
+        void reconnectDB();
         
         // Message Queue (MSG_QUEUE) table operations
         void addToMsgQ( string deviceId, string path, string coreCB, string clientCB, string postdata, const char* contentType );
@@ -63,7 +64,7 @@ namespace nsGlasslabSDK {
         void displayTable( string table );
 
         // Helper function for creating a new SESSION entry
-        void createNewSessionEntry( string deviceId, string cookie, string gameSessionId );
+        string createNewSessionEntry( string deviceId, string cookie, string gameSessionId );
 
         // The SQLite database to store all API events and session information
         CppSQLite3DB m_db;
@@ -76,7 +77,6 @@ namespace nsGlasslabSDK {
         string m_configTableName;
         string m_sessionTableName;
         string m_hmqTableName;
-        string m_sql;
 
         // Event counts
         int m_messageTableSize;

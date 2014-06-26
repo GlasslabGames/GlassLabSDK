@@ -18,7 +18,7 @@ namespace nsGlasslabSDK {
     /**
      * Core constructor to setup the SDK and perform an initial connection to the server.
      */
-    Core::Core( GlasslabSDK* sdk, const char* dataPath, const char* gameId, const char* deviceId, const char* uri ) {
+    Core::Core( GlasslabSDK* sdk, const char* gameId, const char* deviceId, const char* dataPath, const char* uri ) {
         logMessage( "Initializing the SDK" );
 
         // set device ID only if not null and contains a string of length 0
@@ -48,19 +48,19 @@ namespace nsGlasslabSDK {
         m_playerInfo    = NULL;
 
         // Set JSON telemetry objects
-        m_telemEvents       = NULL;
-        m_telemEventValues  = NULL;
-        m_achievementEventValues = NULL;
+        m_telemEvents       = json_array();
+        m_telemEventValues  = json_object();
+        m_achievementEventValues = json_object();
         // Clear telemetry
         clearTelemEvents();
-        clearTelemEventValues();
-        clearAchievementEventValues();
 
         // Store core function callbacks in the hash
         mf_setupCallbacks();
-        // Create the SQLite data sync object
-        //printf( "Data path set: %s\n", dataPath );
-        logMessage( "Data path set: ", dataPath );
+        if(dataPath) {
+            // Create the SQLite data sync object
+            //printf( "Data path set: %s\n", dataPath );
+            logMessage( "Data path set: ", dataPath );
+        }
         m_dataSync = new DataSync( this, dataPath );
 
         // Reset the player info
@@ -101,7 +101,7 @@ namespace nsGlasslabSDK {
      */
     void Core::pushMessageStack( Const::Message msg, const char* data ) {
         // Only allow valid messages to be added to the queue
-        if( msg != NULL ) {
+        if( msg != Const::Message_None ) {
             Const::Response* response = new Const::Response();
             response->m_message = msg;
             response->m_data = data;
@@ -112,20 +112,44 @@ namespace nsGlasslabSDK {
     /**
      * Pop from the Message Stack.
      */
-    Const::Response* Core::popMessageStack() {
+    Const::Response Core::popMessageStack() {
+        Const::Response response;
         if( m_msgQueue.empty() ) {
-            Const::Response* response = new Const::Response();
-            response->m_message = Const::Message_None;
-            response->m_data = "";
-            return response;//Const::Message_None;
+            response.m_message = Const::Message_None;
+            response.m_data = "";
         }
         else {
             Const::Response* t = m_msgQueue.front();
             m_msgQueue.pop();
-            return t;
+            
+            response.m_message = t->m_message;
+            response.m_data = t->m_data;
+            
+            // free top item from Q
+            delete t;
         }
+        
+        return response;
     }
 
+    Const::Message Core::readTopMessageCode() {
+        Const::Response* t = m_msgQueue.front();
+        if(t == NULL) {
+            return Const::Message_None;
+        } else {
+           return t->m_message;
+        }
+    }
+    
+    string Core::readTopMessageString() {
+        Const::Response* t = m_msgQueue.front();
+        if(t == NULL) {
+            return "";
+        } else {
+            return t->m_data;
+        }
+    }
+    
 
     //--------------------------------------
     //--------------------------------------
@@ -186,9 +210,8 @@ namespace nsGlasslabSDK {
                     //json_decref( root );
                 }
             }
-            
-            json_decref( root );
         }
+        json_decref( root );
         
         // Push Connect message
         sdkInfo.core->pushMessageStack( returnMessage, json );
@@ -263,6 +286,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push Login message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -318,6 +342,7 @@ namespace nsGlasslabSDK {
                 //returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push Login message
         sdkInfo.core->pushMessageStack( returnMessage, json );
@@ -372,6 +397,8 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
+        
         // Parse the returned JSON data, which should indicated user information
         if( sdkInfo.core->setUserInfo( json ) ) {
             // TODO: error handling
@@ -493,6 +520,7 @@ namespace nsGlasslabSDK {
                 }
             }
         }
+        json_decref( root );
         
         // Push SavePlayerInfo message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -523,6 +551,10 @@ namespace nsGlasslabSDK {
     int Core::setUserInfo( const char* json ) {
         json_error_t error;
 
+        if( !m_userInfo ) {
+            json_decref( m_userInfo );
+        }
+        
         // parse JSON data from session
         m_userInfo = json_loads( json, 0, &error );
         
@@ -537,7 +569,6 @@ namespace nsGlasslabSDK {
         json_t *userId = json_object_get( m_userInfo, "id" );
         if( userId && json_is_integer( userId ) ) {
             m_userId = (int)json_integer_value( userId );
-            //json_decref(m_userInfo);
         }
         // UserId was invalid
         else {
@@ -576,6 +607,8 @@ namespace nsGlasslabSDK {
                 //returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
+        
         // Parse the returned JSON data, which should indicated user information
         if( sdkInfo.core->setUserInfo( json ) ) {
             // TODO: error handling
@@ -650,6 +683,7 @@ namespace nsGlasslabSDK {
                 //returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push Enroll message
         sdkInfo.core->pushMessageStack( returnMessage, json );
@@ -700,6 +734,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push UnEnroll message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -754,6 +789,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push GetCourses message
         sdkInfo.core->pushMessageStack( returnMessage, json );
@@ -804,6 +840,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push Logout message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -1028,6 +1065,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
 
         // Clear the session Id if the callback was valid
         if( returnMessage == Const::Message_EndSession ) {
@@ -1097,6 +1135,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push GameSave message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -1150,6 +1189,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push SavePlayerInfo message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -1213,6 +1253,7 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push SavePlayerInfo message
         sdkInfo.core->pushMessageStack( returnMessage );
@@ -1252,7 +1293,9 @@ namespace nsGlasslabSDK {
      * Indicates successful telemetry event send.
      */
     void sendTelemEvent_Done( p_glSDKInfo sdkInfo ) {
-        const char* json = sdkInfo.data.c_str();
+        const char* json = NULL;
+        json = sdkInfo.data.c_str();
+        
         //sdkInfo.core->logMessage( "---------------------------" );
         //sdkInfo.core->logMessage( "sendTelemEvent_Done", json );
         //sdkInfo.core->logMessage( "---------------------------" );
@@ -1260,6 +1303,7 @@ namespace nsGlasslabSDK {
         //printf( "sendTelemEvent_Done: \n%s", json );
         //printf( "\n---------------------------\n" );
 
+        
         json_t* root;
         json_error_t error;
 
@@ -1274,10 +1318,11 @@ namespace nsGlasslabSDK {
                 returnMessage = Const::Message_Error;
             }
         }
+        json_decref( root );
         
         // Push Event message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
+       
         // Run client callback
         if( sdkInfo.clientCB != NULL ) {
             sdkInfo.clientCB();
@@ -1290,7 +1335,6 @@ namespace nsGlasslabSDK {
      * events exist, it will call the callbacks normally.
      */
     void Core::sendTelemEvents( string clientCB, string coreCB ) {
-
         // Get the current total time played for updating and setting in the internal database
         float newTime = getTotalTimePlayed();
 
@@ -1307,7 +1351,7 @@ namespace nsGlasslabSDK {
             newTime += delta;
             updatePlayerInfoKey( "$totalTimePlayed$", newTime );
         }
-
+        
 
         //printf( "send telem event\n%s\n%s", clientCB.c_str(), coreCB.c_str() );
         // Set the initial JSON postdata string
@@ -1326,19 +1370,18 @@ namespace nsGlasslabSDK {
             cb = "sendTelemEvent_Done";
         }
         
-
         // Continue with the request if there is telemetry to send
         if( json_array_size( m_telemEvents ) > 0 ) {
             // Get the telemetry JSON
             char* rootJSON = json_dumps( m_telemEvents, JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
             jsonOut = rootJSON;
             free( rootJSON );
-            
-            /*printf( "\n---------------------------\n" );
+         
+            //printf( "\n---------------------------\n" );
             //printf( "sendTelemEvents: %i", m_telemEvents );
-            printf( "sendTelemEvents: %s", jsonOut.c_str() );
-            printf( "\n---------------------------\n" );*/
-
+            //printf( "sendTelemEvents: %s", jsonOut.c_str() );
+            //printf( "\n---------------------------\n" );
+         
             // Add this message to the queue
             mf_addMessageToDataQueue( API_POST_EVENTS, cb, clientCB, jsonOut.c_str(), "application/json" );
             
@@ -1350,15 +1393,14 @@ namespace nsGlasslabSDK {
             p_glSDKInfo sdkInfo;
             sdkInfo.sdk = m_sdk; // exposed sdk
             sdkInfo.core = this; // hidden core
-            ClientCallback_Func clientCallback = getClientCallback( clientCB );
-            sdkInfo.clientCB = clientCallback;
+            sdkInfo.clientCB = getClientCallback( clientCB );
+            
             CoreCallback_Func coreCallback = getCoreCallback( cb );//cb(sdkInfo);
             coreCallback( sdkInfo );
         }
 
         // Update the totalTimePlayed in the SQLite database
         m_dataSync->updatePlayerInfoFromDeviceId( m_deviceId, newTime, m_gameSessionEventOrder );
-
 
         // Attempt to dispatch the message queue
         attemptMessageDispatch();
@@ -1379,6 +1421,7 @@ namespace nsGlasslabSDK {
         // flush the message queue
         if( secondsElapsed > config.eventsPeriodSecs ) {
 
+            //printf("secondsElapsed: %f,  getMessageTableSize: %d, config.eventsMinSize: %d\n", secondsElapsed, m_dataSync->getMessageTableSize(), config.eventsMinSize);
             // Check that we exceed the minimum number of events to send data
             if( m_dataSync->getMessageTableSize() > config.eventsMinSize ) {
                 // In addition to flushing the message queue, do a POST on the totalTimePlayed
@@ -1390,7 +1433,6 @@ namespace nsGlasslabSDK {
                 if( getConnectedState() ) {
                     m_dataSync->flushMsgQ();
                 }
-
                 m_telemetryLastTime = currentTime;
             }
         }
@@ -1415,6 +1457,8 @@ namespace nsGlasslabSDK {
      * 
      */
     void httpGetRequest_Done( struct evhttp_request* req, void* arg ) {
+        
+        printf( "httpGetRequest_Done\n");
         // If the request object exists, parse the response
         if( req ) {
             // Cast the argument to a request info object
@@ -1492,7 +1536,9 @@ namespace nsGlasslabSDK {
                 // Terminate event_base_dispatch()
                 event_base_loopbreak( request->base );
                 //evhttp_request_free(request->req);
-                //evhttp_connection_free(request->conn);
+                
+                evhttp_connection_free(request->conn);
+                event_base_free(request->base);
                 
                 // We're done, clean up the request
                 delete request;
@@ -1534,10 +1580,12 @@ namespace nsGlasslabSDK {
 
                 // Terminate event_base_dispatch()
                 event_base_loopbreak( request->base );
-                //evhttp_request_free(request->req);
-                //evhttp_connection_free(request->conn);
+                
+                evhttp_connection_free(request->conn);
+                event_base_free(request->base);
+                
                 // We're done, clean up the request
-                //delete request;
+                delete request;
             }
         }
     }
@@ -1563,7 +1611,7 @@ namespace nsGlasslabSDK {
         if( port == -1 ) {
             port = 80;
         }
-        //printf("connect url: %s, host: %s, port:%d\n", url.c_str(), host, port);
+        printf("connect url: %s, host: %s, port:%d\n", url.c_str(), host, port);
 
         // Reset the cancel state of the callback
         setCoreCallbackCancelState( coreCB, false );
@@ -1580,6 +1628,8 @@ namespace nsGlasslabSDK {
         httpRequest->conn       = evhttp_connection_base_new( httpRequest->base, NULL, host, port );
         httpRequest->req        = evhttp_request_new( httpGetRequest_Done, (void *)httpRequest );
 
+        // TODO: add user agent info
+        // TODO: add referer info
 
         // Only proceed if the HTTP request is valid
         if( httpRequest->req != NULL ) {
@@ -1599,7 +1649,7 @@ namespace nsGlasslabSDK {
                 evbuffer_add_printf( postdata_buffer, "%s", postdata.c_str() );
 
                 // Use existing contentType
-                if( contentType != NULL && contentType != "" ) {
+                if( contentType != NULL && strlen(contentType) != 0 ) {
                     evhttp_add_header( httpRequest->req->output_headers, "Content-type", contentType );
                 }
                 // Or, add default contentType
@@ -1607,9 +1657,15 @@ namespace nsGlasslabSDK {
                     evhttp_add_header( httpRequest->req->output_headers, "Content-type", "application/x-www-form-urlencoded" );
                 }
                 
+                // add content length if post
+                char t[255];
+                sprintf(t, "%lu", postdata.length());
+                evhttp_add_header( httpRequest->req->output_headers, "Content-Length", t);
+                
                 // Add the postdata to the request and reset the type to POST
                 evbuffer_add_buffer( httpRequest->req->output_buffer, postdata_buffer );
                 requestType = EVHTTP_REQ_POST;
+                
             }
             
             // Dispatch the request
@@ -1765,6 +1821,7 @@ namespace nsGlasslabSDK {
      * Function returns a Client Callback function from the map using the key parameter.
      */
     ClientCallback_Func Core::getClientCallback( string key ) {
+        
         // Callback function does not exist
         if( m_clientCallbackMap.find( key ) == m_clientCallbackMap.end() ) {
             return NULL;
@@ -1773,6 +1830,7 @@ namespace nsGlasslabSDK {
         else {
             return m_clientCallbackMap[ key ];
         }
+        
     }
 
 
@@ -1825,81 +1883,44 @@ namespace nsGlasslabSDK {
      * TODO: include bools
      */
     void Core::addTelemEventValue( const char* key, const char* value ) {
-        json_object_set( m_telemEventValues, key, json_string( value ) );
+        json_object_set_new( m_telemEventValues, key, json_string( value ) );
     }
     void Core::addTelemEventValue( const char* key, int8_t value ) {
-        json_object_set( m_telemEventValues, key, json_integer( value ) );
+        json_object_set_new( m_telemEventValues, key, json_integer( value ) );
     }
     void Core::addTelemEventValue( const char* key, int16_t value ) {
-        json_object_set( m_telemEventValues, key, json_integer( value ) );
+        json_object_set_new( m_telemEventValues, key, json_integer( value ) );
     }
     void Core::addTelemEventValue( const char* key, int32_t value ) {
-        json_object_set( m_telemEventValues, key, json_integer( value ) );
+        json_object_set_new( m_telemEventValues, key, json_integer( value ) );
     }
     void Core::addTelemEventValue( const char* key, uint8_t value ) {
-        json_object_set( m_telemEventValues, key, json_integer( value ) );
+        json_object_set_new( m_telemEventValues, key, json_integer( value ) );
     }
     void Core::addTelemEventValue( const char* key, uint16_t value ) {
-        json_object_set( m_telemEventValues, key, json_integer( value ) );
+        json_object_set_new( m_telemEventValues, key, json_integer( value ) );
     }
     void Core::addTelemEventValue( const char* key, uint32_t value ) {
-        json_object_set( m_telemEventValues, key, json_integer( value ) );
+        json_object_set_new( m_telemEventValues, key, json_integer( value ) );
     }
     void Core::addTelemEventValue( const char* key, float value ) {
-        json_object_set( m_telemEventValues, key, json_real( value ) );
+        json_object_set_new( m_telemEventValues, key, json_real( value ) );
     }
     void Core::addTelemEventValue( const char* key, double value ) {
-        json_object_set( m_telemEventValues, key, json_real( value ) );
+        json_object_set_new( m_telemEventValues, key, json_real( value ) );
     }
     void Core::addTelemEventValue( const char* key, bool value ) {
-        json_object_set( m_telemEventValues, key, json_boolean( value ) );
+        json_object_set_new( m_telemEventValues, key, json_boolean( value ) );
     }
 
     /**
      * Function clears all telemetry events stored in the JSON object.
      */
     void Core::clearTelemEvents() {
-        // Decrease the reference count, this way Jansson can release "m_telemEvents" resources
-        if( !m_telemEvents ) {
-            json_decref( m_telemEvents );
-        }
-        
-        // Initialize events document
-        m_telemEvents = json_loads( "[]", 0, &m_jsonError );
+        // Initialize events array
+        json_array_clear(m_telemEvents);
         if( !m_telemEvents ) {
             displayError( "Core::clearTelemEvents()", "There was an error intializing a new telemetry document after clearing the old one." );
-        }
-    }
-
-    /**
-     * Function clears all telemetry event values stored in the event object
-     */
-    void Core::clearTelemEventValues() {
-        // Decrease the reference count, this way Jansson can release "m_telemEvents" resources
-        if( !m_telemEventValues ) {
-            json_decref( m_telemEventValues );
-        }
-        
-        // Initialize event values document
-        m_telemEventValues = json_loads( "{}", 0, &m_jsonError );
-        if( !m_telemEventValues ) {
-            displayError( "Core::clearTelemEventValues()", "There was an error intializing a new telemetry events document after clearing the old one." );
-        }
-    }
-
-    /**
-     * Function clears all achievement event values stored in the achievement object
-     */
-    void Core::clearAchievementEventValues() {
-        // Decrease the reference count, this way Jansson can release "m_achievementEventValues" resources
-        if( !m_achievementEventValues ) {
-            json_decref( m_achievementEventValues );
-        }
-        
-        // Initialize event values document
-        m_achievementEventValues = json_loads( "{}", 0, &m_jsonError );
-        if( !m_achievementEventValues ) {
-            displayError( "Core::clearAchievementEventValues()", "There was an error intializing a new achievement events document after clearing the old one." );
         }
     }
 
@@ -1914,33 +1935,33 @@ namespace nsGlasslabSDK {
         if( event ) {
             // Set default information
             time_t t = time(NULL);
-            json_object_set( event, "clientTimeStamp", json_integer( (int)t ) );
-            json_object_set( event, "eventName", json_string( name ) );
-            json_object_set( event, "gameId",  json_string( m_gameId.c_str() ) );
-            json_object_set( event, "gameSessionId", json_string( "$gameSessionId$" ) );
-            json_object_set( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );//"$gameSessionEventOrder$" ) );
+            json_object_set_new( event, "clientTimeStamp", json_integer( (int)t ) );
+            json_object_set_new( event, "eventName", json_string( name ) );
+            json_object_set_new( event, "gameId",  json_string( m_gameId.c_str() ) );
+            json_object_set_new( event, "gameSessionId", json_string( "$gameSessionId$" ) );
+            json_object_set_new( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );//"$gameSessionEventOrder$" ) );
 
             // Set the deviceId if it exists
             if( m_deviceId.length() > 0 ) {
-                json_object_set( event, "deviceId", json_string( m_deviceId.c_str() ) );
+                json_object_set_new( event, "deviceId", json_string( m_deviceId.c_str() ) );
             }
             // Set the clientVersion if it exists
             if( m_clientVersion.length() > 0 ) {
-                json_object_set( event, "clientVersion", json_string( m_clientVersion.c_str() ) );
+                json_object_set_new( event, "clientVersion", json_string( m_clientVersion.c_str() ) );
             }
             // Set the gameLevel if it exists
             if( m_gameLevel.length() > 0 ) {
-                json_object_set( event, "gameType", json_string( m_gameLevel.c_str() ) );
+                json_object_set_new( event, "gameType", json_string( m_gameLevel.c_str() ) );
             }
             // Set the eventData as a separate JSON document using the values
-            json_object_set( event, "eventData", m_telemEventValues );
+            json_object_set_new( event, "eventData", m_telemEventValues );
 
             // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
-            json_object_set( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
+            json_object_set_new( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
             
             // Append the final event structure to the telemetry events JSON object
-            json_array_append( m_telemEvents, event );
-
+            json_array_append_new( m_telemEvents, event );
+            
             //string jsonOut = "";
             //char* rootJSON = json_dumps( event, JSON_SORT_KEYS );//JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
             //jsonOut = rootJSON;
@@ -1950,7 +1971,7 @@ namespace nsGlasslabSDK {
             //printf( "\n---------------------------\n" );
             
             // Reset all memebers in event object
-            clearTelemEventValues();
+            m_telemEventValues  = json_object();
         }
         // If the JSON object wasn't created properly, we have an error
         else {
@@ -1976,35 +1997,35 @@ namespace nsGlasslabSDK {
         if( event ) {
             // Set default information
             time_t t = time(NULL);
-            json_object_set( event, "clientTimeStamp", json_integer( (int)t ) );
-            json_object_set( event, "eventName", json_string( "$Achievement" ) );
-            json_object_set( event, "gameId",  json_string( m_gameId.c_str() ) );
-            json_object_set( event, "gameSessionId", json_string( "$gameSessionId$" ) );
-            json_object_set( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );// "$gameSessionEventOrder$" ) );
+            json_object_set_new( event, "clientTimeStamp", json_integer( (int)t ) );
+            json_object_set_new( event, "eventName", json_string( "$Achievement" ) );
+            json_object_set_new( event, "gameId",  json_string( m_gameId.c_str() ) );
+            json_object_set_new( event, "gameSessionId", json_string( "$gameSessionId$" ) );
+            json_object_set_new( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );// "$gameSessionEventOrder$" ) );
 
             // Set the deviceId if it exists
             if( m_deviceId.length() > 0 ) {
-                json_object_set( event, "deviceId", json_string( m_deviceId.c_str() ) );
+                json_object_set_new( event, "deviceId", json_string( m_deviceId.c_str() ) );
             }
             // Set the clientVersion if it exists
             if( m_clientVersion.length() > 0 ) {
-                json_object_set( event, "clientVersion", json_string( m_clientVersion.c_str() ) );
+                json_object_set_new( event, "clientVersion", json_string( m_clientVersion.c_str() ) );
             }
             // Set the gameLevel if it exists
             if( m_gameLevel.length() > 0 ) {
-                json_object_set( event, "gameType", json_string( m_gameLevel.c_str() ) );
+                json_object_set_new( event, "gameType", json_string( m_gameLevel.c_str() ) );
             }
             // Set the eventData as a separate JSON document using the values
-            json_object_set( m_achievementEventValues, "item", json_string( item ) );
-            json_object_set( m_achievementEventValues, "group", json_string( group ) );
-            json_object_set( m_achievementEventValues, "subGroup", json_string( subGroup ) );
-            json_object_set( event, "eventData", m_achievementEventValues );
+            json_object_set_new( m_achievementEventValues, "item", json_string( item ) );
+            json_object_set_new( m_achievementEventValues, "group", json_string( group ) );
+            json_object_set_new( m_achievementEventValues, "subGroup", json_string( subGroup ) );
+            json_object_set_new( event, "eventData", m_achievementEventValues );
 
             // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
-            json_object_set( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
+            json_object_set_new( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
             
             // Append the final event structure to the telemetry events JSON object
-            json_array_append( m_telemEvents, event );
+            json_array_append_new( m_telemEvents, event );
 
             //string jsonOut = "";
             //char* rootJSON = json_dumps( event, JSON_SORT_KEYS );//JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
@@ -2015,7 +2036,7 @@ namespace nsGlasslabSDK {
             //printf( "\n---------------------------\n" );
             
             // Reset all memebers in achievement events object
-            clearAchievementEventValues();
+            m_achievementEventValues = json_object();
         }
         // If the JSON object wasn't created properly, we have an error
         else {
@@ -2031,34 +2052,34 @@ namespace nsGlasslabSDK {
      * Allow the user to update the key/values in the user player data structure.
      */
     void Core::updatePlayerInfoKey( const char* key, const char* value ) {
-        json_object_set( m_playerInfo, key, json_string( value ) );
+        json_object_set_new( m_playerInfo, key, json_string( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, int8_t value ) {
-        json_object_set( m_playerInfo, key, json_integer( value ) );
+        json_object_set_new( m_playerInfo, key, json_integer( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, int16_t value ) {
-        json_object_set( m_playerInfo, key, json_integer( value ) );
+        json_object_set_new( m_playerInfo, key, json_integer( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, int32_t value ) {
-        json_object_set( m_playerInfo, key, json_integer( value ) );
+        json_object_set_new( m_playerInfo, key, json_integer( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, uint8_t value ) {
-        json_object_set( m_playerInfo, key, json_integer( value ) );
+        json_object_set_new( m_playerInfo, key, json_integer( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, uint16_t value ) {
-        json_object_set( m_playerInfo, key, json_integer( value ) );
+        json_object_set_new( m_playerInfo, key, json_integer( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, uint32_t value ) {
-        json_object_set( m_playerInfo, key, json_integer( value ) );
+        json_object_set_new( m_playerInfo, key, json_integer( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, float value ) {
-        json_object_set( m_playerInfo, key, json_real( value ) );
+        json_object_set_new( m_playerInfo, key, json_real( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, double value ) {
-        json_object_set( m_playerInfo, key, json_real( value ) );
+        json_object_set_new( m_playerInfo, key, json_real( value ) );
     }
     void Core::updatePlayerInfoKey( const char* key, bool value ) {
-        json_object_set( m_playerInfo, key, json_boolean( value ) );
+        json_object_set_new( m_playerInfo, key, json_boolean( value ) );
     }
 
     /**
@@ -2066,7 +2087,7 @@ namespace nsGlasslabSDK {
      */
     void Core::removePlayerInfoKey( const char* key ) {
         // Don't allow totalTimePlayed to be deleted
-        if( key == "$totalTimePlayed$" ) {
+        if( strcmp(key, "$totalTimePlayed$") == 0 ) {
             return;
         }
 
@@ -2077,7 +2098,7 @@ namespace nsGlasslabSDK {
      * Set platform required default key-value pairs in the player info data structure.
      */
     void Core::setDefaultPlayerInfoKeys() {
-        json_object_set( m_playerInfo, "$totalTimePlayed$", json_real( m_dataSync->getTotalTimePlayedFromDeviceId( m_deviceId ) ) );
+        json_object_set_new( m_playerInfo, "$totalTimePlayed$", json_real( m_dataSync->getTotalTimePlayedFromDeviceId( m_deviceId ) ) );
     }
 
     /**
@@ -2146,6 +2167,14 @@ namespace nsGlasslabSDK {
 
     void Core::setUserId( int userId ) {
         m_userId = userId;
+    }
+    
+    void Core::setConfig( glConfig _config ){
+        memcpy(&config, &_config, sizeof(glConfig));
+    }
+    
+    void Core::setTime( time_t time ) {
+        m_currentTime = time;
     }
 
     void Core::setPlayerHandle( const char* handle ) {

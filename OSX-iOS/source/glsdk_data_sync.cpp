@@ -21,21 +21,21 @@ namespace nsGlasslabSDK {
     DataSync::DataSync( Core* core, const char* dbPath ) {
         // Set the Core SDK object
         m_core = core;
-
-        // Set the path for the database
-        char result[100];
-        strcpy( result, dbPath );
-        strcat( result, "/glasslabsdk.db" );
-
-        m_core->logMessage( "Database file:", result );
+        
+        m_dbName = "";
+        if(dbPath) {
+            m_dbName += dbPath;
+        } else {
+            char cwd[1024];
+            if(getcwd(cwd, sizeof(cwd)) != NULL) {
+                m_dbName += cwd;
+            }
+        }
+        m_dbName += "/glasslabsdk.db";
+        
+        m_core->logMessage( "Database file:", m_dbName.c_str() );
         //cout << "Database file: " << result << endl;
 
-        // Set database and table names
-        m_dbName = result;
-        m_configTableName = CONFIG_TABLE_NAME;// "CONFIG";
-        m_hmqTableName = MSG_QUEUE_TABLE_NAME;//"MSG_QUEUE";
-        m_sessionTableName = SESSION_TABLE_NAME;//"SESSION";
-        
         // Open the database
         initDB();
 
@@ -74,9 +74,41 @@ namespace nsGlasslabSDK {
 
             // Open the database
             m_db.open( m_dbName.c_str() );
+            
+            /*
+            CppSQLite3Query q = m_db.execQuery("PRAGMA page_size;");
+            if( !q.eof() ) {
+                printf("\nPage size: %d\n", atoi(q.fieldValue(0)) );
+            }
+            q.finalize();
+            */
+            // page_size == 4096
+            
+            m_db.execDML( "PRAGMA cache_size = 2048;" );
+            
+            /*
+            CppSQLite3Query q = m_db.execQuery("PRAGMA cache_size;");
+            if( !q.eof() ) {
+                printf("\nCache Size: %d\n", atoi(q.fieldValue(0)) );
+            }
+            q.finalize();
+            */
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::initDB()", e.errorMessage() );
+            //cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+        }
+    }
+    
+    void DataSync::reconnectDB() {
+        try {
+            m_db.close();
+            
+            // Open the database
+            m_db.open( m_dbName.c_str() );
+        }
+        catch( CppSQLite3Exception e ) {
+            m_core->displayError( "DataSync::reconnectDB()", e.errorMessage() );
             //cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
@@ -87,41 +119,50 @@ namespace nsGlasslabSDK {
      */
     void DataSync::validateSDKVersion() {
         try {
-            cout << "Current SDK_VERSION: " << SDK_VERSION << endl;
+            printf("Current SDK_VERSION: %s\n", SDK_VERSION);
 
             // Set a state for if we need to drop the tables and reset
             bool resetTables = false;
             // Set a state for if we need to migrate the contents of one table to another
             // This will occur when columns have either been added or deleted in a table
             bool performMigration = false;
+            string s;
 
             // If the CONFIG table doesn't exist, be sure to drop it
-            if( !m_db.tableExists( m_configTableName.c_str() ) ) {
+            if( !m_db.tableExists( CONFIG_TABLE_NAME ) ) {
                 resetTables = true;
-                cout << m_configTableName << " does not exist!" << endl;
+                printf("%s does not exist!\n", CONFIG_TABLE_NAME);
             }
             // The table does exist, check the version field in there
             else {
-                m_sql = "select * from " + m_configTableName + ";";
-                cout << "SQL: " << m_sql << endl;
-                CppSQLite3Query q = m_db.execQuery( m_sql.c_str() );
+                s = "";
+                s += "select * from ";
+                s += CONFIG_TABLE_NAME;
+                s += ";";
+                printf("SQL: %s\n", s.c_str());
+                CppSQLite3Query q = m_db.execQuery( s.c_str() );
 
                 // If the table is empty, reset
                 if( q.eof() ) {
                     resetTables = true;
-                    cout << "No entry exists in " << m_configTableName << endl;
+                    printf("No entry exists in %s\n", CONFIG_TABLE_NAME);
                 }
                 // There is an entry, grab it
                 else {
                     float configSDKVersion = (float)atof( q.fieldValue( 0 ) );
-                    cout << "CONFIG entry: " << q.fieldValue( 0 ) << endl;
+                    printf("CONFIG entry: %s", q.fieldValue( 0 ));
 
                     // If the stored SDK version is less than current, update it
                     if( configSDKVersion < (float)atof( SDK_VERSION ) ) {
-                        m_sql = "update " + m_configTableName + " set version='" + SDK_VERSION + "'";
-                        cout << "SQL: " << m_sql << endl;
-                        int nRows = m_db.execDML( m_sql.c_str() );
-                        cout << nRows << " rows updated in " << m_configTableName << endl;
+                        s = "";
+                        s += "update ";
+                        s += CONFIG_TABLE_NAME;
+                        s += " set version='";
+                        s += SDK_VERSION;
+                        s += "'";
+                        printf("SQL: %s\n", s.c_str());
+                        int nRows = m_db.execDML( s.c_str() );
+                        printf("%d rows updated in %s\n", nRows, CONFIG_TABLE_NAME);
 
                         // Indicate that a table migration is required
                         performMigration = true;
@@ -134,7 +175,7 @@ namespace nsGlasslabSDK {
 
             // Reset the tables if we need to
             if( resetTables ) {
-                cout << "Need to drop the tables in " << m_configTableName << endl;
+                cout << "Need to drop the tables in " << CONFIG_TABLE_NAME << endl;
                 dropTables();
             }
             // Or migrate the contents if we need to
@@ -166,51 +207,54 @@ namespace nsGlasslabSDK {
             return;
         }
 
+        int nRows = 0;
         // string stream
-        ostringstream s;
+        string s = "";
         
         try {
             //cout << "------------------------------------" << endl;
-            s << "INSERT INTO " << m_hmqTableName << ""
-            " (deviceId, path, coreCB, clientCB, postdata, contentType, status) "
-            "VALUES ('" << deviceId << "', ";
+            s += "INSERT INTO ";
+            s += MSG_QUEUE_TABLE_NAME;
+            s += " (deviceId, path, coreCB, clientCB, postdata, contentType, status) VALUES ('";
+            s += deviceId;
+            s += "', ";
 
             // Check the API path
-            if( path.c_str() == 0 ) {
-               s << "''";
+            if( path.c_str() == NULL ) {
+               s += "''";
             }
             else {
-                s << "'";
-                s << path;
-                s << "'";
+                s += "'";
+                s += path;
+                s += "'";
             }
-            s << ", ";
+            s += ", ";
 
             // Check the Core Callback key
-            if( coreCB.c_str() == 0 ) {
-               s << "''";
+            if( coreCB.c_str() == NULL ) {
+               s += "''";
             }
             else {
-                s << "'";
-                s << coreCB;
-                s << "'";
+                s += "'";
+                s += coreCB;
+                s += "'";
             }
-            s << ", ";
+            s += ", ";
             
             // Check the Client Callback key
-            if( clientCB.c_str() == 0 ) {
-                s << "''";
+            if( clientCB.c_str() == NULL ) {
+                s += "''";
             }
             else {
-                s << "'";
-                s << clientCB;
-                s << "'";
+                s += "'";
+                s += clientCB;
+                s += "'";
             }
-            s << ", ";
+            s += ", ";
             
             // Check the postdata
-            if( postdata.c_str() == 0 ) {
-                s << "''";
+            if( postdata.c_str() == NULL ) {
+                s += "''";
             }
             else {
                 // Replace all ' characters with escapes: \'
@@ -222,38 +266,35 @@ namespace nsGlasslabSDK {
                     n += 2;
                 }
 
-                s << "'";
-                s << postdata;
-                s << "'";
+                s += "'";
+                s += postdata;
+                s += "'";
             }
-            s << ", ";
+            s += ", ";
             
             // Check the content type
-            if( contentType == 0 ) {
-                s << "''";
+            if( contentType == NULL ) {
+                s += "''";
             }
             else {
-                s << "'";
-                s << contentType;
-                s << "'";
+                s += "'";
+                s += contentType;
+                s += "'";
             }
-            s << ", 'ready'";
-            s << ");";
-            m_sql = s.str();
+            s += ", 'ready'";
+            s += ");";
         
             // Execute the insertion
-            //cout << "SQL: " << m_sql << endl;
-            int nRows = m_db.execDML( m_sql.c_str() );
-            //cout << nRows << " rows inserted" << endl;
-            //cout << "------------------------------------" << endl;
+            printf("SQL: %s\n", s.c_str());
+            nRows = m_db.execDML( s.c_str() );
+            printf("%d rows inserted\n", nRows);
+            printf("------------------------------------\n");
 
             // Set the message table size
-            //m_sql = "select * from " + m_hmqTableName;
-            //CppSQLiteTable t = db.getTable( m_sql.c_str() );
             m_messageTableSize++;
             
             // Debug display
-            //displayTable( m_hmqTableName );
+            //displayTable( MSG_QUEUE_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::addToMsgQ()", e.errorMessage() );
@@ -268,24 +309,27 @@ namespace nsGlasslabSDK {
      */
     void DataSync::removeFromMsgQ( int rowId ) {
         try {
+            int r = 0;
             // string stream
-            ostringstream s;
-
+            string s = "";
+            char t[255];
+            
             // Remove the entry at rowId
-            s << "delete from " << m_hmqTableName << " where id=" << rowId;
-            m_sql = s.str();
+            s += "delete from ";
+            s += MSG_QUEUE_TABLE_NAME;
+            s += " where id=";
+            sprintf(t, "%d", rowId);
+            s += t;
             //cout << "delete SQL: " << m_sql << endl;
-            int r = m_db.execDML( m_sql.c_str() );
-            //cout << "Deleting result: " << r << endl;
+            r = m_db.execDML( s.c_str() );
+            printf("Deleting result: %d\n", r);
 
             // Set the message table size
-            //m_sql = "select * from " + m_hmqTableName;
-            //CppSQLiteTable t = db.getTable( m_sql.c_str() );
             m_messageTableSize--;
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::removeFromMsgQ()", e.errorMessage() );
-            //cout << "Exception in removeFromMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
+            printf("Exception in removeFromMsgQ() %s (%d)\n", e.errorMessage(), e.errorCode());
         }
     }
 
@@ -304,13 +348,21 @@ namespace nsGlasslabSDK {
             // Else, update the entry's status field
             else {
                 // string stream
-                ostringstream s;
+                string s = "";
+                char t[255];
 
                 // Execute the update operation
-                s << "UPDATE " << m_hmqTableName << " SET status='" << status << "' WHERE id='" << rowId << "'";
-                m_sql = s.str();
-                //cout << "update SQL: " << m_sql << endl;
-                int r = m_db.execDML( m_sql.c_str() );
+                s += "UPDATE ";
+                s += MSG_QUEUE_TABLE_NAME;
+                s += " SET status='";
+                s += status;
+                s += "' WHERE id='";
+                sprintf(t, "%d", rowId);
+                s += t;
+                s += "'";
+                
+                //printf("update SQL: %s\n", s.c_str());
+                int r = m_db.execDML( s.c_str() );
                 //cout << "Updating result: " << r << endl;
             }
         }
@@ -341,49 +393,60 @@ namespace nsGlasslabSDK {
      */
     void DataSync::updateSessionTableWithCookie( string deviceId, string cookie ) {
         // string stream
-        ostringstream s;
+        string s = "";
         
         try {
             // Display the session table
-            //displayTable( m_sessionTableName );
+            //displayTable( SESSION_TABLE_NAME );
             
             // Look for an existing entry with the device Id
-            cout << "------------------------------------" << endl;
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            cout << "session SQL: " << m_sql << endl;
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+            printf("------------------------------------\n");
+            s = "";
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
+            printf("session SQL: %s\n", s.c_str());
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
             // If the count is 0, insert a new entry
             if( sessionQuery.eof() ) {
-                cout << "EMPTY: need to insert\n";
+                printf("EMPTY: need to insert\n");
 
                 // Create a new session entry
-                createNewSessionEntry( deviceId, cookie, "" );
+                s = createNewSessionEntry( deviceId, cookie, "" );
             }
             // Otherwise, update an existing entry
             else {
-                cout << "FOUND:\n";
+                printf("FOUND:\n");
                 for( int fld = 0; fld < sessionQuery.numFields(); fld++ ) {
-                    cout << sessionQuery.fieldValue( fld ) << " | ";
+                    printf("%s | ", sessionQuery.fieldValue( fld ));
                 }
-                cout << endl;
+                printf("\n");
 
                 // Update
-                cout << "UPDATING " << m_sessionTableName << " with cookie: " << cookie << endl;
-                s << "UPDATE " << m_sessionTableName << " SET cookie='" << cookie << "' WHERE deviceId='" << deviceId << "'";
-                m_sql = s.str();
+                printf("UPDATING %s with cookie: %s\n", SESSION_TABLE_NAME, cookie.c_str());
+                s = "";
+                s += "UPDATE ";
+                s += SESSION_TABLE_NAME;
+                s += " SET cookie='";
+                s += cookie;
+                s += "' WHERE deviceId='";
+                s += deviceId;
+                s += "'";
             }
 
             // Finalize the query
-            //sessionQuery.finalize();
+            sessionQuery.finalize();
         
-            cout << "SQL: " << m_sql << endl;
-            int nRows = m_db.execDML( m_sql.c_str() );
-            cout << nRows << " rows inserted" << endl;
-            cout << "------------------------------------" << endl;
+            printf("SQL: %s\n", s.c_str());
+            int nRows = m_db.execDML( s.c_str() );
+            printf("%d rows inserted\n", nRows);
+            printf("------------------------------------\n");
             
             
-            displayTable( m_sessionTableName );
+            displayTable( SESSION_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithCookie()", e.errorMessage() );
@@ -399,24 +462,29 @@ namespace nsGlasslabSDK {
      */
     void DataSync::updateSessionTableWithGameSessionId( string deviceId, string gameSessionId ) {
         // string stream
-        ostringstream s;
+        string s;
         
         try {
             // Display the session table
-            //displayTable( m_sessionTableName );
+            //displayTable( SESSION_TABLE_NAME );
             
             // Look for an existing entry with the device Id
-            cout << "------------------------------------" << endl;
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            cout << "session SQL: " << m_sql << endl;
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+            printf("------------------------------------\n");
+            s = "";
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
+            printf("session SQL: %s\n", s.c_str());
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
             // If the count is 0, insert a new entry
             if( sessionQuery.eof() ) {
                 cout << "EMPTY: need to insert\n";
 
                 // Create a new session entry
-                createNewSessionEntry( deviceId, "", gameSessionId );
+                s = createNewSessionEntry( deviceId, "", gameSessionId );
             }
             // Otherwise, update an existing entry
             else {
@@ -427,21 +495,28 @@ namespace nsGlasslabSDK {
                 cout << endl;
 
                 // Update
-                cout << "UPDATING " << m_sessionTableName << " with gameSessionId: " << gameSessionId << endl;
-                s << "UPDATE " << m_sessionTableName << " SET gameSessionId='" << gameSessionId << "', gameSessionEventOrder='" << 1 << "' WHERE deviceId='" << deviceId << "'";
-                m_sql = s.str();
+                printf("UPDATING %s with gameSessionId: %s\n", SESSION_TABLE_NAME, gameSessionId.c_str());
+                s = "";
+                s += "UPDATE ";
+                s += SESSION_TABLE_NAME;
+                s += " SET gameSessionId='";
+                s += gameSessionId;
+                s += "', gameSessionEventOrder='1'";
+                s += " WHERE deviceId='";
+                s += deviceId;
+                s += "'";
             }
 
             // Finalize the query
-            //sessionQuery.finalize();
+            sessionQuery.finalize();
         
-            cout << "SQL: " << m_sql << endl;
-            int nRows = m_db.execDML( m_sql.c_str() );
-            cout << nRows << " rows inserted" << endl;
-            cout << "------------------------------------" << endl;
+            printf("SQL: %s\n", s.c_str());
+            int nRows = m_db.execDML( s.c_str() );
+            printf("%d rows inserted\n", nRows);
+            printf("------------------------------------\n");
             
             
-            displayTable( m_sessionTableName );
+            displayTable( SESSION_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithGameSessionId()", e.errorMessage() );
@@ -457,40 +532,44 @@ namespace nsGlasslabSDK {
      */
     void DataSync::updateSessionTableWithPlayerHandle( string deviceIdWithHandle ) {
         // string stream
-        ostringstream s;
+        string s = "";
         
         try {
             // Display the session table
-            //displayTable( m_sessionTableName );
+            //displayTable( SESSION_TABLE_NAME );
             
             // Look for an existing entry with the device Id
-            cout << "------------------------------------" << endl;
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceIdWithHandle + "';";
-            cout << "session SQL: " << m_sql << endl;
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+            printf("------------------------------------\n");
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceIdWithHandle;
+            s += "';";
+            printf("session SQL: %s\n", s.c_str());
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
             // If the count is 0, insert a new entry
             if( sessionQuery.eof() ) {
-                cout << "session table missing new device id: " << deviceIdWithHandle << "\n";
+                printf("session table missing new device id: %s\n", deviceIdWithHandle.c_str());
 
                 // Create a new session entry
-                createNewSessionEntry( deviceIdWithHandle, "", "" );
+                s = createNewSessionEntry( deviceIdWithHandle, "", "" );
 
                 // Perform the operation
-                cout << "SQL: " << m_sql << endl;
-                int nRows = m_db.execDML( m_sql.c_str() );
-                cout << nRows << " rows inserted" << endl;
-                cout << "------------------------------------" << endl;
+                printf("SQL: %s\n", s.c_str());
+                int nRows = m_db.execDML( s.c_str() );
+                printf("%d rows inserted\n", nRows);
+                printf("------------------------------------\n");
             }
             // Otherwise, update an existing entry
             else {
-                cout << "FOUND entry with new device Id, we can ignore\n";
+                printf("FOUND entry with new device Id, we can ignore\n");
             }
 
             // Finalize the query
-            //sessionQuery.finalize();
+            sessionQuery.finalize();
             
-            displayTable( m_sessionTableName );
+            displayTable( SESSION_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithPlayerHandle()", e.errorMessage() );
@@ -505,11 +584,16 @@ namespace nsGlasslabSDK {
      */
     void DataSync::removeSessionWithDeviceId( string deviceId ) {
         try {
+            string s = "";
             // Remove the entry with the associated deviceId
-            m_sql = "delete from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            cout << "delete SQL: " << m_sql << endl;
-            int r = m_db.execDML( m_sql.c_str() );
-            cout << "Deleting result: " << r << endl;
+            s += "delete from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
+            printf("delete SQL: %s\n", s.c_str());
+            int r = m_db.execDML( s.c_str() );
+            printf("Deleting result: %d\n", r);
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::removeSessionWithDeviceId()", e.errorMessage() );
@@ -524,31 +608,36 @@ namespace nsGlasslabSDK {
      */
     const char* DataSync::getCookieFromDeviceId( string deviceId ) {
         // string stream
-        ostringstream s;
+        string s = "";
+        string cookie = "";
         
         try {
             // Display the session table
-            displayTable( m_sessionTableName );
+            displayTable( SESSION_TABLE_NAME );
             
             // Look for an existing entry with the device Id
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
-
-            // Finalize the query
-            //sessionQuery.finalize();
-
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
+            
             // If the count is 0, no entry exists with deviceId, return an empty string
             // The empty string will tell the next get request that we need one to store
             if( sessionQuery.eof() ) {
                 cout << "no cookie exists for " << deviceId.c_str() << endl;
-                return "";
             }
             // An entry does exist, grab the cookie and return it
             else {
-                string cookie = sessionQuery.fieldValue( 0 );
+                cookie = sessionQuery.fieldValue( 0 );
                 cout << "cookie exists for " << deviceId.c_str() << ": " << cookie.c_str() << endl;
-                return cookie.c_str();
             }
+            
+            // Finalize the query
+            sessionQuery.finalize();
+            
+            return cookie.c_str();
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::getCookieFromDeviceId()", e.errorMessage() );
@@ -566,29 +655,45 @@ namespace nsGlasslabSDK {
      */
     void DataSync::updatePlayerInfoFromDeviceId( string deviceId, float totalTimePlayed, int gameSessionEventOrder ) {
         // string stream
-        ostringstream s;
+        string s;
+        char t[255];
         
         try {
             // Look for an existing entry with the device Id
-            //cout << "------------------------------------" << endl;
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
+            //printf("------------------------------------\n");
+            s = "";
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
             //cout << "session SQL: " << m_sql << endl;
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
             // Only continue if an entry exists
             if( !sessionQuery.eof() ) {
                 // Update
-                s << "UPDATE " << m_sessionTableName << " SET totalTimePlayed='" << totalTimePlayed << "', gameSessionEventOrder='" << gameSessionEventOrder << "' WHERE deviceId='" << deviceId << "'";
-                m_sql = s.str();
+                s = "";
+                s += "UPDATE ";
+                s += SESSION_TABLE_NAME;
+                s += " SET totalTimePlayed='";
+                sprintf(t, "%f", totalTimePlayed);
+                s += t;
+                s += "', gameSessionEventOrder='";
+                sprintf(t, "%d", gameSessionEventOrder);
+                s += t;
+                s += "' WHERE deviceId='";
+                s += deviceId;
+                s += "'";
 
-                //cout << "SQL: " << m_sql << endl;
-                int nRows = m_db.execDML( m_sql.c_str() );
-                //cout << nRows << " rows inserted" << endl;
-                //cout << "------------------------------------" << endl;
+                //printf("SQL: %s\n", s.c_str());
+                int nRows = m_db.execDML( s.c_str() );
+                //printf("%d rows inserted\n", nRows);
+                //printf("------------------------------------\n");
             }
 
             // Finalize the query
-            //sessionQuery.finalize();
+            sessionQuery.finalize();
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updatePlayerInfoFromDeviceId()", e.errorMessage() );
@@ -603,24 +708,30 @@ namespace nsGlasslabSDK {
      */
     float DataSync::getTotalTimePlayedFromDeviceId( string deviceId ) {
         try {
+            float totalTimePlayed = 0;
+            string s = "";
             // Look for an existing entry with the device Id
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
-
-            // Finalize the query
-            //sessionQuery.finalize();
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
             // If the count is 0, no entry exists with deviceId, return a default value of 0.0
             if( sessionQuery.eof() ) {
                 cout << "totalTimePlayed does not exist for " << deviceId.c_str() << endl;
-                return 0.0;
             }
             // An entry does exist, grab the totalTimePlayed and return it
             else if( sessionQuery.fieldValue( 4 ) != NULL ) {
-                float totalTimePlayed = atof( sessionQuery.fieldValue( 4 ) );
+                totalTimePlayed = atof( sessionQuery.fieldValue( 4 ) );
                 cout << "totalTimePlayed exists for " << deviceId.c_str() << ": " << totalTimePlayed << endl;
-                return totalTimePlayed;
             }
+            
+            // Finalize the query
+            sessionQuery.finalize();
+
+            return totalTimePlayed;
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::getTotalTimePlayedFromDeviceId()", e.errorMessage() );
@@ -638,15 +749,23 @@ namespace nsGlasslabSDK {
      */
     void DataSync::updateGameSessionEventOrderWithDeviceId( string deviceId, int gameSessionEventOrder ) {
         // string stream
-        ostringstream s;
+        string s = "";
+        char t[255];
         
         try {
             // Update the SESSION table with the new gameSessionEventOrder value
-            s << "UPDATE " << m_sessionTableName << " SET gameSessionEventOrder='" << gameSessionEventOrder << "' WHERE deviceId='" << deviceId << "';";
-            m_sql = s.str();
-            cout << "update SQL: " << m_sql << endl;
-            int r = m_db.execDML( m_sql.c_str() );
-            cout << "Updating gameSessionEventOrder result: " << r << endl;
+            s += "UPDATE ";
+            s += SESSION_TABLE_NAME;
+            s += " SET gameSessionEventOrder='";
+            sprintf(t, "%d", gameSessionEventOrder);
+            s += t;
+            s += "' WHERE deviceId='";
+            s += deviceId;
+            s += "';";
+
+            printf("update SQL: %s\n", s.c_str());
+            int r = m_db.execDML( s.c_str() );
+            printf("Updating gameSessionEventOrder result: %d\n", r);
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateGameSessionEventOrderWithDeviceId()", e.errorMessage() );
@@ -661,24 +780,30 @@ namespace nsGlasslabSDK {
      */
     int DataSync::getGameSessionEventOrderFromDeviceId( string deviceId ) {
         try {
+            int gameSessionEventOrder = 1;
+            string s = "";
             // Look for an existing entry with the device Id
-            m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
-            CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
-
-            // Finalize the query
-            //sessionQuery.finalize();
+            s += "select * from ";
+            s += SESSION_TABLE_NAME;
+            s += " where deviceId='";
+            s += deviceId;
+            s += "';";
+            CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
             // If the count is 0, no entry exists with deviceId, return a default value of 1
             if( sessionQuery.eof() ) {
                 cout << "gameSessionEventOrder does not exist for " << deviceId.c_str() << endl;
-                return 1;
             }
             // An entry does exist, grab the gameSessionEventOrder and return it
             else if( sessionQuery.fieldValue( 3 ) != NULL ) {
-                int gameSessionEventOrder = atoi( sessionQuery.fieldValue( 3 ) );
+                gameSessionEventOrder = atoi( sessionQuery.fieldValue( 3 ) );
                 cout << "gameSessionEventOrder exists for " << deviceId.c_str() << ": " << gameSessionEventOrder << endl;
-                return gameSessionEventOrder;
             }
+            
+            // Finalize the query
+            sessionQuery.finalize();
+            
+            return gameSessionEventOrder;
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::getGameSessionEventOrderFromDeviceId()", e.errorMessage() );
@@ -694,66 +819,70 @@ namespace nsGlasslabSDK {
      *
      * Inserts a new session object into SESSION.
      */
-    void DataSync::createNewSessionEntry( string deviceId, string cookie, string gameSessionId ) {
+    string DataSync::createNewSessionEntry( string deviceId, string cookie, string gameSessionId ) {
         try {
             // Insert
-            ostringstream s;
-            s << "INSERT INTO " << m_sessionTableName << " VALUES (";
+            string s = "";
+            s += "INSERT INTO ";
+            s += SESSION_TABLE_NAME;
+            s += " VALUES (";
 
             // Check the cookie
             if( cookie.c_str() == 0 ) {
-               s << "''";
+               s += "''";
             }
             else {
-               s << "'";
-               s << cookie;
-               s << "'";
+               s += "'";
+               s += cookie;
+               s += "'";
             }
-            s << ", ";
+            s += ", ";
 
             // Check the deviceId
             if( deviceId.c_str() == 0 ) {
-               s << "0";
+               s += "0";
             }
             else {
-               s << "'";
-               s << deviceId;
-               s << "'";
+               s += "'";
+               s += deviceId;
+               s += "'";
             }
-            s << ", ";
+            s += ", ";
             
             // Check the gameSessionId
             if( gameSessionId.c_str() == 0 ) {
-                s << "0";
+                s += "0";
             }
             else {
-                s << "'";
-                s << gameSessionId;
-                s << "'";
+                s += "'";
+                s += gameSessionId;
+                s += "'";
             }
-            s << ", ";
+            s += ", ";
 
             // Include the gameSessionEventOrder (defaults to 1)
-            s << "'";
-            s << "1";
-            s << "'";
-            s << ", ";
+            s += "'";
+            s += "1";
+            s += "'";
+            s += ", ";
 
             // Include the totalTimePlayed (defaults to 0.0)
-            s << "'";
-            s << "0.0";
-            s << "'";
+            s += "'";
+            s += "0.0";
+            s += "'";
 
             // Close the SQL statement
-            s << ");";
+            s += ");";
 
             // Set the SQLite string to execute
-            m_sql = s.str();
+            return s;
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::createNewSessionEntry()", e.errorMessage() );
             //cout << "Exception in createNewSessionEntry() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
+        
+        return "";
     }
 
 
@@ -767,18 +896,19 @@ namespace nsGlasslabSDK {
      */
     void DataSync::flushMsgQ() {
         try {
+            string s;
             // Begin display out
             //cout << "\n\n\n-----------------------------------" << endl;
             cout << "\tflushing MSG_QUEUE: " << m_messageTableSize << endl;
             m_core->logMessage( "flushing MSG_QUEUE" );
 
             // Select all entries in MSG_QUEUE
-            m_sql = "select * from " + m_hmqTableName + ";";
-            cout << "msgQ SQL: " << m_sql << endl;
-            CppSQLite3Query msgQuery = m_db.execQuery( m_sql.c_str() );
-
-            // Finalize the query
-            //msgQuery.finalize();
+            s = "";
+            s += "select * from ";
+            s += MSG_QUEUE_TABLE_NAME;
+            s += ";";
+            printf("msgQ SQL: %s\n", s.c_str());
+            CppSQLite3Query msgQuery = m_db.execQuery( s.c_str() );
 
             // Keep a counter for the number of requests made so we can limit it
             int requestsMade = 0;
@@ -819,10 +949,15 @@ namespace nsGlasslabSDK {
                 string deviceId = msgQuery.fieldValue( 1 );
                 if( deviceId.c_str() != NULL ) {
                     // Select all entries in SESSION with deviceId
-                    displayTable( m_sessionTableName );
-                    m_sql = "select * from " + m_sessionTableName + " where deviceId='" + deviceId + "';";
+                    displayTable( SESSION_TABLE_NAME );
+                    s = "";
+                    s += "select * from ";
+                    s += SESSION_TABLE_NAME;
+                    s += " where deviceId='";
+                    s += deviceId;
+                    s += "';";
                     //cout << "session SQL: " << m_sql << endl;
-                    CppSQLite3Query sessionQuery = m_db.execQuery( m_sql.c_str() );
+                    CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
 
                     // Finalize the query
                     //sessionQuery.finalize();
@@ -850,7 +985,8 @@ namespace nsGlasslabSDK {
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
                                 strstr( apiPath.c_str(), API_POST_PLAYERINFO ) ||
                                 ( ( apiPath == API_POST_SESSION_END || apiPath == API_POST_EVENTS ) &&
-                                   gameSessionId.c_str() != NULL && gameSessionId.c_str() != ""
+                                    gameSessionId.c_str() != NULL &&
+                                    gameSessionId.length() != 0
                                 )
                               ) {
 
@@ -877,8 +1013,8 @@ namespace nsGlasslabSDK {
                                 //ostringstream s;
                                 char sqlString[ 255 ];
                                 // Update the entry's status field
-                                //s << "UPDATE " << m_hmqTableName << " SET status='pending' WHERE id='" << rowId << "'";
-                                sprintf( sqlString, "UPDATE %s SET status='pending' WHERE id='%d'", m_hmqTableName.c_str(), rowId );
+                                //s << "UPDATE " << MSG_QUEUE_TABLE_NAME << " SET status='pending' WHERE id='" << rowId << "'";
+                                sprintf( sqlString, "UPDATE %s SET status='pending' WHERE id='%d'", MSG_QUEUE_TABLE_NAME, rowId );
                                 //m_sql = s.str();
 
                                 //cout << "update SQL: " << m_sql << endl;
@@ -918,18 +1054,21 @@ namespace nsGlasslabSDK {
                 //cout << "--- get the next entry in MSG_QUEUE ---" << endl;
                 msgQuery.nextRow();
             }
+            
+            // Finalize the query
+            msgQuery.finalize();
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::flushMsgQ()", e.errorMessage() );
             //cout << "Exception in flushMsgQ() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
-
+        
         // End display out
         //cout << "reached the end of MSG_QUEUE" << endl;
         //cout << "-----------------------------------\n\n\n" << endl;
         m_core->logMessage( "reached the end of MSG_QUEUE" );
-        //displayTable( m_hmqTableName );
-        //displayTable( m_sessionTableName );
+        //displayTable( MSG_QUEUE_TABLE_NAME );
+        //displayTable( SESSION_TABLE_NAME );
     }
 
 
@@ -941,85 +1080,98 @@ namespace nsGlasslabSDK {
      */
     void DataSync::createTables() {
         int r;
+        string s;
 
         try {
             // Create the CONFIG table
-            if( !m_db.tableExists( m_configTableName.c_str() ) ) {
-                cout << endl << "Creating " << m_configTableName << " table" << endl;
-                
-                m_sql = "create table " + m_configTableName + " (version char(256));";
+            if( !m_db.tableExists( CONFIG_TABLE_NAME ) ){
+                printf("\nCreating %s table\n", CONFIG_TABLE_NAME);
+   
+                s = "";
+                s += "create table ";
+                s += CONFIG_TABLE_NAME;
+                s += " (version char(256));";
 
-                cout << "SQL: " << m_sql << endl;
-                string t2 = m_sql;
-                r = m_db.execDML( t2.c_str() );
+                printf("SQL: %s\n", s.c_str());
+                r = m_db.execDML( s.c_str() );
                 
-                cout << "Creating table:" << r << endl;
+                printf("Creating table: %d\n", r);
 
                 // Insert the SDK version
-                m_sql = "INSERT INTO " + m_configTableName + " VALUES ('" + SDK_VERSION + "');";
-                cout << "insert version SQL: " << m_sql << endl;
-                int nRows = m_db.execDML( m_sql.c_str() );
-                cout << nRows << " rows inserted" << endl;
-
-                cout << "------------------------------------" << endl;
+                s = "";
+                s += "INSERT INTO ";
+                s += CONFIG_TABLE_NAME;
+                s += " VALUES ('";
+                s += SDK_VERSION;
+                s += "');";
+                
+                printf("insert version SQL: %s\n", s.c_str());
+                int nRows = m_db.execDML( s.c_str() );
+                printf("%d rows inserted\n", nRows);
+                printf("------------------------------------\n");
             }
 
             // Create the MSG_QUEUE table
-            if( !m_db.tableExists( m_hmqTableName.c_str() ) ) {
-                cout << endl << "Creating " << m_hmqTableName << " table" << endl;
+            if( !m_db.tableExists( MSG_QUEUE_TABLE_NAME ) ) {
+                printf("\nCreating %s table\n", MSG_QUEUE_TABLE_NAME);
                 
-                m_sql = "create table " + m_hmqTableName + " ("
-                "id integer primary key autoincrement, "
-                "deviceId char(256), "
-                "path char(256), "
-                "coreCB char(256), "
-                "clientCB char(256), "
-                "postdata text, "
-                "contentType char(256), "
-                "status char(256) "
-                ");";
+                s = "";
+                s += "create table ";
+                s += MSG_QUEUE_TABLE_NAME;
+                s += " (";
+                s += "id integer primary key autoincrement, ";
+                s += "deviceId char(256), ";
+                s += "path char(256), ";
+                s += "coreCB char(256), ";
+                s += "clientCB char(256), ";
+                s += "postdata text, ";
+                s += "contentType char(256), ";
+                s += "status char(256) ";
+                s += ");";
                 
-                cout << "SQL: " << m_sql << endl;
-                string t1 = m_sql;
-                r = m_db.execDML( t1.c_str() );
-                cout << "Created table:" << r << endl;
-                cout << "------------------------------------" << endl;
+                printf("SQL: %s\n", s.c_str());
+                r = m_db.execDML( s.c_str() );
+                printf("Created table: %d", r);
+                printf("------------------------------------\n");
 
                 // Initialize the table size to 0
                 m_messageTableSize = 0;
             }
             else {
                 // Set the message table size
-                m_sql = "select * from " + m_hmqTableName;
-                CppSQLite3Table t = m_db.getTable( m_sql.c_str() );
+                s = "";
+                s += "select * from ";
+                s += MSG_QUEUE_TABLE_NAME;
+                CppSQLite3Table t = m_db.getTable( s.c_str() );
                 m_messageTableSize = t.numRows();
 
             }
             
             // Create the SESSION table
-            if( !m_db.tableExists( m_sessionTableName.c_str() ) ) {
-                cout << endl << "Creating " << m_sessionTableName << " table" << endl;
+            if( !m_db.tableExists( SESSION_TABLE_NAME ) ) {
+                printf("\nCreating %s table\n", SESSION_TABLE_NAME);
                 
-                m_sql = "create table " + m_sessionTableName + " ("
-                "cookie char(256), "
-                "deviceId char(256), "
-                "gameSessionId char(256), "
-                "gameSessionEventOrder integer, "
-                "totalTimePlayed real "
-                ");";
+                s = "";
+                s += "create table ";
+                s += SESSION_TABLE_NAME;
+                s += " (";
+                s += "cookie char(256), ";
+                s += "deviceId char(256), ";
+                s += "gameSessionId char(256), ";
+                s += "gameSessionEventOrder integer, ";
+                s += "totalTimePlayed real ";
+                s += ");";
 
-                cout << "SQL: " << m_sql << endl;
-                string t2 = m_sql;
-                r = m_db.execDML( t2.c_str() );
-                
-                cout << "Creating table:" << r << endl;
-                cout << "------------------------------------" << endl;
+                printf("SQL: %s\n", s.c_str());
+                r = m_db.execDML( s.c_str() );
+                printf("Created table: %d", r);
+                printf("------------------------------------\n");
             }
 
             // Display all tables
-            displayTable( m_configTableName );
-            displayTable( m_hmqTableName );
-            displayTable( m_sessionTableName );
+            displayTable( CONFIG_TABLE_NAME );
+            displayTable( MSG_QUEUE_TABLE_NAME );
+            displayTable( SESSION_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::createTables()", e.errorMessage() );
@@ -1032,45 +1184,44 @@ namespace nsGlasslabSDK {
      */
     void DataSync::dropTables() {
         int r;
+        string s;
         
         try {
             // Drop the CONFIG table
-            if( m_db.tableExists( m_configTableName.c_str() ) ) {
-                cout << endl << "Dropping " << m_configTableName << " table" << endl;
+            if( m_db.tableExists( CONFIG_TABLE_NAME ) ) {
+                printf("\nDropping %s table\n", CONFIG_TABLE_NAME);
                 
-                m_sql = "drop table " + m_configTableName + ";";
+                s = "drop table " CONFIG_TABLE_NAME ";";
                 
-                cout << "SQL: " << m_sql << endl;
-                string t1 = m_sql;
-                r = m_db.execDML( t1.c_str() );
-                cout << "Dropped table:" << r << endl;
-                cout << "------------------------------------" << endl;
+                printf("SQL: %s\n", s.c_str());
+                r = m_db.execDML( s.c_str() );
+                printf("Dropped table: %d", r);
+                printf("------------------------------------\n");
             }
             
             // Drop the MSG_QUEUE table
-            if( m_db.tableExists( m_hmqTableName.c_str() ) ) {
-                cout << endl << "Dropping " << m_hmqTableName << " table" << endl;
+            if( m_db.tableExists( MSG_QUEUE_TABLE_NAME ) ) {
+                printf("\nDropping %s table\n", MSG_QUEUE_TABLE_NAME);
                 
-                m_sql = "drop table " + m_hmqTableName + ";";
+                s = "drop table " MSG_QUEUE_TABLE_NAME ";";
                 
-                cout << "SQL: " << m_sql << endl;
-                string t1 = m_sql;
-                r = m_db.execDML( t1.c_str() );
-                cout << "Dropped table:" << r << endl;
-                cout << "------------------------------------" << endl;
+                printf("SQL: %s\n", s.c_str());
+                r = m_db.execDML( s.c_str() );
+                printf("Dropped table: %d", r);
+                printf("------------------------------------\n");
             }
             
             // Drop the SESSION table
-            if( m_db.tableExists( m_sessionTableName.c_str() ) ) {
-                cout << endl << "Dropping " << m_sessionTableName << " table" << endl;
+            if( m_db.tableExists( SESSION_TABLE_NAME ) ) {
+                printf("\nDropping %s table\n", SESSION_TABLE_NAME);
                 
-                m_sql = "drop table " + m_sessionTableName + ";";
-                cout << "SQL: " << m_sql << endl;
-                string t2 = m_sql;
-                r = m_db.execDML( t2.c_str() );
+                s = "drop table " SESSION_TABLE_NAME ";";
                 
-                cout << "Dropped table: " << r << endl;
-                cout << "------------------------------------" << endl;
+                printf("SQL: %s\n", s.c_str());
+                r = m_db.execDML( s.c_str() );
+                
+                printf("Dropped table: %d", r);
+                printf("------------------------------------\n");
             }
         }
         catch( CppSQLite3Exception e ) {
@@ -1087,13 +1238,13 @@ namespace nsGlasslabSDK {
         
         try {
             // Perform migration for the CONFIG table
-            string config_schema = "create table " + m_configTableName + "_backup ("
+            string config_schema = "create table " CONFIG_TABLE_NAME "_backup ("
                 "version char(256) "
                 ");";
-            migrateTable( m_configTableName, config_schema );
+            migrateTable( CONFIG_TABLE_NAME, config_schema );
 
             // Perform migration for the MSG_QUEUE table
-            string message_schema = "create table " + m_hmqTableName + "_backup ("
+            string message_schema = "create table " MSG_QUEUE_TABLE_NAME "_backup ("
                 "id integer primary key autoincrement, "
                 "deviceId char(256), "
                 "path char(256), "
@@ -1103,22 +1254,22 @@ namespace nsGlasslabSDK {
                 "contentType char(256), "
                 "status char(256) "
                 ");";
-            migrateTable( m_hmqTableName, message_schema );
+            migrateTable( MSG_QUEUE_TABLE_NAME, message_schema );
 
             // Perform migration for the SESSION table
-            string session_schema = "create table " + m_sessionTableName + "_backup ("
+            string session_schema = "create table " SESSION_TABLE_NAME "_backup ("
                 "cookie char(256), "
                 "deviceId char(256), "
                 "gameSessionId char(256), "
                 "gameSessionEventOrder integer, "
                 "totalTimePlayed real "
                 ");";
-            migrateTable( m_sessionTableName, session_schema );
+            migrateTable( SESSION_TABLE_NAME, session_schema );
 
             // Display all tables
-            displayTable( m_configTableName );
-            displayTable( m_hmqTableName );
-            displayTable( m_sessionTableName );
+            displayTable( CONFIG_TABLE_NAME );
+            displayTable( MSG_QUEUE_TABLE_NAME );
+            displayTable( SESSION_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::migrateTables()", e.errorMessage() );
@@ -1140,6 +1291,7 @@ namespace nsGlasslabSDK {
      */
     void DataSync::migrateTable( string table, string newSchema ) {
         int r;
+        string m_sql;
         
         try {
             // Migrate the contents of the parameter table if it exists
@@ -1193,7 +1345,6 @@ namespace nsGlasslabSDK {
                 // Finalize the two select statements
                 backup_q.finalize();
                 current_q.finalize();
-
 
                 // Insert shared values the from current into the backup
                 m_sql = "insert into " + table + "_backup "

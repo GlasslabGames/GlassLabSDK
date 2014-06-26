@@ -1223,7 +1223,10 @@ void CppSQLite3DB::close()
 {
 	if (mpDB)
 	{
-		if (sqlite3_close(mpDB) == SQLITE_OK)
+        int i,  nRet;
+        
+        nRet = sqlite3_close(mpDB);     
+		if (nRet == SQLITE_OK)
 		{
 			mpDB = 0;
 		}
@@ -1261,13 +1264,16 @@ int CppSQLite3DB::execDML(const char* szSQL)
 {
 	checkDB();
 
-	char* szError=0;
+    int nRet = SQLITE_OK;
+	char* szError = NULL;
 
-	int nRet = sqlite3_exec(mpDB, szSQL, 0, 0, &szError);
+	nRet = sqlite3_exec(mpDB, szSQL, 0, 0, &szError);
 
 	if (nRet == SQLITE_OK)
 	{
-		return sqlite3_changes(mpDB);
+        // Glasslab: fixed memeory leak!!!
+        sqlite3_free(szError);
+        return sqlite3_changes(mpDB);
 	}
 	else
 	{
