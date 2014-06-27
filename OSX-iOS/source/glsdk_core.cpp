@@ -52,7 +52,7 @@ namespace nsGlasslabSDK {
         m_telemEventValues  = json_object();
         m_achievementEventValues = json_object();
         // Clear telemetry
-        clearTelemEvents();
+        clearTelemEventValues();
 
         // Store core function callbacks in the hash
         mf_setupCallbacks();
@@ -1379,14 +1379,14 @@ namespace nsGlasslabSDK {
          
             printf( "\n---------------------------\n" );
             printf( "sendTelemEvents Num of Events being sent: %lu\n", json_array_size(m_telemEvents) );
-            //printf( "sendTelemEvents: %s\n", jsonOut.c_str() );
+            printf( "sendTelemEvents: %s\n", jsonOut.c_str() );
             printf( "\n---------------------------\n" );
          
             // Add this message to the queue
             mf_addMessageToDataQueue( API_POST_EVENTS, cb, clientCB, jsonOut.c_str(), "application/json" );
             
             // Reset all memebers in event list
-            clearTelemEvents();
+            clearTelemEventValues();
             printf( "sendTelemEvents Events after clear: %lu\n", json_array_size(m_telemEvents) );
         }
         // No telemetry exists, perform callbacks normally
@@ -1909,11 +1909,11 @@ namespace nsGlasslabSDK {
     /**
      * Function clears all telemetry events stored in the JSON object.
      */
-    void Core::clearTelemEvents() {
+    void Core::clearTelemEventValues() {
         // Initialize events array
         int ret = json_array_clear(m_telemEvents);
         if( !m_telemEvents || ret == -1 ) {
-            displayError( "Core::clearTelemEvents()", "There was an error intializing a new telemetry document after clearing the old one." );
+            displayError( "Core::clearTelemEventValues()", "There was an error intializing a new telemetry document after clearing the old one." );
         }
     }
 
@@ -1950,7 +1950,8 @@ namespace nsGlasslabSDK {
             json_object_set_new( event, "eventData", m_telemEventValues );
 
             // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
-            json_object_set_new( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
+            float totalTimePlay = getTotalTimePlayed();
+            json_object_set_new( event, "totalTimePlayed", json_real( totalTimePlay ) );
             
             // Append the final event structure to the telemetry events JSON object
             json_array_append_new( m_telemEvents, event );
@@ -2015,7 +2016,8 @@ namespace nsGlasslabSDK {
             json_object_set_new( event, "eventData", m_achievementEventValues );
 
             // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
-            json_object_set_new( event, "totalTimePlayed", json_real( getTotalTimePlayed() ) );
+            float totalTimePlay = getTotalTimePlayed();
+            json_object_set_new( event, "totalTimePlayed", json_real( totalTimePlay ) );
             
             // Append the final event structure to the telemetry events JSON object
             json_array_append_new( m_telemEvents, event );

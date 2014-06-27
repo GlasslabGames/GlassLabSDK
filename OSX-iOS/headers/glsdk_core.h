@@ -124,7 +124,7 @@ namespace nsGlasslabSDK {
             void addTelemEventValue( const char* key, bool value );
 
             // Telemetry event helpers
-            void clearTelemEvents();
+            void clearTelemEventValues();
             void saveTelemEvent( const char* name );
             void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
