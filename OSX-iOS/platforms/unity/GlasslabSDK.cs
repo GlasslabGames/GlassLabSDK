@@ -114,7 +114,7 @@ public class GlasslabSDK {
 		while(true) {
 			int msgCode   = GlasslabSDK_ReadTopMessageCode (mInst);
 			string msgStr = GlasslabSDK_ReadTopMessageString (mInst);
-			GlasslabSDK_PopMessageStack();
+			GlasslabSDK_PopMessageStack (mInst);
 			//Debug.Log( "RESPONSE: " + msgCode + ", " + msgStr );
 			
 			switch(msgCode){
@@ -661,7 +661,13 @@ public class GlasslabSDK {
 	private static extern int GlasslabSDK_GetLastStatus(System.IntPtr inst);
 	
 	[DllImport ("__Internal")]
-	private static extern System.IntPtr GlasslabSDK_PopMessageStack(System.IntPtr inst);
+	private static extern void GlasslabSDK_PopMessageStack(System.IntPtr inst);
+	
+	[DllImport ("__Internal")]
+	private static extern int GlasslabSDK_ReadTopMessageCode(System.IntPtr inst);
+
+	[DllImport ("__Internal")]
+	private static extern string GlasslabSDK_ReadTopMessageString(System.IntPtr inst);
 	
 	
 	// ----------------------------
