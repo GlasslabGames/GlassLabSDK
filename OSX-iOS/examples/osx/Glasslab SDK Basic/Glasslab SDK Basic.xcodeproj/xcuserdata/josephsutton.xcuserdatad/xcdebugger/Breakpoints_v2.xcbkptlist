@@ -58,11 +58,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "425575335.046836"
+            timestampString = "425590529.102841"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2166"
-            endingLineNumber = "2166"
+            startingLineNumber = "2168"
+            endingLineNumber = "2168"
             landmarkName = "Core::setConfig( glConfig _config )"
             landmarkType = "5">
          </BreakpointContent>
@@ -138,11 +138,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "425575335.046836"
+            timestampString = "425590529.102841"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2069"
-            endingLineNumber = "2069"
+            startingLineNumber = "2071"
+            endingLineNumber = "2071"
             landmarkName = "Core::updatePlayerInfoKey( const char* key, float value )"
             landmarkType = "5">
          </BreakpointContent>
@@ -257,6 +257,22 @@
             endingLineNumber = "1463"
             landmarkName = "httpGetRequest_Done( struct evhttp_request* req, void* arg )"
             landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../source/glsdk_core.cpp"
+            timestampString = "425590529.102841"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1954"
+            endingLineNumber = "1954"
+            landmarkName = "Core::saveTelemEvent( const char* name )"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

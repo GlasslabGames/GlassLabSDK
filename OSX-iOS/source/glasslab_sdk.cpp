@@ -112,6 +112,10 @@ void GlasslabSDK::addTelemEventValue( const char* key, float value )       { if(
 void GlasslabSDK::addTelemEventValue( const char* key, double value )      { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 void GlasslabSDK::addTelemEventValue( const char* key, bool value )        { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 
+void GlasslabSDK::clearTelemEventValues( ) {
+    if( m_core != NULL ) m_core->clearTelemEventValues( );
+}
+
 void GlasslabSDK::saveTelemEvent( const char* name ) {
     if( m_core != NULL ) m_core->saveTelemEvent( name );
 }
