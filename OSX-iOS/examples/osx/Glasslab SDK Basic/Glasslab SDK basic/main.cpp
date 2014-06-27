@@ -34,14 +34,12 @@ int main( int argc, const char * argv[] )
     // database.
     char host[] = "http://127.0.0.1:8001";
     char gameId[] = "AA-1";
-    char dbLoc[] = "/Users/bendapkiewicz/Desktop";
-    //char dbLoc[] = "/Users/josephsutton/Desktop";
     
     // These variables are required for logging in and enrolling with a course.
     // Once a connection is successful, the server is open to accept login and
     // enroll requests
-    char username[] = "ben";
-    char password[] = "glasslab";
+    char username[] = "test2";
+    char password[] = "test";
     char courseCode[] = "83RLM";
     
     // The device Id is a way to uniquely identify a user with sessions and
@@ -49,6 +47,10 @@ int main( int argc, const char * argv[] )
     char deviceId[ 256 ];
     sprintf( deviceId, "%s_test-device", username );
     
+    // delay -> 1 sec = 1000 * 1000
+    int mainLoopDelay = 100;
+    int telemEventLoopDelay = 100;
+    int numTelemEvents = 100;
     
     //
     // Create an instance of the GlassLab SDK and begin testing the SDK functions.
@@ -58,7 +60,7 @@ int main( int argc, const char * argv[] )
     // events to be dispatched to the server, a game identifier, the device Id, and
     // the URI to connect to.
     printf( "Basic: Creating SDK Instance connecting to %s\n", host );
-    glsdk = new GlasslabSDK( dbLoc, gameId, deviceId, host );
+    glsdk = new GlasslabSDK( gameId, deviceId, NULL, host );
     
     // Optionally set additional properties pertaining to the game, including the
     // name of the game, version number, and level.
@@ -67,23 +69,24 @@ int main( int argc, const char * argv[] )
     glsdk->setVersion( "1.2.4156" );
     glsdk->setGameLevel( "Parktown" );
     
-    
     //
     // The remainder of this program will iterate through each of the SDK calls and
     // print out the results. Errors will be captured with the "Message_Error" response.
     //
     
-    int step = 0;
+    int step = 0, resCode;
+    string resString;
     while( true ) {
         
         // Get the next GlassLabSDK response object. This can be empty.
         // A response object contains the message, denoted by an enum, and
         // the response data as a JSON string.
-        nsGlasslabSDK::Const::Response response = *glsdk->popMessageStack();
+        resCode   = glsdk->readTopMessageCode();
+        resString = glsdk->readTopMessageString();
+        glsdk->popMessageStack();
         
         // Check the message type
-        switch( response.m_message ) {
-                
+        switch( resCode ) {
             //
             // The connect function can be called explicitly or can be triggered
             // when a new instance of the SDK is created. A successful connection
@@ -92,7 +95,17 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_Connect : {
                 // Once we're connected, test login
                 if( step == 0 ) {
-                    printf( "Logging in...\n" );
+                    printf( "** Logging in...\n" );
+                    
+                    nsGlasslabSDK::glConfig config;
+                    config.eventsDetailLevel = 10;
+                    config.eventsMaxSize     = 1000;
+                    config.eventsMinSize     = 0;
+                    config.eventsPeriodSecs  = 1;
+                    glsdk->setConfig(config);
+                    
+                    glsdk->startGameTimer();
+                    
                     glsdk->login( username, password );
                     step++;
                 }
@@ -106,7 +119,7 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_Login : {
                 // Once we're logged in, test enrollment
                 if( step == 1 ) {
-                    printf( "Start Enroll...\n" );
+                    printf( "** Start Enroll...\n" );
                     glsdk->enroll( courseCode );
                     step++;
                 }
@@ -120,7 +133,7 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_Enroll : {
                 // Once we're enrolled, test course retrieval
                 if( step == 2 ) {
-                    printf( "Get Courses...\n" );
+                    printf( "** Get Courses...\n" );
                     glsdk->getCourses();
                     step++;
                 }
@@ -136,7 +149,7 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_GetCourses : {
                 // Once we have received our enrolled courses, test starting a new session
                 if( step == 3 ) {
-                    printf( "Start Session...\n" );
+                    printf( "** Start Session...\n" );
                     glsdk->startSession();
                     step++;
                 }
@@ -153,7 +166,7 @@ int main( int argc, const char * argv[] )
                 // Once we've successfully established a new game session with the server,
                 // test saving a new game state
                 if( step == 4 ) {
-                    printf( "Saving Game...\n" );
+                    printf( "** Saving Game...\n" );
                     glsdk->saveGame( "{\"a\":123,\"b\":4.31,\"c\":\"test\"}" );
                     step++;
                 }
@@ -168,26 +181,27 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_GameSave : {
                 // Once we've saved the game state, test sending telemetry and achievements
                 if( step == 5 ) {
-                    for( int i = 1; i < 2; i++ ) {
-                        printf( "Saving Event (%d)...\n", i );
+                    for( int i = 1; i < numTelemEvents; i++ ) {
+                        printf( "** Saving Event (%d)...\n", i );
                         
                         glsdk->addTelemEventValue( "string key", "asd" );
                         glsdk->addTelemEventValue( "int key", i );
                         glsdk->addTelemEventValue( "float key", i * 1.23 );
                         glsdk->saveTelemEvent( "GL_Scenario_Score" );
-
+                        
+                        /*
                         glsdk->saveAchievementEvent( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
                         glsdk->saveAchievementEvent( "Evidence Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
                         glsdk->saveAchievementEvent( "Bot Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
                         glsdk->saveAchievementEvent( "Bold", "21st.Century.Skills", "a" );
                         glsdk->saveAchievementEvent( "Persistent", "21st.Century.Skills", "a" );
-                        
+                        */
                         // Sleep a short duration between telemetry events and achievements
-                        sleep( 1 );
+                        usleep( telemEventLoopDelay );
                     }
                     
-                    sleep( 1 );
-                    step++;
+                    glsdk->saveGame( "{\"a\":123,\"b\":4.31,\"c\":\"test\"}" );
+                    //step++;
                 }
             } break;
 
@@ -201,8 +215,11 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_Event : {
                 // Once we've saved some telemetry, test ending the session
                 if( step == 6 ) {
-                    printf( "End Session...\n" );
+                    printf( "** End Session...\n" );
                     glsdk->endSession();
+                    
+                    glsdk->stopGameTimer();
+                    
                     step++;
                 }
             } break;
@@ -228,7 +245,7 @@ int main( int argc, const char * argv[] )
             // The response data will indicate the details of the error in JSON format.
             //
             case nsGlasslabSDK::Const::Message_Error : {
-                printf( "A request encountered an error: %s\n", response.m_data.c_str() );
+                //printf( "A request encountered an error: %s\n", response.m_data.c_str() );
             } break;
             
                 
@@ -241,7 +258,7 @@ int main( int argc, const char * argv[] )
         glsdk->sendTelemEvents();
         
         // Sleep a short duration between message extraction
-        usleep( 2000 );
+        usleep( mainLoopDelay );
     }
     
     

@@ -112,18 +112,17 @@ public class GlasslabSDK {
 	
 	private void UpdateLoop(){
 		while(true) {
-			System.IntPtr responsePtr = GlasslabSDK_PopMessageStack (mInst);
-			Response response = (Response)System.Runtime.InteropServices.Marshal.PtrToStructure( responsePtr, typeof( Response ) );
-
-			int msg = (int)response.m_message;
-			//Debug.Log( "RESPONSE: " + response.m_message + ", " + response.m_data );
+			int msgCode   = GlasslabSDK_ReadTopMessageCode (mInst);
+			string msgStr = GlasslabSDK_ReadTopMessageString (mInst);
+			GlasslabSDK_PopMessageStack();
+			//Debug.Log( "RESPONSE: " + msgCode + ", " + msgStr );
 			
-			switch(msg){
+			switch(msgCode){
 			case (int)GlasslabSDK.Message.Connect: {
 				if(mConnect_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mConnect_CBList[0];
 					mConnect_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( msgStr );
 				}
 			} break;
 				
@@ -139,7 +138,7 @@ public class GlasslabSDK {
 				if(mAuthStatus_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mAuthStatus_CBList[0];
 					mAuthStatus_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( msgStr );
 				}
 			} break;
 				
@@ -155,7 +154,7 @@ public class GlasslabSDK {
 				if(mLogin_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mLogin_CBList[0];
 					mLogin_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( msgStr );
 				}
 			} break;
 				
@@ -171,7 +170,7 @@ public class GlasslabSDK {
 				if(mEnroll_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mEnroll_CBList[0];
 					mEnroll_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( msgStr );
 				}
 			} break;
 				
@@ -187,7 +186,7 @@ public class GlasslabSDK {
 				if(mGetCourses_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mGetCourses_CBList[0];
 					mGetCourses_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( msgStr );
 				}
 			} break;
 				

@@ -13,9 +13,9 @@
 
 extern "C"
 {
-    void* GlasslabSDK_CreateInstance( const char* dataPath, const char* clientId, const char* deviceId = NULL, const char* uri = NULL )
+    void* GlasslabSDK_CreateInstance( const char* clientId, const char* deviceId = NULL, const char* dataPath = NULL, const char* uri = NULL )
     {
-        return (void *)( new GlasslabSDK( dataPath, clientId, deviceId, uri ) );
+        return (void *)( new GlasslabSDK( clientId, deviceId, dataPath, uri ) );
     }
     
     void GlasslabSDK_FreeInstance( void* inst ) {
@@ -35,18 +35,22 @@ extern "C"
         }
     }
     
-    void* GlasslabSDK_PopMessageStack( void* inst ) {
+    void GlasslabSDK_PopMessageStack( void* inst ) {
         if( inst != NULL ) {
-            return ( (void *)static_cast<GlasslabSDK *>( inst )->popMessageStack() );
-        }
-        else {
-            nsGlasslabSDK::Const::Response* response = new nsGlasslabSDK::Const::Response();
-            response->m_message = nsGlasslabSDK::Const::Message_Error;
-            response->m_data = "";
-            return ( (void *)response );//nsGlasslabSDK::Const::Message_Error;
+            static_cast<GlasslabSDK *>( inst )->popMessageStack();
         }
     }
-
+    
+    int GlasslabSDK_ReadTopMessageCode( void* inst ) {
+        if( inst != NULL ) {
+            return ( static_cast<GlasslabSDK *>( inst )->readTopMessageCode() );
+        }
+    }
+    const char* GlasslabSDK_ReadTopMessageString( void* inst ) {
+        if( inst != NULL ) {
+            return ( static_cast<GlasslabSDK *>( inst )->readTopMessageString() );
+        }
+    }
     
     void GlasslabSDK_DeviceUpdate( void* inst ) {
         if( inst != NULL ) {
