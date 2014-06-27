@@ -104,7 +104,7 @@ public class GlasslabSDK {
 			mConnect_CBList.Add (tempCB);
 		}
 		
-		mInst = GlasslabSDK_CreateInstance (dataPath, clientId, deviceUUID, uri);
+		mInst = GlasslabSDK_CreateInstance (clientId, deviceUUID, dataPath, uri);
 		
 		Debug.Log ( dataPath );
 		iPhone.SetNoBackupFlag( dataPath + "/glasslabsdk.db" );
