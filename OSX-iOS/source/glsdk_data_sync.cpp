@@ -84,7 +84,7 @@ namespace nsGlasslabSDK {
             */
             // page_size == 4096
             
-            m_db.execDML( "PRAGMA cache_size = 2048;" );
+            //m_db.execDML( "PRAGMA cache_size = 1024;" );
             
             /*
             CppSQLite3Query q = m_db.execQuery("PRAGMA cache_size;");
@@ -96,19 +96,6 @@ namespace nsGlasslabSDK {
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::initDB()", e.errorMessage() );
-            //cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
-        }
-    }
-    
-    void DataSync::reconnectDB() {
-        try {
-            m_db.close();
-            
-            // Open the database
-            m_db.open( m_dbName.c_str() );
-        }
-        catch( CppSQLite3Exception e ) {
-            m_core->displayError( "DataSync::reconnectDB()", e.errorMessage() );
             //cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
     }
@@ -285,10 +272,10 @@ namespace nsGlasslabSDK {
             s += ");";
         
             // Execute the insertion
-            printf("SQL: %s\n", s.c_str());
+            //printf("SQL: %s\n", s.c_str());
             nRows = m_db.execDML( s.c_str() );
-            printf("%d rows inserted\n", nRows);
-            printf("------------------------------------\n");
+            //printf("%d rows inserted\n", nRows);
+            //printf("------------------------------------\n");
 
             // Set the message table size
             m_messageTableSize++;
@@ -896,18 +883,16 @@ namespace nsGlasslabSDK {
      */
     void DataSync::flushMsgQ() {
         try {
+            char t[255];
             string s;
             // Begin display out
             //cout << "\n\n\n-----------------------------------" << endl;
-            cout << "\tflushing MSG_QUEUE: " << m_messageTableSize << endl;
+            //printf("\tflushing MSG_QUEUE: %d\n", m_messageTableSize);
             m_core->logMessage( "flushing MSG_QUEUE" );
 
             // Select all entries in MSG_QUEUE
-            s = "";
-            s += "select * from ";
-            s += MSG_QUEUE_TABLE_NAME;
-            s += ";";
-            printf("msgQ SQL: %s\n", s.c_str());
+            s = "select * from " MSG_QUEUE_TABLE_NAME ";";
+            //printf("msgQ SQL: %s\n", s.c_str());
             CppSQLite3Query msgQuery = m_db.execQuery( s.c_str() );
 
             // Keep a counter for the number of requests made so we can limit it
@@ -950,17 +935,11 @@ namespace nsGlasslabSDK {
                 if( deviceId.c_str() != NULL ) {
                     // Select all entries in SESSION with deviceId
                     displayTable( SESSION_TABLE_NAME );
-                    s = "";
-                    s += "select * from ";
-                    s += SESSION_TABLE_NAME;
-                    s += " where deviceId='";
+                    s = "select * from " SESSION_TABLE_NAME " where deviceId='";
                     s += deviceId;
                     s += "';";
-                    //cout << "session SQL: " << m_sql << endl;
+                    //printf("session SQL: %s\n", s.c_str());
                     CppSQLite3Query sessionQuery = m_db.execQuery( s.c_str() );
-
-                    // Finalize the query
-                    //sessionQuery.finalize();
 
                     // Only continue if we received an entry from SESSION
                     if( !sessionQuery.eof() ) {
@@ -980,6 +959,10 @@ namespace nsGlasslabSDK {
                             // Only continue with endsession and sendtelemetry if gameSessionId
                             // exists in the SESSION entry
                             string gameSessionId = sessionQuery.fieldValue( 2 );
+                            
+                            // Finalize the query
+                            sessionQuery.finalize();
+                            
                             //cout << "game session Id is: " << gameSessionId << endl;
                             if( apiPath == API_POST_SESSION_START ||
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
@@ -1009,17 +992,14 @@ namespace nsGlasslabSDK {
                                     }
                                 }
 
-                                // string stream
-                                //ostringstream s;
-                                char sqlString[ 255 ];
                                 // Update the entry's status field
-                                //s << "UPDATE " << MSG_QUEUE_TABLE_NAME << " SET status='pending' WHERE id='" << rowId << "'";
-                                sprintf( sqlString, "UPDATE %s SET status='pending' WHERE id='%d'", MSG_QUEUE_TABLE_NAME, rowId );
-                                //m_sql = s.str();
+                                s = "UPDATE " MSG_QUEUE_TABLE_NAME " SET status='pending' WHERE ";
+                                sprintf(t, "id='%d'", rowId);
+                                s += t;
 
-                                //cout << "update SQL: " << m_sql << endl;
-                                int r = m_db.execDML( sqlString );// m_sql.c_str() );
-                                //cout << "Updating result: " << r << endl;
+                                //printf("update SQL: %s\n", s.c_str());
+                                int r = m_db.execDML( s.c_str() );
+                                //printf("Updating result: %d\n", r);
 
                                 // Perform the get request using the message information
                                 m_core->mf_httpGetRequest( apiPath, coreCB, clientCB, postdata, contentType, rowId );
@@ -1234,8 +1214,6 @@ namespace nsGlasslabSDK {
      * Function will perform migration for all tables, calling the migrateTable( table ) function.
      */
     void DataSync::migrateTables() {
-        int r;
-        
         try {
             // Perform migration for the CONFIG table
             string config_schema = "create table " CONFIG_TABLE_NAME "_backup ("

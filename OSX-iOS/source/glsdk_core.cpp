@@ -141,12 +141,12 @@ namespace nsGlasslabSDK {
         }
     }
     
-    string Core::readTopMessageString() {
+    const char *Core::readTopMessageString() {
         Const::Response* t = m_msgQueue.front();
         if(t == NULL) {
-            return "";
+            return NULL;
         } else {
-            return t->m_data;
+            return t->m_data.c_str();
         }
     }
     
@@ -1377,16 +1377,17 @@ namespace nsGlasslabSDK {
             jsonOut = rootJSON;
             free( rootJSON );
          
-            //printf( "\n---------------------------\n" );
-            //printf( "sendTelemEvents: %i", m_telemEvents );
-            //printf( "sendTelemEvents: %s", jsonOut.c_str() );
-            //printf( "\n---------------------------\n" );
+            printf( "\n---------------------------\n" );
+            printf( "sendTelemEvents Num of Events being sent: %lu\n", json_array_size(m_telemEvents) );
+            //printf( "sendTelemEvents: %s\n", jsonOut.c_str() );
+            printf( "\n---------------------------\n" );
          
             // Add this message to the queue
             mf_addMessageToDataQueue( API_POST_EVENTS, cb, clientCB, jsonOut.c_str(), "application/json" );
             
             // Reset all memebers in event list
             clearTelemEvents();
+            printf( "sendTelemEvents Events after clear: %lu\n", json_array_size(m_telemEvents) );
         }
         // No telemetry exists, perform callbacks normally
         else {
@@ -1427,7 +1428,7 @@ namespace nsGlasslabSDK {
                 // In addition to flushing the message queue, do a POST on the totalTimePlayed
                 sendTotalTimePlayed();
 
-                printf( "Seconds elapsed for flush: %f with %i events\n", secondsElapsed, m_dataSync->getMessageTableSize() );
+                printf( "Connected: %d, Seconds elapsed for flush %f with %i events\n", getConnectedState(), secondsElapsed, m_dataSync->getMessageTableSize() );
 
                 // Only flush the queue if we are connected
                 if( getConnectedState() ) {
@@ -1458,12 +1459,12 @@ namespace nsGlasslabSDK {
      */
     void httpGetRequest_Done( struct evhttp_request* req, void* arg ) {
         
+        // Cast the argument to a request info object
+        p_glHttpRequest *request = (p_glHttpRequest *)arg;
+        
         printf( "httpGetRequest_Done\n");
         // If the request object exists, parse the response
         if( req ) {
-            // Cast the argument to a request info object
-            p_glHttpRequest *request = (p_glHttpRequest *)arg;
-            
             // There should be request info, including callbacks and statuses
             if( request != NULL ) {
                 size_t s;
@@ -1529,19 +1530,8 @@ namespace nsGlasslabSDK {
                     request->clientCB();
                 }
 
-                
                 // Delete the info buffer
                 delete [] inbuffer;
-                
-                // Terminate event_base_dispatch()
-                event_base_loopbreak( request->base );
-                //evhttp_request_free(request->req);
-                
-                evhttp_connection_free(request->conn);
-                event_base_free(request->base);
-                
-                // We're done, clean up the request
-                delete request;
             }
             // Request info was likely corrupt
             else {
@@ -1551,7 +1541,6 @@ namespace nsGlasslabSDK {
         // The request object did not exist, which is likely due to no internet connection
         else {
             // Mark the status of the event as failed
-            p_glHttpRequest *request = (p_glHttpRequest *)arg;
             if( request != NULL ) {
                 request->core->displayWarning( "httpGetRequest_Done()", "The HTTP request object was NULL, is there a proper internet connection?" );
                 request->core->mf_updateMessageStatusInDataQueue( request->msgQRowId, "failed" );
@@ -1576,17 +1565,18 @@ namespace nsGlasslabSDK {
                 else if( request->clientCB != NULL ) {
                     request->clientCB();
                 }
-
-
-                // Terminate event_base_dispatch()
-                event_base_loopbreak( request->base );
-                
-                evhttp_connection_free(request->conn);
-                event_base_free(request->base);
-                
-                // We're done, clean up the request
-                delete request;
             }
+        }
+        
+        if(request) {
+            // Terminate event_base_dispatch()
+            event_base_loopbreak( request->base );
+            
+            evhttp_connection_free(request->conn);
+            event_base_free(request->base);
+            
+            // We're done, clean up the request
+            delete request;
         }
     }
 
@@ -1672,6 +1662,9 @@ namespace nsGlasslabSDK {
             evhttp_connection_set_timeout( httpRequest->conn, 600 );
             evhttp_make_request( httpRequest->conn, httpRequest->req, requestType, path.c_str() );
             event_base_dispatch( httpRequest->base );
+            
+            //evhttp_connection_free(httpRequest->conn);
+            //event_base_free(httpRequest->base);
         }
         
         // Finished with the URI object, free it
@@ -1918,8 +1911,8 @@ namespace nsGlasslabSDK {
      */
     void Core::clearTelemEvents() {
         // Initialize events array
-        json_array_clear(m_telemEvents);
-        if( !m_telemEvents ) {
+        int ret = json_array_clear(m_telemEvents);
+        if( !m_telemEvents || ret == -1 ) {
             displayError( "Core::clearTelemEvents()", "There was an error intializing a new telemetry document after clearing the old one." );
         }
     }

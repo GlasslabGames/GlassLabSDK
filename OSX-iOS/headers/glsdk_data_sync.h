@@ -27,8 +27,6 @@ namespace nsGlasslabSDK {
         DataSync( Core* core, const char* dbPath = NULL );
         ~DataSync();
         
-        void reconnectDB();
-        
         // Message Queue (MSG_QUEUE) table operations
         void addToMsgQ( string deviceId, string path, string coreCB, string clientCB, string postdata, const char* contentType );
         void removeFromMsgQ( int rowId );

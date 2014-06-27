@@ -50,7 +50,7 @@ int main( int argc, const char * argv[] )
     // delay -> 1 sec = 1000 * 1000
     int mainLoopDelay = 100;
     int telemEventLoopDelay = 100;
-    int numTelemEvents = 200;
+    int numTelemEvents = 100;
     
     //
     // Create an instance of the GlassLab SDK and begin testing the SDK functions.
@@ -74,16 +74,19 @@ int main( int argc, const char * argv[] )
     // print out the results. Errors will be captured with the "Message_Error" response.
     //
     
-    int step = 0;
+    int step = 0, resCode;
+    string resString;
     while( true ) {
         
         // Get the next GlassLabSDK response object. This can be empty.
         // A response object contains the message, denoted by an enum, and
         // the response data as a JSON string.
-        nsGlasslabSDK::Const::Response response = glsdk->popMessageStack();
+        resCode   = glsdk->readTopMessageCode();
+        resString = glsdk->readTopMessageString();
+        glsdk->popMessageStack();
         
         // Check the message type
-        switch( response.m_message ) {
+        switch( resCode ) {
             //
             // The connect function can be called explicitly or can be triggered
             // when a new instance of the SDK is created. A successful connection
@@ -181,7 +184,6 @@ int main( int argc, const char * argv[] )
                     for( int i = 1; i < numTelemEvents; i++ ) {
                         printf( "** Saving Event (%d)...\n", i );
                         
-                        
                         glsdk->addTelemEventValue( "string key", "asd" );
                         glsdk->addTelemEventValue( "int key", i );
                         glsdk->addTelemEventValue( "float key", i * 1.23 );
@@ -194,7 +196,6 @@ int main( int argc, const char * argv[] )
                         glsdk->saveAchievementEvent( "Bold", "21st.Century.Skills", "a" );
                         glsdk->saveAchievementEvent( "Persistent", "21st.Century.Skills", "a" );
                         */
-                        
                         // Sleep a short duration between telemetry events and achievements
                         usleep( telemEventLoopDelay );
                     }

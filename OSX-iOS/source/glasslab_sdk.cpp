@@ -37,7 +37,7 @@ nsGlasslabSDK::Const::Message GlasslabSDK::readTopMessageCode() {
 }
 
 const char *GlasslabSDK::readTopMessageString() {
-    if( m_core != NULL ) return (m_core->readTopMessageString().c_str());
+    if( m_core != NULL ) return (m_core->readTopMessageString());
 }
 
 void GlasslabSDK::deviceUpdate() {

@@ -71,7 +71,7 @@ namespace nsGlasslabSDK {
             void pushMessageStack( Const::Message msg, const char* data = "{}" );
             Const::Response popMessageStack();
             Const::Message readTopMessageCode();
-            string readTopMessageString();
+            const char *readTopMessageString();
         
         
             // Primary GLGS API functions
