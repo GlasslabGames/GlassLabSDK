@@ -34,10 +34,12 @@ nsGlasslabSDK::Const::Response GlasslabSDK::popMessageStack() {
 
 nsGlasslabSDK::Const::Message GlasslabSDK::readTopMessageCode() {
     if( m_core != NULL ) return m_core->readTopMessageCode();
+    else                 return nsGlasslabSDK::Const::Message_Error;
 }
 
 const char *GlasslabSDK::readTopMessageString() {
     if( m_core != NULL ) return (m_core->readTopMessageString());
+    else                 return NULL;
 }
 
 void GlasslabSDK::deviceUpdate() {

@@ -44,11 +44,16 @@ extern "C"
     int GlasslabSDK_ReadTopMessageCode( void* inst ) {
         if( inst != NULL ) {
             return ( static_cast<GlasslabSDK *>( inst )->readTopMessageCode() );
+        } else {
+            return nsGlasslabSDK::Const::Message_Error;
         }
     }
+    
     const char* GlasslabSDK_ReadTopMessageString( void* inst ) {
         if( inst != NULL ) {
             return ( static_cast<GlasslabSDK *>( inst )->readTopMessageString() );
+        } else {
+            return NULL;
         }
     }
     
