@@ -122,7 +122,7 @@ public class GlasslabSDK {
 	private void UpdateLoop(){
 		while(true) {
 			mMsgCode   = GlasslabSDK_ReadTopMessageCode (mInst);
-            Debug.Log( "mMsgCode: " + mMsgCode);
+            //Debug.Log( "mMsgCode: " + mMsgCode);
 
 			IntPtr responsePtr = GlasslabSDK_ReadTopMessageString (mInst);
             mMsgString = System.Runtime.InteropServices.Marshal.PtrToStringAuto( responsePtr );
