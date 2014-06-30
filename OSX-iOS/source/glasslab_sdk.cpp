@@ -22,14 +22,8 @@ nsGlasslabSDK::Const::Status GlasslabSDK::getLastStatus() {
     else return nsGlasslabSDK::Const::Status_Error;
 }
 
-nsGlasslabSDK::Const::Response GlasslabSDK::popMessageStack() {
-    if( m_core != NULL ) return m_core->popMessageStack();
-    else {
-        nsGlasslabSDK::Const::Response response;
-        response.m_message = nsGlasslabSDK::Const::Message_Error;
-        response.m_data = "";
-        return response;//nsGlasslabSDK::Const::Message_Error;
-    }
+void GlasslabSDK::popMessageStack() {
+    if( m_core != NULL ) m_core->popMessageStack();
 }
 
 nsGlasslabSDK::Const::Message GlasslabSDK::readTopMessageCode() {
@@ -37,7 +31,7 @@ nsGlasslabSDK::Const::Message GlasslabSDK::readTopMessageCode() {
     else                 return nsGlasslabSDK::Const::Message_Error;
 }
 
-const char *GlasslabSDK::readTopMessageString() {
+const char * GlasslabSDK::readTopMessageString() {
     if( m_core != NULL ) return (m_core->readTopMessageString());
     else                 return NULL;
 }

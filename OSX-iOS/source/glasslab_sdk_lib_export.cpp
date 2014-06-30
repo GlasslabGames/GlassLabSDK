@@ -49,9 +49,9 @@ extern "C"
         }
     }
     
-    const char* GlasslabSDK_ReadTopMessageString( void* inst ) {
+    const char * GlasslabSDK_ReadTopMessageString( void* inst) {
         if( inst != NULL ) {
-            return ( static_cast<GlasslabSDK *>( inst )->readTopMessageString() );
+            return static_cast<GlasslabSDK *>( inst )->readTopMessageString();
         } else {
             return NULL;
         }
@@ -247,7 +247,7 @@ extern "C"
             return cReturn;// static_cast<GlasslabSDK *>( inst )->getCookie();
         }
         else {
-            return "";
+            return NULL;
         }
     }
 

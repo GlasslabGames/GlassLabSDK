@@ -556,7 +556,7 @@ namespace nsGlasslabSDK {
             // Finalize the query
             sessionQuery.finalize();
             
-            displayTable( SESSION_TABLE_NAME );
+            //displayTable( SESSION_TABLE_NAME );
         }
         catch( CppSQLite3Exception e ) {
             m_core->displayError( "DataSync::updateSessionTableWithPlayerHandle()", e.errorMessage() );

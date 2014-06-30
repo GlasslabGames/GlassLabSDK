@@ -69,7 +69,7 @@ namespace nsGlasslabSDK {
 
             // Message stack functions
             void pushMessageStack( Const::Message msg, const char* data = "{}" );
-            Const::Response popMessageStack();
+            void popMessageStack();
             Const::Message readTopMessageCode();
             const char *readTopMessageString();
         
