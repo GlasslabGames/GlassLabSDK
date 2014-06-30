@@ -39,6 +39,9 @@ public class GlasslabSDK {
 	private ArrayList mGetCourses_CBList;
 	private ArrayList mStartSession_CBList;
 	private ArrayList mEndSession_CBList;
+    private char[]    mMsgChars;
+    private string    mMsgString;
+    private int       mMsgCode;
 	
 	public enum Message {
 		None = 0,
@@ -87,7 +90,13 @@ public class GlasslabSDK {
 		mGetCourses_CBList   = new ArrayList();
 		mStartSession_CBList = new ArrayList();
 		mEndSession_CBList   = new ArrayList();
-		
+        
+        mMsgCode   = 0;
+        mMsgChars  = new char[1024];
+        for(int i = 0; i < mMsgChars.Length; i++) {
+            mMsgChars[i] = '-';
+        }
+
 		#if !UNITY_EDITOR
 		mLoop = new Thread( UpdateLoop );
 		mLoop.Start ();
@@ -112,17 +121,19 @@ public class GlasslabSDK {
 	
 	private void UpdateLoop(){
 		while(true) {
-			int msgCode   = GlasslabSDK_ReadTopMessageCode (mInst);
-			string msgStr = GlasslabSDK_ReadTopMessageString (mInst);
-			GlasslabSDK_PopMessageStack (mInst);
-			//Debug.Log( "RESPONSE: " + msgCode + ", " + msgStr );
+			mMsgCode   = GlasslabSDK_ReadTopMessageCode (mInst);
+            Debug.Log( "mMsgCode: " + mMsgCode);
+
+			IntPtr responsePtr = GlasslabSDK_ReadTopMessageString (mInst);
+            mMsgString = System.Runtime.InteropServices.Marshal.PtrToStringAuto( responsePtr );
+            //Debug.Log( "mMsgString " + mMsgString );
 			
-			switch(msgCode){
+			switch(mMsgCode){
 			case (int)GlasslabSDK.Message.Connect: {
 				if(mConnect_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mConnect_CBList[0];
 					mConnect_CBList.RemoveAt (0);
-					cb( msgStr );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -138,7 +149,7 @@ public class GlasslabSDK {
 				if(mAuthStatus_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mAuthStatus_CBList[0];
 					mAuthStatus_CBList.RemoveAt (0);
-					cb( msgStr );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -154,7 +165,7 @@ public class GlasslabSDK {
 				if(mLogin_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mLogin_CBList[0];
 					mLogin_CBList.RemoveAt (0);
-					cb( msgStr );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -170,7 +181,7 @@ public class GlasslabSDK {
 				if(mEnroll_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mEnroll_CBList[0];
 					mEnroll_CBList.RemoveAt (0);
-					cb( msgStr );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -186,7 +197,7 @@ public class GlasslabSDK {
 				if(mGetCourses_CBList.Count > 0){
 					ResponseCallback cb = (ResponseCallback)mGetCourses_CBList[0];
 					mGetCourses_CBList.RemoveAt (0);
-					cb( msgStr );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -212,7 +223,8 @@ public class GlasslabSDK {
 				// do nothing
 			default: break;
 			}
-			
+            
+            GlasslabSDK_PopMessageStack (mInst);
 			GlasslabSDK_SendTelemEvents( mInst );
 			
 			Thread.Sleep( 100 );
@@ -667,7 +679,7 @@ public class GlasslabSDK {
 	private static extern int GlasslabSDK_ReadTopMessageCode(System.IntPtr inst);
 
 	[DllImport ("__Internal")]
-	private static extern string GlasslabSDK_ReadTopMessageString(System.IntPtr inst);
+	private static extern IntPtr GlasslabSDK_ReadTopMessageString(System.IntPtr inst);
 	
 	
 	// ----------------------------

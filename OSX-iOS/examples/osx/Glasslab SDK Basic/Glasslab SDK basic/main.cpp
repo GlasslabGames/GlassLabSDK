@@ -83,7 +83,6 @@ int main( int argc, const char * argv[] )
         // the response data as a JSON string.
         resCode   = glsdk->readTopMessageCode();
         resString = glsdk->readTopMessageString();
-        glsdk->popMessageStack();
         
         // Check the message type
         switch( resCode ) {
@@ -252,6 +251,8 @@ int main( int argc, const char * argv[] )
             // Do nothing
             default: break;
         }
+        
+        glsdk->popMessageStack();
         
         // Send any telemetry events that may be occupying the queue. The telemetry
         // stream could be empty, in which case nothing would happen.

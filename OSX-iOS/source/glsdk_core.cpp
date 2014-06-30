@@ -45,8 +45,8 @@ namespace nsGlasslabSDK {
         m_userId        = 0;
         m_lastStatus    = Const::Status_Ok;
         m_userInfo      = NULL;
-        m_playerInfo    = NULL;
-
+        m_playerInfo    = json_object();
+        
         // Set JSON telemetry objects
         m_telemEvents       = json_array();
         m_telemEventValues  = json_object();
@@ -104,7 +104,7 @@ namespace nsGlasslabSDK {
         if( msg != Const::Message_None ) {
             Const::Response* response = new Const::Response();
             response->m_message = msg;
-            response->m_data = data;
+            response->m_data    = data;
             m_msgQueue.push( response );
         }
     }
@@ -112,24 +112,14 @@ namespace nsGlasslabSDK {
     /**
      * Pop from the Message Stack.
      */
-    Const::Response Core::popMessageStack() {
-        Const::Response response;
-        if( m_msgQueue.empty() ) {
-            response.m_message = Const::Message_None;
-            response.m_data = "";
-        }
-        else {
-            Const::Response* t = m_msgQueue.front();
+    void Core::popMessageStack() {
+        Const::Response* t = m_msgQueue.front();
+        if(t != NULL) {
             m_msgQueue.pop();
-            
-            response.m_message = t->m_message;
-            response.m_data = t->m_data;
             
             // free top item from Q
             delete t;
         }
-        
-        return response;
     }
 
     Const::Message Core::readTopMessageCode() {
@@ -141,13 +131,14 @@ namespace nsGlasslabSDK {
         }
     }
     
-    const char *Core::readTopMessageString() {
+    const char * Core::readTopMessageString() {
         Const::Response* t = m_msgQueue.front();
-        if(t == NULL) {
-            return NULL;
-        } else {
+        if(t != NULL) {
+            //printf( "readTopMessageString: %s\n", t->m_data.c_str() );
             return t->m_data.c_str();
         }
+        
+        return NULL;
     }
     
 
@@ -189,29 +180,27 @@ namespace nsGlasslabSDK {
                 json_t* eventsDetailLevel = json_object_get( root, "eventsDetailLevel" );
                 if( eventsDetailLevel && json_is_integer( eventsDetailLevel ) ) {
                     sdkInfo.core->config.eventsDetailLevel = (int)json_integer_value( eventsDetailLevel );
-                    //json_decref( root );
                 }
                 
                 json_t* eventsPeriodSecs = json_object_get( root, "eventsPeriodSecs" );
                 if( eventsPeriodSecs && json_is_integer( eventsPeriodSecs ) ) {
                     sdkInfo.core->config.eventsPeriodSecs = (int)json_integer_value( eventsPeriodSecs );
-                    //json_decref( root );
                 }
                 
                 json_t* eventsMinSize = json_object_get( root, "eventsMinSize" );
                 if( eventsMinSize && json_is_integer( eventsMinSize ) ) {
                     sdkInfo.core->config.eventsMinSize = (int)json_integer_value( eventsMinSize );
-                    //json_decref( root );
                 }
                 
                 json_t* eventsMaxSize = json_object_get( root, "eventsMaxSize" );
                 if( eventsMaxSize && json_is_integer( eventsMaxSize ) ) {
                     sdkInfo.core->config.eventsMaxSize = (int)json_integer_value( eventsMaxSize );
-                    //json_decref( root );
                 }
             }
         }
         json_decref( root );
+        
+        sdkInfo.core->logMessage( "getConfig_Done: done reading json data");
         
         // Push Connect message
         sdkInfo.core->pushMessageStack( returnMessage, json );
@@ -2100,16 +2089,8 @@ namespace nsGlasslabSDK {
      * Function resets all player info values.
      */
     void Core::resetPlayerInfo() {
-        // Decrease the reference count, this way Jansson can release "m_playerInfo" resources
-        if( !m_playerInfo ) {
-            json_decref( m_playerInfo );
-        }
-        
-        // Initialize event values document
-        m_playerInfo = json_loads( "{}", 0, &m_jsonError );
-        if( !m_playerInfo ) {
-            displayError( "Core::resetPlayerInfo()", "There was an error intializing a new player info document after clearing the old one." );
-        }
+        // clear object memebers
+        json_object_clear(m_playerInfo);
 
         // Set default keys in the blob
         setDefaultPlayerInfoKeys();
@@ -2324,15 +2305,13 @@ namespace nsGlasslabSDK {
      * Helper function for recording and displaying general messages to be surfaced in the client.
      */
     void Core::logMessage( const char* message, const char* data ) {
-        cout << message;
-        cout << data;
-        cout << endl;
-
         string concat;
         if( data == NULL ) {
+            printf("%s\n", message);
             concat = string(message);
         }
         else {
+            printf("%s %s\n", message, data);
             concat = string(message) + string(data);
         }
         

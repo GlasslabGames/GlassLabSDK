@@ -66,7 +66,7 @@ class GlasslabSDK {
 
         // Message stack functions
         nsGlasslabSDK::Const::Status getLastStatus();
-        nsGlasslabSDK::Const::Response popMessageStack();
+        void popMessageStack();
         nsGlasslabSDK::Const::Message readTopMessageCode();
         const char * readTopMessageString();
     

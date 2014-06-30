@@ -30,9 +30,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1439"
-            endingLineNumber = "1439"
-            landmarkName = "Core::attemptMessageDispatch()"
-            landmarkType = "5">
+            endingLineNumber = "1439">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
