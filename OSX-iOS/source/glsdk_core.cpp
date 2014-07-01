@@ -113,7 +113,11 @@ namespace nsGlasslabSDK {
      * Pop from the Message Stack.
      */
     void Core::popMessageStack() {
-        Const::Response* t = m_msgQueue.front();
+        Const::Response* t = NULL;
+        if(!m_msgQueue.empty()){
+            t = m_msgQueue.front();
+        }
+        
         if(t != NULL) {
             m_msgQueue.pop();
             
@@ -123,7 +127,11 @@ namespace nsGlasslabSDK {
     }
 
     Const::Message Core::readTopMessageCode() {
-        Const::Response* t = m_msgQueue.front();
+        Const::Response* t = NULL;
+        if(!m_msgQueue.empty()){
+            t = m_msgQueue.front();
+        }
+        
         if(t == NULL) {
             return Const::Message_None;
         } else {
@@ -132,13 +140,17 @@ namespace nsGlasslabSDK {
     }
     
     const char * Core::readTopMessageString() {
-        Const::Response* t = m_msgQueue.front();
+        Const::Response* t = NULL;
+        if(!m_msgQueue.empty()){
+            t = m_msgQueue.front();
+        }
+        
         if(t != NULL) {
             //printf( "readTopMessageString: %s\n", t->m_data.c_str() );
             return t->m_data.c_str();
+        } else {
+            return NULL;
         }
-        
-        return NULL;
     }
     
 
