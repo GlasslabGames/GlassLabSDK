@@ -100,7 +100,7 @@ int main( int argc, const char * argv[] )
                     config.eventsDetailLevel = 10;
                     config.eventsMaxSize     = 1000;
                     config.eventsMinSize     = 0;
-                    config.eventsPeriodSecs  = 1;
+                    config.eventsPeriodSecs  = 0;
                     glsdk->setConfig(config);
                     
                     glsdk->startGameTimer();
