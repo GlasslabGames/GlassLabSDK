@@ -16,7 +16,7 @@ package GlassLabSDK {
 
 		public static const SDK_VERSION : Number = 0.1;
 		
-		public static const API_GET_CONFIG 				: String = "/api/config";
+		public static const API_GET_CONFIG 				: String = "/api/config";		// /:gameId
 		public static const API_GET_AUTH_STATUS 		: String = "/api/v2/auth/login/status";
 		public static const API_POST_DEVICE_UPDATE 		: String = "/api/v2/data/game/device";
 		public static const API_GET_PLAYER_INFO 		: String = "/api/v2/data/game";	// /:gameId/playInfo
