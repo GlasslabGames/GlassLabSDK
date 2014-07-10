@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>D834EA97-E5AF-4ED1-8BDE-CA8F5FE2FCB3</string>
+	<key>IDESourceControlProjectName</key>
+	<string>GlasslabSDK</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>CAFC4187-545C-427C-AC14-0F4C0F54AAFB</key>
+		<string>https://github.com/jstty/GlassLabSDK.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>OSX-iOS/projects/osx/GlasslabSDK.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>CAFC4187-545C-427C-AC14-0F4C0F54AAFB</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/jstty/GlassLabSDK.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>CAFC4187-545C-427C-AC14-0F4C0F54AAFB</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>CAFC4187-545C-427C-AC14-0F4C0F54AAFB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>GlassLabSDK</string>
+		</dict>
+	</array>
+</dict>
+</plist>

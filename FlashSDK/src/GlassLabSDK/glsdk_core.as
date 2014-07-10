@@ -388,7 +388,7 @@ package GlassLabSDK {
 		*/
 		public function getAuthStatus() : void {
 			// Perform the request
-			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_AUTH_STATUS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAuthStatus_Done, getAuthStatus_Fail ) );
+			//httpRequest( new glsdk_dispatch( glsdk_const.API_GET_AUTH_STATUS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAuthStatus_Done, getAuthStatus_Fail ) );
 		}
 		
 		
@@ -444,7 +444,7 @@ package GlassLabSDK {
 		*/
 		public function getPlayerInfo() : void {
 			// Perform the request
-			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_PLAYER_INFO + "/" + m_clientId + "/playInfo", "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
+			//httpRequest( new glsdk_dispatch( glsdk_const.API_GET_PLAYER_INFO + "/" + m_clientId + "/playInfo", "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
 		}
 		
 
@@ -643,7 +643,7 @@ package GlassLabSDK {
 			postData.setTime = m_totalTimePlayed;
 			
 			// Store the dispatch message to be called later
-			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_TOTAL_TIME_PLAYED + "/" + m_clientId + "/totalTimePlayed", "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
+			//pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_TOTAL_TIME_PLAYED + "/" + m_clientId + "/totalTimePlayed", "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
 		}
 		
 		
