@@ -1322,7 +1322,9 @@ namespace nsGlasslabSDK {
         json_decref( root );
         
         // Push Event message
-        sdkInfo.core->pushMessageStack( returnMessage );
+        // Since the client does nothing with Message_Event yet, we won't send this.
+        // It tends to clog the queue.
+        //sdkInfo.core->pushMessageStack( returnMessage );
        
         // Run client callback
         if( sdkInfo.clientCB != NULL ) {
@@ -1392,13 +1394,17 @@ namespace nsGlasslabSDK {
         }
         // No telemetry exists, perform callbacks normally
         else {
-            p_glSDKInfo sdkInfo;
+            
+            // If there is no telemetry, we won't bother doing the callback.
+            // This ends up clogging the response queue
+
+            /*p_glSDKInfo sdkInfo;
             sdkInfo.sdk = m_sdk; // exposed sdk
             sdkInfo.core = this; // hidden core
             sdkInfo.clientCB = getClientCallback( clientCB );
             
             CoreCallback_Func coreCallback = getCoreCallback( cb );//cb(sdkInfo);
-            coreCallback( sdkInfo );
+            coreCallback( sdkInfo );*/
         }
 
         // Update the totalTimePlayed in the SQLite database
@@ -1538,6 +1544,17 @@ namespace nsGlasslabSDK {
             else {
                 printf( "The HTTP request object was NULL, is there a possible corruption?" );
             }
+
+            if(request) {
+                // Terminate event_base_dispatch()
+                event_base_loopbreak( request->base );
+                
+                //evhttp_connection_free(request->conn);
+                //event_base_free(request->base);
+                
+                // We're done, clean up the request
+                delete request;
+            }
         }
         // The request object did not exist, which is likely due to no internet connection
         else {
@@ -1566,18 +1583,18 @@ namespace nsGlasslabSDK {
                 else if( request->clientCB != NULL ) {
                     request->clientCB();
                 }
+
+                if(request) {
+                    // Terminate event_base_dispatch()
+                    event_base_loopbreak( request->base );
+                    
+                    //evhttp_connection_free(request->conn);
+                    //event_base_free(request->base);
+                    
+                    // We're done, clean up the request
+                    //delete request;
+                }
             }
-        }
-        
-        if(request) {
-            // Terminate event_base_dispatch()
-            event_base_loopbreak( request->base );
-            
-            evhttp_connection_free(request->conn);
-            event_base_free(request->base);
-            
-            // We're done, clean up the request
-            delete request;
         }
     }
 
@@ -1658,7 +1675,7 @@ namespace nsGlasslabSDK {
                 requestType = EVHTTP_REQ_POST;
                 
             }
-            
+
             // Dispatch the request
             evhttp_connection_set_timeout( httpRequest->conn, 600 );
             evhttp_make_request( httpRequest->conn, httpRequest->req, requestType, path.c_str() );
