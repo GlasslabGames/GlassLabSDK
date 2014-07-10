@@ -12,8 +12,8 @@
 #include "glasslab_sdk.h"
 
 
-GlasslabSDK::GlasslabSDK( const char* dataPath, const char* clientId, const char* deviceId, const char* uri ) {
-    m_core = new nsGlasslabSDK::Core( this, dataPath, clientId, deviceId, uri );
+GlasslabSDK::GlasslabSDK( const char* clientId, const char* deviceId, const char* dataPath, const char* uri ) {
+    m_core = new nsGlasslabSDK::Core( this, clientId, deviceId, dataPath, uri );
 }
 
 
@@ -22,16 +22,24 @@ nsGlasslabSDK::Const::Status GlasslabSDK::getLastStatus() {
     else return nsGlasslabSDK::Const::Status_Error;
 }
 
-nsGlasslabSDK::Const::Response* GlasslabSDK::popMessageStack() {
-    if( m_core != NULL ) return m_core->popMessageStack();
-    else {
-        nsGlasslabSDK::Const::Response* response = new nsGlasslabSDK::Const::Response();
-        response->m_message = nsGlasslabSDK::Const::Message_Error;
-        response->m_data = "";
-        return response;//nsGlasslabSDK::Const::Message_Error;
-    }
+void GlasslabSDK::popMessageStack() {
+    if( m_core != NULL ) m_core->popMessageStack();
 }
 
+nsGlasslabSDK::Const::Message GlasslabSDK::readTopMessageCode() {
+    if( m_core != NULL ) return m_core->readTopMessageCode();
+    else                 return nsGlasslabSDK::Const::Message_Error;
+}
+
+const char * GlasslabSDK::readTopMessageString() {
+    if( m_core != NULL ) return (m_core->readTopMessageString());
+    else                 return NULL;
+}
+
+
+void GlasslabSDK::connect( const char* gameId, const char* uri ) {
+    if( m_core != NULL ) m_core->connect( gameId, uri );
+}
 
 void GlasslabSDK::deviceUpdate() {
     if( m_core != NULL ) m_core->deviceUpdate();
@@ -105,8 +113,8 @@ void GlasslabSDK::addTelemEventValue( const char* key, float value )       { if(
 void GlasslabSDK::addTelemEventValue( const char* key, double value )      { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 void GlasslabSDK::addTelemEventValue( const char* key, bool value )        { if( m_core != NULL ) m_core->addTelemEventValue( key, value ); }
 
-void GlasslabSDK::clearTelemEventValues() {
-    if( m_core != NULL ) m_core->clearTelemEventValues();
+void GlasslabSDK::clearTelemEventValues( ) {
+    if( m_core != NULL ) m_core->clearTelemEventValues( );
 }
 
 void GlasslabSDK::saveTelemEvent( const char* name ) {
@@ -145,6 +153,14 @@ void GlasslabSDK::setGameLevel( const char* gameLevel ) {
 
 void GlasslabSDK::setUserId( int userId ) {
     if( m_core != NULL ) m_core->setUserId( userId );
+}
+
+void GlasslabSDK::setConfig( nsGlasslabSDK::glConfig config ) {
+    if( m_core != NULL ) m_core->setConfig( config );
+}
+
+void GlasslabSDK::setTime( time_t time ) {
+    if( m_core != NULL ) m_core->setTime( time );
 }
 
 void GlasslabSDK::setPlayerHandle( const char* handle ) {

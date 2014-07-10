@@ -27,6 +27,7 @@ public class GlasslabSDK {
 	// -------------------------------------------------
 	
 	private System.IntPtr mInst;
+	private bool mInstSet;
 	private Thread mLoop;
 	private ArrayList mConnect_CBList;
 	private ArrayList mDeviceUpdate_CBList;
@@ -39,6 +40,9 @@ public class GlasslabSDK {
 	private ArrayList mGetCourses_CBList;
 	private ArrayList mStartSession_CBList;
 	private ArrayList mEndSession_CBList;
+    private char[]    mMsgChars;
+    private string    mMsgString;
+    private int       mMsgCode;
 	
 	public enum Message {
 		None = 0,
@@ -87,7 +91,14 @@ public class GlasslabSDK {
 		mGetCourses_CBList   = new ArrayList();
 		mStartSession_CBList = new ArrayList();
 		mEndSession_CBList   = new ArrayList();
-		
+		mInstSet = false;
+        
+        mMsgCode   = 0;
+        mMsgChars  = new char[1024];
+        for(int i = 0; i < mMsgChars.Length; i++) {
+            mMsgChars[i] = '-';
+        }
+
 		#if !UNITY_EDITOR
 		mLoop = new Thread( UpdateLoop );
 		mLoop.Start ();
@@ -103,32 +114,44 @@ public class GlasslabSDK {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mConnect_CBList.Add (tempCB);
 		}
-		
-		mInst = GlasslabSDK_CreateInstance (dataPath, clientId, deviceUUID, uri);
-		
-		Debug.Log ( dataPath );
-		iPhone.SetNoBackupFlag( dataPath + "/glasslabsdk.db" );
+
+		if( mInstSet ) {
+			GlasslabSDK_Connect( mInst, clientId, uri );
+		}
+		else {
+			mInst = GlasslabSDK_CreateInstance (clientId, deviceUUID, dataPath, uri);
+			mInstSet = true;
+			
+			Debug.Log ( dataPath );
+			iPhone.SetNoBackupFlag( dataPath + "/glasslabsdk.db" );
+		}
 	}
 	
 	private void UpdateLoop(){
 		while(true) {
-			System.IntPtr responsePtr = GlasslabSDK_PopMessageStack (mInst);
-			Response response = (Response)System.Runtime.InteropServices.Marshal.PtrToStructure( responsePtr, typeof( Response ) );
 
-			int msg = (int)response.m_message;
-			//Debug.Log( "RESPONSE: " + response.m_message + ", " + response.m_data );
+			mMsgCode   = GlasslabSDK_ReadTopMessageCode (mInst);
+			if( mMsgCode != 0 ) {
+            	Debug.Log( "mMsgCode: " + mMsgCode);
+			}
+
+			IntPtr responsePtr = GlasslabSDK_ReadTopMessageString (mInst);
+            mMsgString = System.Runtime.InteropServices.Marshal.PtrToStringAuto( responsePtr );
+            //Debug.Log( "mMsgString " + mMsgString );
 			
-			switch(msg){
+			switch(mMsgCode){
 			case (int)GlasslabSDK.Message.Connect: {
 				if(mConnect_CBList.Count > 0){
+					Debug.Log ( "in CONNECT callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mConnect_CBList[0];
 					mConnect_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( mMsgString );
 				}
 			} break;
 				
 			case (int)GlasslabSDK.Message.DeviceUpdate: {
 				if(mDeviceUpdate_CBList.Count > 0){
+					Debug.Log ( "in DEVICE UPDATE callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mDeviceUpdate_CBList[0];
 					mDeviceUpdate_CBList.RemoveAt (0);
 					cb();
@@ -137,9 +160,10 @@ public class GlasslabSDK {
 				
 			case (int)GlasslabSDK.Message.AuthStatus: {
 				if(mAuthStatus_CBList.Count > 0){
+					Debug.Log ( "in AUTH STATUS callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mAuthStatus_CBList[0];
 					mAuthStatus_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -153,14 +177,16 @@ public class GlasslabSDK {
 				
 			case (int)GlasslabSDK.Message.Login: {
 				if(mLogin_CBList.Count > 0){
+					Debug.Log ( "in LOGIN callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mLogin_CBList[0];
 					mLogin_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( mMsgString );
 				}
 			} break;
 				
 			case (int)GlasslabSDK.Message.Logout: {
 				if(mLogout_CBList.Count > 0){
+					Debug.Log ( "in LOGOUT callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mLogout_CBList[0];
 					mLogout_CBList.RemoveAt (0);
 					cb();
@@ -169,9 +195,10 @@ public class GlasslabSDK {
 				
 			case (int)GlasslabSDK.Message.Enroll: {
 				if(mEnroll_CBList.Count > 0){
+					Debug.Log ( "in ENROLL callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mEnroll_CBList[0];
 					mEnroll_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( mMsgString );
 				}
 			} break;
 				
@@ -185,14 +212,16 @@ public class GlasslabSDK {
 				
 			case (int)GlasslabSDK.Message.GetCourses: {
 				if(mGetCourses_CBList.Count > 0){
+					Debug.Log ( "in GET COURSES callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mGetCourses_CBList[0];
 					mGetCourses_CBList.RemoveAt (0);
-					cb( response.m_data );
+					cb( mMsgString );
 				}
 			} break;
 				
 			case (int)GlasslabSDK.Message.StartSession: {
 				if(mStartSession_CBList.Count > 0){
+					Debug.Log ( "in START SESSION callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mStartSession_CBList[0];
 					mStartSession_CBList.RemoveAt (0);
 					cb();
@@ -201,6 +230,7 @@ public class GlasslabSDK {
 				
 			case (int)GlasslabSDK.Message.EndSession: {
 				if(mEndSession_CBList.Count > 0){
+					Debug.Log ( "in END SESSION callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mEndSession_CBList[0];
 					mEndSession_CBList.RemoveAt (0);
 					cb();
@@ -213,7 +243,8 @@ public class GlasslabSDK {
 				// do nothing
 			default: break;
 			}
-			
+            
+            GlasslabSDK_PopMessageStack (mInst);
 			GlasslabSDK_SendTelemEvents( mInst );
 			
 			Thread.Sleep( 100 );
@@ -222,6 +253,7 @@ public class GlasslabSDK {
 	
 	~GlasslabSDK(){
 		GlasslabSDK_FreeInstance (mInst);
+		mInstSet = false;
 	}
 	
 	// ----------------------------
@@ -251,124 +283,124 @@ public class GlasslabSDK {
 	
 	// ----------------------------
 	public void DeviceUpdate(ResponseCallback cb = null) {
-		GlasslabSDK_DeviceUpdate (mInst);
-		
 		if (cb != null) {
 			mDeviceUpdate_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mDeviceUpdate_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_DeviceUpdate (mInst);
 	}
 	public void AuthStatus(ResponseCallback cb = null) {
-		GlasslabSDK_AuthStatus (mInst);
-		
 		if (cb != null) {
 			mAuthStatus_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mAuthStatus_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_AuthStatus (mInst);
 	}
 	public void RegisterStudent(string username, string password, string firstName, string lastInitial, ResponseCallback cb = null) {
-		GlasslabSDK_RegisterStudent (mInst, username, password, firstName, lastInitial);
-		
 		if (cb != null) {
 			mRegister_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mRegister_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_RegisterStudent (mInst, username, password, firstName, lastInitial);
 	}
 	public void RegisterInstructor(string name, string email, string password, bool newsletter, ResponseCallback cb = null) {
-		GlasslabSDK_RegisterInstructor (mInst, name, email, password, newsletter);
-		
 		if (cb != null) {
 			mRegister_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mRegister_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_RegisterInstructor (mInst, name, email, password, newsletter);
 	}
 	
 	public void Login(string username, string password, string type = null, ResponseCallback cb = null) {
-		GlasslabSDK_Login (mInst, username, password, type);
-		
 		if (cb != null) {
 			mLogin_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mLogin_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_Login (mInst, username, password, type);
 	}
 	public void Login(string username, string password, ResponseCallback cb) {
 		this.Login (username, password, null, cb);
 	}
 	
 	public void Logout(ResponseCallback cb = null) {
-		GlasslabSDK_Logout (mInst);
-		
 		if (cb != null) {
 			mLogout_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mLogout_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_Logout (mInst);
 	}
 	
 	public void Enroll(string courseCode, ResponseCallback cb = null) {
-		GlasslabSDK_Enroll (mInst, courseCode);
-		
 		if (cb != null) {
 			mEnroll_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mEnroll_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_Enroll (mInst, courseCode);
 	}
 	
 	public void Unenroll(string courseId, ResponseCallback cb = null) {
-		GlasslabSDK_UnEnroll (mInst, courseId);
-		
 		if (cb != null) {
 			mUnenroll_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mUnenroll_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_UnEnroll (mInst, courseId);
 	}
 	
 	public void GetCourses(ResponseCallback cb = null) {
-		GlasslabSDK_GetCourses (mInst);
-		
 		if (cb != null) {
 			mGetCourses_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mGetCourses_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_GetCourses (mInst);
 	}
 	
 	public void StartSession(ResponseCallback cb = null) {
-		GlasslabSDK_StartSession (mInst);
-		
 		if (cb != null) {
 			mStartSession_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mLogin_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_StartSession (mInst);
 	}
 	
 	public void EndSession(ResponseCallback cb = null) {
-		GlasslabSDK_EndSession (mInst);
-		
 		if (cb != null) {
 			mEndSession_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
 			mLogin_CBList.Add (tempCB);
 		}
+
+		GlasslabSDK_EndSession (mInst);
 	}
 	
 	public void CancelRequest(string key) {
@@ -662,7 +694,13 @@ public class GlasslabSDK {
 	private static extern int GlasslabSDK_GetLastStatus(System.IntPtr inst);
 	
 	[DllImport ("__Internal")]
-	private static extern System.IntPtr GlasslabSDK_PopMessageStack(System.IntPtr inst);
+	private static extern void GlasslabSDK_PopMessageStack(System.IntPtr inst);
+	
+	[DllImport ("__Internal")]
+	private static extern int GlasslabSDK_ReadTopMessageCode(System.IntPtr inst);
+
+	[DllImport ("__Internal")]
+	private static extern IntPtr GlasslabSDK_ReadTopMessageString(System.IntPtr inst);
 	
 	
 	// ----------------------------
@@ -685,7 +723,9 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_RemovePlayerHandle(System.IntPtr inst, string handle);
 	
 	
-	// ----------------------------    
+	// ----------------------------
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_Connect(System.IntPtr inst, string gameId, string uri);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_DeviceUpdate(System.IntPtr inst);
 	[DllImport ("__Internal")]

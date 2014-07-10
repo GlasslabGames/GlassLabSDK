@@ -62,13 +62,16 @@ class  GlasslabSDK_Core;
 //       for example setCookie, setSessionId
 class GlasslabSDK {
     public:
-        GlasslabSDK( const char* dataPath, const char* clientId, const char* deviceId, const char* uri = NULL );
+        GlasslabSDK( const char* clientId, const char* deviceId, const char* dataPath = NULL, const char* uri = NULL );
 
         // Message stack functions
         nsGlasslabSDK::Const::Status getLastStatus();
-        nsGlasslabSDK::Const::Response* popMessageStack();
+        void popMessageStack();
+        nsGlasslabSDK::Const::Message readTopMessageCode();
+        const char * readTopMessageString();
     
         // API functions
+        void connect( const char* gameId, const char* uri );
         void deviceUpdate();
         void authStatus();
         void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
@@ -121,6 +124,8 @@ class GlasslabSDK {
         void setVersion ( const char* version );
         void setGameLevel( const char* gameLevel );
         void setUserId( int userId );
+        void setConfig( nsGlasslabSDK::glConfig config );
+        void setTime( time_t time );
         void setPlayerHandle( const char* handle );
         void removePlayerHandle( const char* handle );
 
