@@ -56,6 +56,13 @@ extern "C"
             return NULL;
         }
     }
+
+
+    void GlasslabSDK_Connect( void* inst, const char* gameId, const char* uri ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->connect( gameId, uri );
+        }
+    }
     
     void GlasslabSDK_DeviceUpdate( void* inst ) {
         if( inst != NULL ) {

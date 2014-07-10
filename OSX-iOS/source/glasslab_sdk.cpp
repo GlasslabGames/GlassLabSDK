@@ -36,6 +36,11 @@ const char * GlasslabSDK::readTopMessageString() {
     else                 return NULL;
 }
 
+
+void GlasslabSDK::connect( const char* gameId, const char* uri ) {
+    if( m_core != NULL ) m_core->connect( gameId, uri );
+}
+
 void GlasslabSDK::deviceUpdate() {
     if( m_core != NULL ) m_core->deviceUpdate();
 }

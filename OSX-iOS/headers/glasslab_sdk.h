@@ -71,6 +71,7 @@ class GlasslabSDK {
         const char * readTopMessageString();
     
         // API functions
+        void connect( const char* gameId, const char* uri );
         void deviceUpdate();
         void authStatus();
         void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
