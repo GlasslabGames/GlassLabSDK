@@ -32,7 +32,7 @@ int main( int argc, const char * argv[] )
     // These variables are required for making a connection to the server.
     // They include the URI, game Id, and location for the internal events
     // database.
-    char host[] = "http://127.0.0.1:8001";
+    char host[] = "http://stage.argubotacademy.org";
     char gameId[] = "AA-1";
     
     // These variables are required for logging in and enrolling with a course.
@@ -50,7 +50,7 @@ int main( int argc, const char * argv[] )
     // delay -> 1 sec = 1000 * 1000
     int mainLoopDelay = 100;
     int telemEventLoopDelay = 100;
-    int numTelemEvents = 100;
+    int numTelemEvents = 1;
     
     //
     // Create an instance of the GlassLab SDK and begin testing the SDK functions.
@@ -82,7 +82,7 @@ int main( int argc, const char * argv[] )
         // A response object contains the message, denoted by an enum, and
         // the response data as a JSON string.
         resCode   = glsdk->readTopMessageCode();
-        resString = glsdk->readTopMessageString();
+        //resString = glsdk->readTopMessageString();
         
         // Check the message type
         switch( resCode ) {
@@ -180,7 +180,7 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_GameSave : {
                 // Once we've saved the game state, test sending telemetry and achievements
                 if( step == 5 ) {
-                    for( int i = 1; i < numTelemEvents; i++ ) {
+                    for( int i = 0; i < numTelemEvents; i++ ) {
                         printf( "** Saving Event (%d)...\n", i );
                         
                         glsdk->addTelemEventValue( "string key", "asd" );
@@ -200,7 +200,7 @@ int main( int argc, const char * argv[] )
                     }
                     
                     glsdk->saveGame( "{\"a\":123,\"b\":4.31,\"c\":\"test\"}" );
-                    //step++;
+                    step++;
                 }
             } break;
 
