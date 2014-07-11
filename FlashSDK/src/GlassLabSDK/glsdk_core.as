@@ -769,13 +769,15 @@ package GlassLabSDK {
 		*
 		* Before adding to the queue for dispatch to the server, this function will also
 		* append the following information to the request:
-		* - timestamp
+		* - clientTimeStamp
 		* - eventName
-		* - clientId
+		* - gameId
 		* - gameSessionId
+		* - gameSessionEventOrder
+		* - totalTimePlayed
 		* - deviceId
 		* - clientVersion
-		* - clientLevel
+		* - gameType
 		*
 		* @param p_eventName The name of the event to dispatch.
 		*
@@ -811,6 +813,63 @@ package GlassLabSDK {
 			
 			// Set the event data
 			telemEvent.eventData = m_telemEventValues;
+			
+			// Append this event to the events JSON object
+			//m_telemEvents.push( telemEvent );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_EVENTS, "POST", telemEvent, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTelemEvents_Done, sendTelemEvents_Fail ) );
+			
+			// Clear the event values
+			clearTelemEventValues();
+		}
+		
+		/**
+		* Helper function adds a new telemetry event to the local array to be dispatched
+		* to the server. This function accepts a JSON object blob with all event data and
+		* therefore does not use the values set in the addTelemEventValue_[type] functions.
+		* This function call will still empty the telemetry values.
+		*
+		* Before adding to the queue for dispatch to the server, this function will also
+		* append the following information to the request:
+		* - clientTimeStamp
+		* - eventName
+		* - gameId
+		* - gameSessionId
+		* - gameSessionEventOrder
+		* - totalTimePlayed
+		* - deviceId
+		* - clientVersion
+		* - gameType
+		*
+		* @param p_eventName The name of the event to dispatch.
+		* @param p_eventData The object blob containing event data.
+		*/
+		public function saveTelemEventWithData( p_eventName:String, p_eventData:Object ) : void {
+			var date:Date = new Date();
+			
+			// Set default information
+			var telemEvent : Object = {};
+			telemEvent.clientTimeStamp = (int)( date.time / 1000 );
+			telemEvent.eventName = p_eventName;
+			telemEvent.gameId = m_clientId;
+			telemEvent.gameSessionId = "$gameSessionId$";
+			telemEvent.gameSessionEventOrder = m_gameSessionEventOrder++;
+			telemEvent.totalTimePlayed = m_totalTimePlayed;
+			
+			// Set the device Id if it is valid
+			if( m_deviceId != "" ) {
+				telemEvent.deviceId = m_deviceId;
+			}
+			// Set the client version if it is valid
+			if( m_clientVersion != "" ) {
+				telemEvent.clientVersion = m_clientVersion;
+			}
+			// Set the game type if it is valid
+			if( m_clientLevel != "" ) {
+				telemEvent.gameType = m_clientLevel;
+			}
+			
+			// Set the event data
+			telemEvent.eventData = p_eventData;
 			
 			// Append this event to the events JSON object
 			//m_telemEvents.push( telemEvent );
