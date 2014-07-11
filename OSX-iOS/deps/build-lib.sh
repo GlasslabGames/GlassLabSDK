@@ -22,7 +22,7 @@
 ###########################################################################
 #  Choose your lib version and your currently-installed iOS SDK version:
 #
-SDKVERSION="7.0"
+SDKVERSION="7.1"
 MINIOSVERSION="6.0"
 VERIFYGPG=true
 
