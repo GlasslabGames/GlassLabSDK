@@ -14,6 +14,13 @@
 
 
 namespace nsGlasslabSDK {
+    
+    typedef struct _glConfig {
+        int eventsPeriodSecs;
+        int eventsMinSize;
+        int eventsMaxSize;
+        int eventsDetailLevel;
+    } glConfig;
 
     class Const {
     public:
