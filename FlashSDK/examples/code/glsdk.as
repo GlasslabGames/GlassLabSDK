@@ -168,12 +168,12 @@ package {
 			}
 			else if( event.charCode == 116 ) {
 				writeText( "Attempting to send test telemetry..." );
-				addTelemEventValue_string( "key1", "value1" );
+				/*addTelemEventValue_string( "key1", "value1" );
 				addTelemEventValue_int( "key2", 2 );
 				addTelemEventValue_uint( "key3", 3 );
 				addTelemEventValue_number( "key4", 4.1 );
-				addTelemEventValue_bool( "key5", true );
-				saveTelemEvent( "test_telem" );
+				addTelemEventValue_bool( "key5", true );*/
+				saveTelemEventWithData( "test_telem", { "key1":"value1", "key2":2, "key3":4.1, "key4":true } );
 			}
 			else if( event.charCode == 97 ) {
 				writeText( "Attempting to get auth status..." );
