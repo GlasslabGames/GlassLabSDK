@@ -1553,7 +1553,7 @@ namespace nsGlasslabSDK {
                 //event_base_free(request->base);
                 
                 // We're done, clean up the request
-                delete request;
+                //delete request;
             }
         }
         // The request object did not exist, which is likely due to no internet connection
@@ -1681,8 +1681,8 @@ namespace nsGlasslabSDK {
             evhttp_make_request( httpRequest->conn, httpRequest->req, requestType, path.c_str() );
             event_base_dispatch( httpRequest->base );
             
-            //evhttp_connection_free(httpRequest->conn);
-            //event_base_free(httpRequest->base);
+            evhttp_connection_free(httpRequest->conn);
+            event_base_free(httpRequest->base);
         }
         
         // Finished with the URI object, free it
