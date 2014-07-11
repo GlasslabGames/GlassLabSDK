@@ -41,16 +41,16 @@
 		97C104C718B7E62F00438A58 /* glasslab_sdk_lib_export.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97C104C618B7E62F00438A58 /* glasslab_sdk_lib_export.cpp */; };
 		97C104C818B7E62F00438A58 /* glasslab_sdk_lib_export.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97C104C618B7E62F00438A58 /* glasslab_sdk_lib_export.cpp */; };
 		97C104C918B7E62F00438A58 /* glasslab_sdk_lib_export.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 97C104C618B7E62F00438A58 /* glasslab_sdk_lib_export.cpp */; };
-		9ED082A918D0D9CF0089FD97 /* libevent_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A318D0D9CF0089FD97 /* libevent_core.a */; };
-		9ED082AA18D0D9CF0089FD97 /* libevent_extra.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A418D0D9CF0089FD97 /* libevent_extra.a */; };
-		9ED082AB18D0D9CF0089FD97 /* libevent_pthreads.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A518D0D9CF0089FD97 /* libevent_pthreads.a */; };
-		9ED082AC18D0D9CF0089FD97 /* libevent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A618D0D9CF0089FD97 /* libevent.a */; };
+		9EAC5CD11970845E00DA0AEB /* libevent_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CCD1970845E00DA0AEB /* libevent_core.a */; };
+		9EAC5CD21970845E00DA0AEB /* libevent_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CCD1970845E00DA0AEB /* libevent_core.a */; };
+		9EAC5CD31970845E00DA0AEB /* libevent_extra.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CCE1970845E00DA0AEB /* libevent_extra.a */; };
+		9EAC5CD41970845E00DA0AEB /* libevent_extra.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CCE1970845E00DA0AEB /* libevent_extra.a */; };
+		9EAC5CD51970845E00DA0AEB /* libevent_pthreads.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CCF1970845E00DA0AEB /* libevent_pthreads.a */; };
+		9EAC5CD61970845E00DA0AEB /* libevent_pthreads.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CCF1970845E00DA0AEB /* libevent_pthreads.a */; };
+		9EAC5CD71970845E00DA0AEB /* libevent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CD01970845E00DA0AEB /* libevent.a */; };
+		9EAC5CD81970845E00DA0AEB /* libevent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9EAC5CD01970845E00DA0AEB /* libevent.a */; };
 		9ED082AD18D0D9CF0089FD97 /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A718D0D9CF0089FD97 /* libjansson.a */; };
 		9ED082B118D0DC820089FD97 /* libsqlite3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A818D0D9CF0089FD97 /* libsqlite3.a */; };
-		9ED082B218D0DC900089FD97 /* libevent_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A318D0D9CF0089FD97 /* libevent_core.a */; };
-		9ED082B318D0DC900089FD97 /* libevent_extra.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A418D0D9CF0089FD97 /* libevent_extra.a */; };
-		9ED082B418D0DC900089FD97 /* libevent_pthreads.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A518D0D9CF0089FD97 /* libevent_pthreads.a */; };
-		9ED082B518D0DC900089FD97 /* libevent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A618D0D9CF0089FD97 /* libevent.a */; };
 		9ED082B618D0DC900089FD97 /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9ED082A718D0D9CF0089FD97 /* libjansson.a */; };
 		9ED082B818D2387B0089FD97 /* glsdk_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 9ED082B718D2387B0089FD97 /* glsdk_config.h */; };
 /* End PBXBuildFile section */
@@ -121,10 +121,10 @@
 		97C104BC18B7D26C00438A58 /* glsdk_data_sync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glsdk_data_sync.h; path = ../../../headers/glsdk_data_sync.h; sourceTree = "<group>"; };
 		97C104C318B7D27200438A58 /* glasslab_sdk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glasslab_sdk.h; path = ../../../headers/glasslab_sdk.h; sourceTree = "<group>"; };
 		97C104C618B7E62F00438A58 /* glasslab_sdk_lib_export.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glasslab_sdk_lib_export.cpp; path = ../../../source/glasslab_sdk_lib_export.cpp; sourceTree = "<group>"; };
-		9ED082A318D0D9CF0089FD97 /* libevent_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent_core.a; path = ../../../deps/lib/libevent_core.a; sourceTree = "<group>"; };
-		9ED082A418D0D9CF0089FD97 /* libevent_extra.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent_extra.a; path = ../../../deps/lib/libevent_extra.a; sourceTree = "<group>"; };
-		9ED082A518D0D9CF0089FD97 /* libevent_pthreads.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent_pthreads.a; path = ../../../deps/lib/libevent_pthreads.a; sourceTree = "<group>"; };
-		9ED082A618D0D9CF0089FD97 /* libevent.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent.a; path = ../../../deps/lib/libevent.a; sourceTree = "<group>"; };
+		9EAC5CCD1970845E00DA0AEB /* libevent_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent_core.a; path = ../../../deps/lib/libevent_core.a; sourceTree = "<group>"; };
+		9EAC5CCE1970845E00DA0AEB /* libevent_extra.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent_extra.a; path = ../../../deps/lib/libevent_extra.a; sourceTree = "<group>"; };
+		9EAC5CCF1970845E00DA0AEB /* libevent_pthreads.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent_pthreads.a; path = ../../../deps/lib/libevent_pthreads.a; sourceTree = "<group>"; };
+		9EAC5CD01970845E00DA0AEB /* libevent.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libevent.a; path = ../../../deps/lib/libevent.a; sourceTree = "<group>"; };
 		9ED082A718D0D9CF0089FD97 /* libjansson.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjansson.a; path = ../../../deps/lib/libjansson.a; sourceTree = "<group>"; };
 		9ED082A818D0D9CF0089FD97 /* libsqlite3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsqlite3.a; path = ../../../deps/lib/libsqlite3.a; sourceTree = "<group>"; };
 		9ED082B718D2387B0089FD97 /* glsdk_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glsdk_config.h; path = ../../../headers/glsdk_config.h; sourceTree = "<group>"; };
@@ -142,12 +142,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9ED082A918D0D9CF0089FD97 /* libevent_core.a in Frameworks */,
 				9ED082AD18D0D9CF0089FD97 /* libjansson.a in Frameworks */,
-				9ED082AB18D0D9CF0089FD97 /* libevent_pthreads.a in Frameworks */,
 				97AF65E518D92976009FE1CC /* libsqlite3.a in Frameworks */,
-				9ED082AC18D0D9CF0089FD97 /* libevent.a in Frameworks */,
-				9ED082AA18D0D9CF0089FD97 /* libevent_extra.a in Frameworks */,
+				9EAC5CD71970845E00DA0AEB /* libevent.a in Frameworks */,
+				9EAC5CD11970845E00DA0AEB /* libevent_core.a in Frameworks */,
+				9EAC5CD51970845E00DA0AEB /* libevent_pthreads.a in Frameworks */,
+				9EAC5CD31970845E00DA0AEB /* libevent_extra.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -156,12 +156,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				978B0040189C978200012868 /* Foundation.framework in Frameworks */,
+				9EAC5CD61970845E00DA0AEB /* libevent_pthreads.a in Frameworks */,
+				9EAC5CD81970845E00DA0AEB /* libevent.a in Frameworks */,
 				9ED082B118D0DC820089FD97 /* libsqlite3.a in Frameworks */,
-				9ED082B518D0DC900089FD97 /* libevent.a in Frameworks */,
 				9ED082B618D0DC900089FD97 /* libjansson.a in Frameworks */,
-				9ED082B218D0DC900089FD97 /* libevent_core.a in Frameworks */,
-				9ED082B418D0DC900089FD97 /* libevent_pthreads.a in Frameworks */,
-				9ED082B318D0DC900089FD97 /* libevent_extra.a in Frameworks */,
+				9EAC5CD21970845E00DA0AEB /* libevent_core.a in Frameworks */,
+				9EAC5CD41970845E00DA0AEB /* libevent_extra.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,10 +195,10 @@
 		976518E0189ACECA00459DA6 /* Dependant Libs */ = {
 			isa = PBXGroup;
 			children = (
-				9ED082A318D0D9CF0089FD97 /* libevent_core.a */,
-				9ED082A418D0D9CF0089FD97 /* libevent_extra.a */,
-				9ED082A518D0D9CF0089FD97 /* libevent_pthreads.a */,
-				9ED082A618D0D9CF0089FD97 /* libevent.a */,
+				9EAC5CCD1970845E00DA0AEB /* libevent_core.a */,
+				9EAC5CCE1970845E00DA0AEB /* libevent_extra.a */,
+				9EAC5CCF1970845E00DA0AEB /* libevent_pthreads.a */,
+				9EAC5CD01970845E00DA0AEB /* libevent.a */,
 				9ED082A718D0D9CF0089FD97 /* libjansson.a */,
 				9ED082A818D0D9CF0089FD97 /* libsqlite3.a */,
 				97C1048E18B6F5D300438A58 /* CppSQLite3.cpp */,
@@ -612,6 +612,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../../deps/lib,
+					"/Users/bendapkiewicz/Desktop/GlassLabProjects/GlasslabSDK/OSX-iOS/deps/lib",
 				);
 				MACH_O_TYPE = staticlib;
 				ONLY_ACTIVE_ARCH = YES;
@@ -635,6 +636,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					../../deps/lib,
+					"/Users/bendapkiewicz/Desktop/GlassLabProjects/GlasslabSDK/OSX-iOS/deps/lib",
 				);
 				MACH_O_TYPE = staticlib;
 				ONLY_ACTIVE_ARCH = YES;
@@ -675,6 +677,7 @@
 					"$(inherited)",
 					"$(SRCROOT)/../../deps/lib",
 					/Users/bendapkiewicz/Desktop/GlassLabProjects/PlatformSDK/deps/lib,
+					"/Users/bendapkiewicz/Desktop/GlassLabProjects/GlasslabSDK/OSX-iOS/deps/lib",
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
@@ -714,6 +717,7 @@
 					"$(inherited)",
 					"$(SRCROOT)/../../deps/lib",
 					/Users/bendapkiewicz/Desktop/GlassLabProjects/PlatformSDK/deps/lib,
+					"/Users/bendapkiewicz/Desktop/GlassLabProjects/GlasslabSDK/OSX-iOS/deps/lib",
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
