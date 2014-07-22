@@ -630,8 +630,8 @@ package GlassLabSDK {
 			dispatchNext();
 		}
 		/**
-		* Success callback function for the sendTotalTimePlayed() http request. Adds an END_SESSION response
-		* to the message queue. This callback should also reset the current gameSessionId.
+		* Success callback function for the sendTotalTimePlayed() http request. Adds an POST_TOTAL_TIME_PLAYED response
+		* to the message queue.
 		*
 		* @param event A reference to the Event object sent along with the listener.
 		*
@@ -658,6 +658,95 @@ package GlassLabSDK {
 			// Store the dispatch message to be called later
 			var apiObject : Object = { KEY: "sendTotalTimePlayed", API: "/api/v2/data/game/" + m_clientId + "/totalTimePlayed" };
 			pushTelemetryQueue( new glsdk_dispatch( apiObject, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the getAchievements() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getAchievements_Fail( event:Object ) : void {
+			trace( "sendAchievement_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the getAchievements() http request. Adds an MESSAGE_GET_ACHIEVEMENTS response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getAchievements_Done( event:Object ) : void {
+			trace( "sendAchievement_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_GET_ACHIEVEMENTS, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for sending an achievement to the server.
+		*
+		* If this request is successful, MESSAGE_GET_ACHIEVEMENTS will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function getAchievements() : void {
+			// Store the dispatch message to be called later
+			var apiObject : Object = { KEY: "getAchievements", API: "/api/v2/dash/game/" + m_clientId + "/achievements" };
+			pushTelemetryQueue( new glsdk_dispatch( apiObject, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAchievements_Done, getAchievements_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the saveAchievement() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function saveAchievement_Fail( event:Object ) : void {
+			trace( "saveAchievement_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the saveAchievement() http request. Adds an MESSAGE_POST_ACHIEVEMENT response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function saveAchievement_Done( event:Object ) : void {
+			trace( "saveAchievement_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_POST_ACHIEVEMENT, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for saving an achievement to the server.
+		*
+		* If this request is successful, MESSAGE_POST_ACHIEVEMENT will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function saveAchievement( item:String, group:String, subGroup:String ) : void {
+			var date:Date = new Date();
+			
+			var postData : Object = new Object();
+			postData.item = item;
+			postData.group = group;
+			postData.subGroup = subGroup;
+			
+			// Store the dispatch message to be called later
+			var apiObject : Object = { KEY: "sendAchievement", API: "/api/v2/data/game/" + m_clientId + "/achievement" };
+			pushTelemetryQueue( new glsdk_dispatch( apiObject, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, saveAchievement_Done, saveAchievement_Fail ) );
 		}
 		
 		

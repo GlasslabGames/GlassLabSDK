@@ -24,6 +24,8 @@ package GlassLabSDK {
 		public static const API_POST_SESSION_START 		: Object = { KEY: "startSession", 			API: "/api/v2/data/session/start" };
 		public static const API_POST_SESSION_END 		: Object = { KEY: "endSession", 			API: "/api/v2/data/session/end" };
 		public static const API_POST_EVENTS 			: Object = { KEY: "sendTelemEvents", 		API: "/api/v2/data/events" };
+		public static const API_GET_ACHIEVEMENTS 		: Object = { KEY: "getAchievements", 		API: "/api/v2/dash/game" };	// /:gameId/achievements
+		public static const API_POST_ACHIEVEMENTS 		: Object = { KEY: "sendAchievement", 		API: "/api/v2/data/game" };	// /:gameId/achievement
 		
 		public static const CONTENT_TYPE_APPLICATION_JSON					: String = "application/json";
 		public static const CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED	: String = "application/x-www-form-urlencoded";
@@ -36,7 +38,9 @@ package GlassLabSDK {
 		public static const MESSAGE_SESSION_START 			: int = 5;
 		public static const MESSAGE_SESSION_END 			: int = 6;
 		public static const MESSAGE_EVENTS 					: int = 7;
-		public static const MESSAGE_ERROR 					: int = 8;
+		public static const MESSAGE_GET_ACHIEVEMENTS 		: int = 8;
+		public static const MESSAGE_POST_ACHIEVEMENT 		: int = 9;
+		public static const MESSAGE_ERROR 					: int = 10;
 		
 		public static const UPDATE_TIMER				: int = 3;	// Update function is called at this interval
 		public static const TELEMETRY_DISPATCH_CHUNK 	: int = 32;	// Dispatch a number of telemetry events per tick

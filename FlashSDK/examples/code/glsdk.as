@@ -112,6 +112,20 @@ package {
 						writeText( "MESSAGE_POST_TOTAL_TIME_PLAYED " + response.m_data );
 						break;
 					
+					case glsdk_const.MESSAGE_GET_ACHIEVEMENTS:
+						trace( "MESSAGE_GET_ACHIEVEMENTS " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_GET_ACHIEVEMENTS " + response.m_data );
+						break;
+					
+					case glsdk_const.MESSAGE_POST_ACHIEVEMENT:
+						trace( "MESSAGE_POST_ACHIEVEMENT " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_POST_ACHIEVEMENT " + response.m_data );
+						break;
+					
 					case glsdk_const.MESSAGE_ERROR:
 						trace( "MESSAGE_ERROR " + response.m_data );
 					
@@ -156,7 +170,7 @@ package {
 		* @see saveTelemEvent
 		*/
 		public function reportKeyDown( event:KeyboardEvent ) : void { 
-			//trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
+			trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
 			
 			if( event.charCode == 115 ) {
 				writeText( "Attempting to call start session..." );
@@ -178,6 +192,14 @@ package {
 			else if( event.charCode == 97 ) {
 				writeText( "Attempting to get auth status..." );
 				getAuthStatus();
+			}
+			else if( event.charCode == 113 ) {
+				writeText( "Attempting to get all achievements..." );
+				getAchievements();
+			}
+			else if( event.charCode == 119 ) {
+				writeText( "Attempting to send an achievement..." );
+				saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
 			}
 		}
 		
