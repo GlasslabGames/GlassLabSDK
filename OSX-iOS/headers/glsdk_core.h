@@ -90,6 +90,7 @@ namespace nsGlasslabSDK {
             void startSession( string cb = "" );
             void endSession( string cb = "" );
             void saveGame( const char* gameData, string cb = "" );
+            void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
             void savePlayerInfo( string cb = "" );
             void sendTotalTimePlayed( string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
@@ -126,7 +127,6 @@ namespace nsGlasslabSDK {
             // Telemetry event helpers
             void clearTelemEventValues();
             void saveTelemEvent( const char* name );
-            void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
             // These functions allow for control over the user info data structure
             void updatePlayerInfoKey( const char* key, const char* value );
@@ -213,7 +213,6 @@ namespace nsGlasslabSDK {
             json_t* m_userInfo;
             json_t* m_telemEvents;
             json_t* m_telemEventValues;
-            json_t* m_achievementEventValues;
             json_t* m_playerInfo;
 
             // Timer for delaying telemetry

@@ -84,7 +84,8 @@ class GlasslabSDK {
         void logout( string cb = "" );
         void startSession( string cb = "" );
         void endSession( string cb = "" );
-        void saveGame(const char* gameData, string cb = "");
+        void saveGame(const char* gameData, string cb = "" );
+        void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
         void sendTelemEvents();
         void cancelRequest( const char* key );
     
@@ -104,7 +105,6 @@ class GlasslabSDK {
         // Telemetry event helpers
         void clearTelemEventValues();
         void saveTelemEvent( const char* name );
-        void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
         // These functions allow for control over the user info data structure
         void updatePlayerInfoKey( const char* key, const char* value );
