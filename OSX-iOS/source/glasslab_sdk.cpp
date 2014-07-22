@@ -93,6 +93,10 @@ void GlasslabSDK::saveGame(const char* gameData, string cb) {
     if( m_core != NULL ) m_core->saveGame(gameData, cb);
 }
 
+void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
+    if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup, cb );
+}
+
 void GlasslabSDK::sendTelemEvents() {
     if( m_core != NULL ) m_core->sendTelemEvents();
 }
@@ -119,10 +123,6 @@ void GlasslabSDK::clearTelemEventValues( ) {
 
 void GlasslabSDK::saveTelemEvent( const char* name ) {
     if( m_core != NULL ) m_core->saveTelemEvent( name );
-}
-
-void GlasslabSDK::saveAchievementEvent( const char* item, const char* group, const char* subGroup ) {
-    if( m_core != NULL ) m_core->saveAchievementEvent( item, group, subGroup );
 }
 
 

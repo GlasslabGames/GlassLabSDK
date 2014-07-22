@@ -967,6 +967,7 @@ namespace nsGlasslabSDK {
                             if( apiPath == API_POST_SESSION_START ||
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
                                 strstr( apiPath.c_str(), API_POST_PLAYERINFO ) ||
+                                strstr( apiPath.c_str(), API_POST_ACHIEVEMENT ) ||
                                 ( ( apiPath == API_POST_SESSION_END || apiPath == API_POST_EVENTS ) &&
                                     gameSessionId.c_str() != NULL &&
                                     gameSessionId.length() != 0

@@ -1,10 +1,10 @@
+#define TELEMETRY_DEBUG
+
 using UnityEngine;
 using System;
 using System.Collections;
 using System.Threading;
 using System.Runtime.InteropServices;
-
-//#define TELEMETRY_DEBUG
 
 public class GlasslabSDK {
 	// -------------------------------------------------
@@ -412,6 +412,18 @@ public class GlasslabSDK {
 		GlasslabSDK_SaveGame( mInst, gameData );
 		#endif
 	}
+
+	public void SaveAchievement( string item, string group, string subGroup ) {
+		#if !UNITY_EDITOR
+		GlasslabSDK_SaveAchievement(mInst, item, group, subGroup);
+		#else
+		#if TELEMETRY_DEBUG
+		Debug.Log( "---- ACHIEVEMENT: " + item + ", " + group + ", " + subGroup );
+		#endif
+		#endif
+		
+		if( TelemetryOutput != null ) TelemetryOutput( "---- ACHIEVEMENT: " + item + ", " + group + ", " + subGroup );
+	}
 	
 	// ----------------------------
 	public void AddTelemEventValue(string key, string value) {
@@ -536,17 +548,6 @@ public class GlasslabSDK {
 		
 		if( TelemetryOutput != null ) TelemetryOutput( "---- EVENT: " + name + "\n" );
 	}
-	public void SaveAchievementEvent(string item, string group, string subGroup) {
-		#if !UNITY_EDITOR
-		GlasslabSDK_SaveAchievementEvent (mInst, item, group, subGroup);
-		#else
-		#if TELEMETRY_DEBUG
-		Debug.Log( "---- ACHIEVEMENT: " + item + ", " + group + ", " + subGroup );
-		#endif
-		#endif
-		
-		if( TelemetryOutput != null ) TelemetryOutput( "---- ACHIEVEMENT: " + item + ", " + group + ", " + subGroup );
-	}
 	public void ClearTelemEventValues() {
 		#if !UNITY_EDITOR
 		GlasslabSDK_ClearTelemEventValues (mInst);
@@ -558,7 +559,7 @@ public class GlasslabSDK {
 		#if !UNITY_EDITOR
 		// Get the entire cookie string
 		string cookie = (string)GlasslabSDK_GetCookie(mInst);
-		
+		Debug.Log("Cookie: "+cookie);
 		// Parse the cookie portion
 		// Between "connect.sid=" and ";"
 		string parsedCookie = "";
@@ -762,6 +763,11 @@ public class GlasslabSDK {
 	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_SaveGame(System.IntPtr inst, string gameData);
+
+
+	// ----------------------------
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_SaveAchievement(System.IntPtr inst, string item, string group, string subGroup);
 	
 	
 	// ----------------------------
@@ -789,8 +795,6 @@ public class GlasslabSDK {
 	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_SaveTelemEvent(System.IntPtr inst, string name);
-	[DllImport ("__Internal")]
-	private static extern void GlasslabSDK_SaveAchievementEvent(System.IntPtr inst, string item, string group, string subGroup);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_SendTelemEvents(System.IntPtr inst);
 	[DllImport ("__Internal")]

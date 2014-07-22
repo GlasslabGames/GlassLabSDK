@@ -50,7 +50,6 @@ namespace nsGlasslabSDK {
         // Set JSON telemetry objects
         m_telemEvents       = json_array();
         m_telemEventValues  = json_object();
-        m_achievementEventValues = json_object();
         // Clear telemetry
         clearTelemEventValues();
 
@@ -1164,6 +1163,72 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     //--------------------------------------
     /**
+     * Callback function occurs when API_POST_ACHIEVEMENT is successful.
+     */
+    void saveAchievement_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "saveAchievement_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "saveAchievement_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_SaveAchievement;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * Functions saves an achievement event with the following information:
+     *  - item
+     *  - group
+     *  - subGroup
+     */
+    void Core::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
+        //printf( "Saving Game Data - %s", gameData );
+        string url = API_POST_ACHIEVEMENT;
+        url += "/" + m_gameId;
+        url += "/achievement";
+
+        // Append the parameter information to the postdata
+        string dataOut = "{\"item\":\"";
+        dataOut += item;
+        dataOut += "\",\"group\":\"";
+        dataOut += group;
+        dataOut += "\",\"subGroup\":\"";
+        dataOut += subGroup;
+        dataOut += "\"}";
+        
+        // Add this message to the message queue
+        mf_addMessageToDataQueue( url, "saveAchievement_Done", cb, dataOut, "application/json" );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
      * Callback function occurs when API_POST_PLAYERINFO is successful.
      *
      */
@@ -1776,6 +1841,11 @@ namespace nsGlasslabSDK {
         saveGame_Structure.cancel = false;
         m_coreCallbackMap[ "saveGame_Done" ] = saveGame_Structure;
 
+        coreCallbackStructure saveAchievement_Structure;
+        saveAchievement_Structure.coreCB = saveAchievement_Done;
+        saveAchievement_Structure.cancel = false;
+        m_coreCallbackMap[ "saveAchievement_Done" ] = saveAchievement_Structure;
+
         coreCallbackStructure savePlayerInfo_Structure;
         savePlayerInfo_Structure.coreCB = savePlayerInfo_Done;
         savePlayerInfo_Structure.cancel = false;
@@ -1984,72 +2054,6 @@ namespace nsGlasslabSDK {
             
             // Reset all memebers in event object
             m_telemEventValues  = json_object();
-        }
-        // If the JSON object wasn't created properly, we have an error
-        else {
-            displayError( "Core::saveTelemEvent()", "Could not create a new event document, unable to send event." );
-        }
-    }
-
-    /**
-     * Functions saves an achievement event by name with all default parameters,
-     * including a timestamp, name, gameId, gameSessionId, deviceId, 
-     * clientVersion, gameType, and the data itself.
-     *
-     * Achievements are different from regular telemetry in that they always send
-     * over the same event information, stored in "eventData":
-     *  - item
-     *  - group
-     *  - subGroup
-     */
-    void Core::saveAchievementEvent( const char* item, const char* group, const char* subGroup ) {
-        //printf( "saving achievement: %s, %s, %s\n", item, group, subGroup );
-        // Create the JSON event object to populate
-        json_t* event = json_object();
-        if( event ) {
-            // Set default information
-            time_t t = time(NULL);
-            json_object_set_new( event, "clientTimeStamp", json_integer( (int)t ) );
-            json_object_set_new( event, "eventName", json_string( "$Achievement" ) );
-            json_object_set_new( event, "gameId",  json_string( m_gameId.c_str() ) );
-            json_object_set_new( event, "gameSessionId", json_string( "$gameSessionId$" ) );
-            json_object_set_new( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );// "$gameSessionEventOrder$" ) );
-
-            // Set the deviceId if it exists
-            if( m_deviceId.length() > 0 ) {
-                json_object_set_new( event, "deviceId", json_string( m_deviceId.c_str() ) );
-            }
-            // Set the clientVersion if it exists
-            if( m_clientVersion.length() > 0 ) {
-                json_object_set_new( event, "clientVersion", json_string( m_clientVersion.c_str() ) );
-            }
-            // Set the gameLevel if it exists
-            if( m_gameLevel.length() > 0 ) {
-                json_object_set_new( event, "gameType", json_string( m_gameLevel.c_str() ) );
-            }
-            // Set the eventData as a separate JSON document using the values
-            json_object_set_new( m_achievementEventValues, "item", json_string( item ) );
-            json_object_set_new( m_achievementEventValues, "group", json_string( group ) );
-            json_object_set_new( m_achievementEventValues, "subGroup", json_string( subGroup ) );
-            json_object_set_new( event, "eventData", m_achievementEventValues );
-
-            // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
-            float totalTimePlay = getTotalTimePlayed();
-            json_object_set_new( event, "totalTimePlayed", json_real( totalTimePlay ) );
-            
-            // Append the final event structure to the telemetry events JSON object
-            json_array_append_new( m_telemEvents, event );
-
-            //string jsonOut = "";
-            //char* rootJSON = json_dumps( event, JSON_SORT_KEYS );//JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
-            //jsonOut = rootJSON;
-            //free( rootJSON );            
-            //printf( "\n---------------------------\n" );
-            //printf( "saveTelemEvent: \n%s", jsonOut.c_str() );
-            //printf( "\n---------------------------\n" );
-            
-            // Reset all memebers in achievement events object
-            m_achievementEventValues = json_object();
         }
         // If the JSON object wasn't created properly, we have an error
         else {

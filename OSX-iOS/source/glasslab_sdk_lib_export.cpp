@@ -132,7 +132,13 @@ extern "C"
     
     void GlasslabSDK_SaveGame( void* inst, const char* gameData ) {
         if( inst != NULL ) {
-            static_cast<GlasslabSDK *>( inst )->saveGame(gameData);
+            static_cast<GlasslabSDK *>( inst )->saveGame( gameData );
+        }
+    }
+
+    void GlasslabSDK_SaveAchievement( void* inst, const char* item, const char* group, const char* subGroup ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->saveAchievement( item, group, subGroup );
         }
     }
 
@@ -169,12 +175,6 @@ extern "C"
     void GlasslabSDK_SaveTelemEvent( void* inst, const char* name ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->saveTelemEvent( name );
-        }
-    }
-
-    void GlasslabSDK_SaveAchievementEvent( void* inst, const char* item, const char* group, const char* subGroup  ) {
-        if( inst != NULL ) {
-            static_cast<GlasslabSDK *>( inst )->saveAchievementEvent( item, group, subGroup );
         }
     }
 

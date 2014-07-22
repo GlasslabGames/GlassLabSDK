@@ -43,6 +43,7 @@ namespace nsGlasslabSDK {
             Message_StartSession,
             Message_EndSession,
             Message_GameSave,
+            Message_SaveAchievement,
             Message_SavePlayerInfo,
             Message_GetPlayerInfo,
             Message_SendTotalTimePlayed,
