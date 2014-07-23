@@ -33,6 +33,7 @@ int main( int argc, const char * argv[] )
     // They include the URI, game Id, and location for the internal events
     // database.
     char host[] = "http://stage.argubotacademy.org";
+    //char host[] = "http://192.168.1.101:8001";
     char gameId[] = "AA-1";
     
     // These variables are required for logging in and enrolling with a course.
@@ -105,7 +106,7 @@ int main( int argc, const char * argv[] )
                     
                     glsdk->startGameTimer();
                     
-                    glsdk->login( username, password );
+                    glsdk->login( username, password, NULL );
                     step++;
                 }
             } break;
@@ -188,13 +189,13 @@ int main( int argc, const char * argv[] )
                         glsdk->addTelemEventValue( "float key", i * 1.23 );
                         glsdk->saveTelemEvent( "GL_Scenario_Score" );
                         
-                        /*
-                        glsdk->saveAchievementEvent( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
-                        glsdk->saveAchievementEvent( "Evidence Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
-                        glsdk->saveAchievementEvent( "Bot Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
-                        glsdk->saveAchievementEvent( "Bold", "21st.Century.Skills", "a" );
-                        glsdk->saveAchievementEvent( "Persistent", "21st.Century.Skills", "a" );
-                        */
+                        
+                        glsdk->saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
+                        glsdk->saveAchievement( "Evidence Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
+                        glsdk->saveAchievement( "Bot Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
+                        glsdk->saveAchievement( "Bold", "21st.Century.Skills", "a" );
+                        glsdk->saveAchievement( "Persistent", "21st.Century.Skills", "a" );
+                        
                         // Sleep a short duration between telemetry events and achievements
                         usleep( telemEventLoopDelay );
                     }
