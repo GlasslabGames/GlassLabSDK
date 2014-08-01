@@ -126,6 +126,20 @@ package {
 						writeText( "MESSAGE_POST_ACHIEVEMENT " + response.m_data );
 						break;
 					
+					case glsdk_const.MESSAGE_GET_SAVE_GAME:
+						trace( "MESSAGE_GET_SAVE_GAME " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_GET_SAVE_GAME " + response.m_data );
+						break;
+					
+					case glsdk_const.MESSAGE_POST_SAVE_GAME:
+						trace( "MESSAGE_POST_SAVE_GAME " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_POST_SAVE_GAME " + response.m_data );
+						break;
+					
 					case glsdk_const.MESSAGE_ERROR:
 						trace( "MESSAGE_ERROR " + response.m_data );
 					
@@ -172,15 +186,15 @@ package {
 		public function reportKeyDown( event:KeyboardEvent ) : void { 
 			trace("Key Pressed: " + String.fromCharCode(event.charCode) + " (character code: " + event.charCode + ")");
 			
-			if( event.charCode == 115 ) {
+			if( event.charCode == 115 ) {	// S
 				writeText( "Attempting to call start session..." );
 				startSession();
 			}
-			else if( event.charCode == 101 ) {
+			else if( event.charCode == 101 ) {	// E
 				writeText( "Attempting to call end session..." );
 				endSession();
 			}
-			else if( event.charCode == 116 ) {
+			else if( event.charCode == 116 ) {	// T
 				writeText( "Attempting to send test telemetry..." );
 				/*addTelemEventValue_string( "key1", "value1" );
 				addTelemEventValue_int( "key2", 2 );
@@ -189,17 +203,25 @@ package {
 				addTelemEventValue_bool( "key5", true );*/
 				saveTelemEventWithData( "test_telem", { "key1":"value1", "key2":2, "key3":4.1, "key4":true } );
 			}
-			else if( event.charCode == 97 ) {
+			else if( event.charCode == 97 ) {	// A
 				writeText( "Attempting to get auth status..." );
 				getAuthStatus();
 			}
-			else if( event.charCode == 113 ) {
+			else if( event.charCode == 113 ) {	// Q
 				writeText( "Attempting to get all achievements..." );
 				getAchievements();
 			}
-			else if( event.charCode == 119 ) {
+			else if( event.charCode == 119 ) {	// W
 				writeText( "Attempting to send an achievement..." );
 				saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
+			}
+			else if( event.charCode == 103 ) {	// G
+				writeText( "Attempting to get save game..." );
+				getSaveGame();
+			}
+			else if( event.charCode == 104 ) {	// H
+				writeText( "Attempting to post save game..." );
+				//saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
 			}
 		}
 		

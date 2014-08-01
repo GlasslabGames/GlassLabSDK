@@ -16,16 +16,18 @@ package GlassLabSDK {
 
 		public static const SDK_VERSION : Number = 0.1;
 		
-		public static const API_GET_CONFIG 				: Object = { KEY: "connect", 				API: "/api/config" };		// /:gameId
+		public static const API_GET_CONFIG 				: Object = { KEY: "connect", 				API: "/api/config" };
 		public static const API_GET_AUTH_STATUS 		: Object = { KEY: "getAuthStatus", 			API: "/api/v2/auth/login/status" };
 		public static const API_POST_DEVICE_UPDATE 		: Object = { KEY: "deviceUpdate", 			API: "/api/v2/data/game/device" };
-		public static const API_GET_PLAYER_INFO 		: Object = { KEY: "getPlayerInfo", 			API: "/api/v2/data/game" };	// /:gameId/playInfo
-		public static const API_POST_TOTAL_TIME_PLAYED 	: Object = { KEY: "sendTotalTimePlayed", 	API: "/api/v2/data/game" };	// /:gameId/totalTimePlayed
+		public static const API_GET_PLAYER_INFO 		: Object = { KEY: "getPlayerInfo", 			API: "/api/v2/data/game/:gameId/playInfo" };
+		public static const API_POST_TOTAL_TIME_PLAYED 	: Object = { KEY: "sendTotalTimePlayed", 	API: "/api/v2/data/game/:gameId/totalTimePlayed" };
 		public static const API_POST_SESSION_START 		: Object = { KEY: "startSession", 			API: "/api/v2/data/session/start" };
 		public static const API_POST_SESSION_END 		: Object = { KEY: "endSession", 			API: "/api/v2/data/session/end" };
 		public static const API_POST_EVENTS 			: Object = { KEY: "sendTelemEvents", 		API: "/api/v2/data/events" };
-		public static const API_GET_ACHIEVEMENTS 		: Object = { KEY: "getAchievements", 		API: "/api/v2/dash/game" };	// /:gameId/achievements
-		public static const API_POST_ACHIEVEMENTS 		: Object = { KEY: "sendAchievement", 		API: "/api/v2/data/game" };	// /:gameId/achievement
+		public static const API_GET_ACHIEVEMENTS 		: Object = { KEY: "getAchievements", 		API: "/api/v2/dash/game/:gameId/achievements" };
+		public static const API_POST_ACHIEVEMENTS 		: Object = { KEY: "sendAchievement", 		API: "/api/v2/data/game/:gameId/achievement" };
+		public static const API_GET_SAVE_GAME 			: Object = { KEY: "getSaveGame", 			API: "/api/v2/data/game/:gameId" };
+		public static const API_POST_SAVE_GAME 			: Object = { KEY: "postSaveGame", 			API: "/api/v2/data/game/:gameId" };
 		
 		public static const CONTENT_TYPE_APPLICATION_JSON					: String = "application/json";
 		public static const CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED	: String = "application/x-www-form-urlencoded";
@@ -40,7 +42,9 @@ package GlassLabSDK {
 		public static const MESSAGE_EVENTS 					: int = 7;
 		public static const MESSAGE_GET_ACHIEVEMENTS 		: int = 8;
 		public static const MESSAGE_POST_ACHIEVEMENT 		: int = 9;
-		public static const MESSAGE_ERROR 					: int = 10;
+		public static const MESSAGE_GET_SAVE_GAME 			: int = 10;
+		public static const MESSAGE_POST_SAVE_GAME 			: int = 11;
+		public static const MESSAGE_ERROR 					: int = 12;
 		
 		public static const UPDATE_TIMER				: int = 3;	// Update function is called at this interval
 		public static const TELEMETRY_DISPATCH_CHUNK 	: int = 32;	// Dispatch a number of telemetry events per tick
