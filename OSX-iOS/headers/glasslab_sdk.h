@@ -85,6 +85,7 @@ class GlasslabSDK {
         void startSession();
         void endSession();
         void saveGame(const char* gameData, string cb = "" );
+        void getSaveGame();
         void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
         void sendTelemEvents();
         void cancelRequest( const char* key );
@@ -134,6 +135,7 @@ class GlasslabSDK {
         void stopGameTimer();
 
         // Getters
+        int getUserId();
         const char* getCookie();
 
         // Debug logging pop

@@ -93,6 +93,10 @@ void GlasslabSDK::saveGame(const char* gameData, string cb) {
     if( m_core != NULL ) m_core->saveGame(gameData, cb);
 }
 
+void GlasslabSDK::getSaveGame() {
+    if( m_core != NULL ) m_core->getSaveGame();
+}
+
 void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
     if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup, cb );
 }
@@ -180,6 +184,15 @@ void GlasslabSDK::stopGameTimer() {
     if( m_core != NULL ) m_core->stopGameTimer();
 }
 
+
+int GlasslabSDK::getUserId() {
+    if( m_core != NULL ) {
+        return m_core->getUserId();
+    }
+    else {
+        return -1;
+    }
+}
 
 const char* GlasslabSDK::getCookie() {
     if( m_core != NULL ) {

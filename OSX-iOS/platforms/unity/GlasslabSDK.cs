@@ -40,6 +40,7 @@ public class GlasslabSDK {
 	private ArrayList mGetCourses_CBList;
 	private ArrayList mStartSession_CBList;
 	private ArrayList mEndSession_CBList;
+	private ArrayList m_GetGameSave_CBList;
     private char[]    mMsgChars;
     private string    mMsgString;
     private int       mMsgCode;
@@ -57,6 +58,7 @@ public class GlasslabSDK {
 		GetCourses,
 		StartSession,
 		EndSession,
+		GetGameSave,
 		Event,
 		Error
 	};
@@ -91,6 +93,7 @@ public class GlasslabSDK {
 		mGetCourses_CBList   = new ArrayList();
 		mStartSession_CBList = new ArrayList();
 		mEndSession_CBList   = new ArrayList();
+		m_GetGameSave_CBList   = new ArrayList();
 		mInstSet = false;
         
         mMsgCode   = 0;
@@ -233,6 +236,15 @@ public class GlasslabSDK {
 					Debug.Log ( "in END SESSION callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)mEndSession_CBList[0];
 					mEndSession_CBList.RemoveAt (0);
+					cb();
+				}
+			} break;
+
+			case (int)GlasslabSDK.Message.GetGameSave: {
+				if(m_GetGameSave_CBList.Count > 0){
+					Debug.Log ( "in GET GAME SAVE callback: " + mMsgString );
+					ResponseCallback cb = (ResponseCallback)m_GetGameSave_CBList[0];
+					m_GetGameSave_CBList.RemoveAt (0);
 					cb();
 				}
 			} break;
@@ -386,7 +398,7 @@ public class GlasslabSDK {
 			mStartSession_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
-			mLogin_CBList.Add (tempCB);
+			mStartSession_CBList.Add (tempCB);
 		}
 
 		GlasslabSDK_StartSession (mInst);
@@ -397,7 +409,7 @@ public class GlasslabSDK {
 			mEndSession_CBList.Add (cb);
 		} else {
 			ResponseCallback tempCB = ResponseCallback_Stub;
-			mLogin_CBList.Add (tempCB);
+			mEndSession_CBList.Add (tempCB);
 		}
 
 		GlasslabSDK_EndSession (mInst);
@@ -410,6 +422,19 @@ public class GlasslabSDK {
 	public void SaveGame( string gameData ) {
 		#if !UNITY_EDITOR
 		GlasslabSDK_SaveGame( mInst, gameData );
+		#endif
+	}
+
+	public void GetSaveGame(ResponseCallback cb = null) {
+		#if !UNITY_EDITOR
+		if (cb != null) {
+			m_GetGameSave_CBList.Add (cb);
+		} else {
+			ResponseCallback tempCB = ResponseCallback_Stub;
+			m_GetGameSave_CBList.Add (tempCB);
+		}
+
+		GlasslabSDK_GetSaveGame (mInst);
 		#endif
 	}
 
@@ -551,6 +576,16 @@ public class GlasslabSDK {
 	public void ClearTelemEventValues() {
 		#if !UNITY_EDITOR
 		GlasslabSDK_ClearTelemEventValues (mInst);
+		#endif
+	}
+
+	// ----------------------------
+	public int GetUserId() {
+		#if !UNITY_EDITOR
+		int userId = GlasslabSDK_GetUserId( mInst );
+		return userId;
+		#else
+		return -1;
 		#endif
 	}
 	
@@ -763,6 +798,8 @@ public class GlasslabSDK {
 	// ----------------------------
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_SaveGame(System.IntPtr inst, string gameData);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_GetSaveGame(System.IntPtr inst);
 
 
 	// ----------------------------
@@ -831,6 +868,10 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_StartGameTimer(System.IntPtr inst);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_StopGameTimer(System.IntPtr inst);
+
+
+	[DllImport ("__Internal")]
+	private static extern int GlasslabSDK_GetUserId(System.IntPtr inst);
 	
 	
 	//[DllImport("<path to DLL>", CharSet = CharSet.Ansi, CallingConvention = CallingConvention.StdCall)]

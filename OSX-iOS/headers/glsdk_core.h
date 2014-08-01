@@ -90,6 +90,7 @@ namespace nsGlasslabSDK {
             void startSession( string cb = "" );
             void endSession( string cb = "" );
             void saveGame( const char* gameData, string cb = "" );
+            void getSaveGame( string cb = "" );
             void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
             void savePlayerInfo( string cb = "" );
             void sendTotalTimePlayed( string cb = "" );
@@ -161,6 +162,7 @@ namespace nsGlasslabSDK {
             void setSessionId( const char* sessionId );
         
             // Getters
+            int getUserId();
             const char* getId();
             const char* getCookie();
             const char* getSessionId();

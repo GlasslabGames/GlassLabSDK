@@ -1158,6 +1158,55 @@ namespace nsGlasslabSDK {
         mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
     }
 
+    /**
+     * Callback function occurs when API_GET_GAMEDATA is successful.
+     */
+    void getSaveGame_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "getSaveGame_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getSaveGame_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetGameSave;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * GetSaveGame function communicates with the server to sget the save game data for the user.
+     */
+    void Core::getSaveGame( string cb ) {
+        //printf( "Saving Game Data - %s", gameData );
+        string url = API_GET_SAVEGAME;
+        url += "/" + m_gameId;
+        
+        // Add this message to the message queue
+        mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
+    }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -1841,6 +1890,11 @@ namespace nsGlasslabSDK {
         saveGame_Structure.cancel = false;
         m_coreCallbackMap[ "saveGame_Done" ] = saveGame_Structure;
 
+        coreCallbackStructure getSaveGame_Structure;
+        getSaveGame_Structure.coreCB = getSaveGame_Done;
+        getSaveGame_Structure.cancel = false;
+        m_coreCallbackMap[ "getSaveGame_Done" ] = getSaveGame_Structure;
+
         coreCallbackStructure saveAchievement_Structure;
         saveAchievement_Structure.coreCB = saveAchievement_Done;
         saveAchievement_Structure.cancel = false;
@@ -2266,6 +2320,10 @@ namespace nsGlasslabSDK {
     /**
      * Getters.
      */
+    int Core::getUserId() {
+        return m_userId;
+    }
+
     const char* Core::getId() {
         return m_gameId.c_str();
     }

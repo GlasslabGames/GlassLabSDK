@@ -136,6 +136,12 @@ extern "C"
         }
     }
 
+    void GlasslabSDK_GetSaveGame( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->getSaveGame();
+        }
+    }
+
     void GlasslabSDK_SaveAchievement( void* inst, const char* item, const char* group, const char* subGroup ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->saveAchievement( item, group, subGroup );
@@ -238,6 +244,15 @@ extern "C"
     void GlasslabSDK_StopGameTimer( void* inst ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->stopGameTimer();
+        }
+    }
+
+
+    int GlasslabSDK_GetUserId( void* inst ) {
+        if( inst != NULL ) {
+            return ( static_cast<GlasslabSDK *>( inst )->getUserId() );
+        } else {
+            return -1;
         }
     }
     
