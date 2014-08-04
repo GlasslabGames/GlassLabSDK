@@ -95,6 +95,7 @@ namespace nsGlasslabSDK {
             void savePlayerInfo( string cb = "" );
             void sendTotalTimePlayed( string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
+            void forceFlushTelemEvents();
             void attemptMessageDispatch();
             void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
 

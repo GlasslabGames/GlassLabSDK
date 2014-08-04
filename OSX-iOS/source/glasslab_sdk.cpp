@@ -105,6 +105,10 @@ void GlasslabSDK::sendTelemEvents() {
     if( m_core != NULL ) m_core->sendTelemEvents();
 }
 
+void GlasslabSDK::forceFlushTelemEvents() {
+    if( m_core != NULL ) m_core->forceFlushTelemEvents();
+}
+
 void GlasslabSDK::cancelRequest( const char* key ) {
     if( m_core != NULL ) m_core->cancelRequest( key );
 }
@@ -173,6 +177,10 @@ void GlasslabSDK::setPlayerHandle( const char* handle ) {
 
 void GlasslabSDK::removePlayerHandle( const char* handle ) {
     if( m_core != NULL ) m_core->removePlayerHandle( handle );
+}
+
+void GlasslabSDK::setCookie( const char* cookie ) {
+    if( m_core != NULL ) m_core->setCookie( cookie );
 }
 
 

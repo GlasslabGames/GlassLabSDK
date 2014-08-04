@@ -27,10 +27,16 @@ namespace nsGlasslabSDK {
             m_dbName += dbPath;
         } else {
             char cwd[1024];
+#if __APPLE__
+            sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
+            m_dbName += cwd;
+#else
             if(getcwd(cwd, sizeof(cwd)) != NULL) {
                 m_dbName += cwd;
             }
+#endif
         }
+        
         m_dbName += "/glasslabsdk.db";
         
         m_core->logMessage( "Database file:", m_dbName.c_str() );
@@ -69,11 +75,11 @@ namespace nsGlasslabSDK {
      */
     void DataSync::initDB() {
         try {
-            cout << "SQLite Version: " << m_db.SQLiteVersion() << endl;
+            cout << "SQLite Version...: " << m_db.SQLiteVersion() << endl;
             cout << "------------------------------------" << endl;
 
             // Open the database
-            m_db.open( m_dbName.c_str() );
+            m_db.open( ":memory:" );//m_dbName.c_str() );
             
             /*
             CppSQLite3Query q = m_db.execQuery("PRAGMA page_size;");
@@ -95,6 +101,7 @@ namespace nsGlasslabSDK {
             */
         }
         catch( CppSQLite3Exception e ) {
+            cout << "error opening the database: " << e.errorMessage() << endl;
             m_core->displayError( "DataSync::initDB()", e.errorMessage() );
             //cout << "Exception in initDB() " << e.errorMessage() << " (" << e.errorCode() << ")" << endl;
         }
@@ -1077,7 +1084,7 @@ namespace nsGlasslabSDK {
                 r = m_db.execDML( s.c_str() );
                 
                 printf("Creating table: %d\n", r);
-
+                
                 // Insert the SDK version
                 s = "";
                 s += "INSERT INTO ";
@@ -1372,9 +1379,9 @@ namespace nsGlasslabSDK {
             cout << "all rows in " << table << endl;
             int fld;
             
-            m_sql = "select * from " + table + ";";
-            cout << "SQL: " << m_sql << endl;
-            CppSQLite3Query q = m_db.execQuery( m_sql.c_str() );
+            string s = "select * from " + table + ";";
+            //cout << "SQL: " << m_sql << endl;
+            CppSQLite3Query q = m_db.execQuery( s.c_str() );
             
             for( fld = 0; fld < q.numFields(); fld++ )
             {
