@@ -904,7 +904,9 @@ namespace nsGlasslabSDK {
                     //printf( "sessionId: %s\n", sdkInfo.core->getSessionId() );
                     
                     // Decrease the reference count, this way Jansson can release "sessionId" resources
-                    //json_decref( root );
+#if !WIN32
+                    json_decref( root );
+#endif
                 }
                 // Invalid or non-existent gameSessionId
                 else {

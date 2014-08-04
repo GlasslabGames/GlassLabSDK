@@ -49,44 +49,44 @@ void GlasslabSDK::authStatus() {
     if( m_core != NULL ) m_core->authStatus();
 }
 
-void GlasslabSDK::registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb ) {
-    if( m_core != NULL ) m_core->registerStudent( username, password, firstName, lastInitial, cb );
+void GlasslabSDK::registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial ) {
+    if( m_core != NULL ) m_core->registerStudent( username, password, firstName, lastInitial );
 }
 
-void GlasslabSDK::registerInstructor( const char* name, const char* email, const char* password, bool newsletter, string cb ) {
-    if( m_core != NULL ) m_core->registerInstructor( name, email, password, newsletter, cb );
+void GlasslabSDK::registerInstructor( const char* name, const char* email, const char* password, bool newsletter ) {
+    if( m_core != NULL ) m_core->registerInstructor( name, email, password, newsletter );
 }
 
-void GlasslabSDK::login( const char* username, const char* password, const char* type, string cb ) {
-    if( m_core != NULL ) m_core->login( username, password, type, cb );
+void GlasslabSDK::login( const char* username, const char* password, const char* type ) {
+    if( m_core != NULL ) m_core->login( username, password, type );
 }
 
-void GlasslabSDK::login( const char* username, const char* password, string cb ) {
-    this->login( username, password, NULL, cb );
+void GlasslabSDK::login( const char* username, const char* password ) {
+    this->login( username, password, NULL );
 }
 
-void GlasslabSDK::enroll( const char* courseCode, string cb ) {
-    if( m_core != NULL ) m_core->enroll( courseCode, cb );
+void GlasslabSDK::enroll( const char* courseCode ) {
+    if( m_core != NULL ) m_core->enroll( courseCode );
 }
 
-void GlasslabSDK::unenroll( const char* courseId, string cb ) {
-    if( m_core != NULL ) m_core->unenroll( courseId, cb );
+void GlasslabSDK::unenroll( const char* courseId ) {
+    if( m_core != NULL ) m_core->unenroll( courseId );
 }
 
-void GlasslabSDK::getCourses( string cb ) {
-    if( m_core != NULL ) m_core->getCourses( cb );
+void GlasslabSDK::getCourses() {
+    if( m_core != NULL ) m_core->getCourses();
 }
 
-void GlasslabSDK::logout( string cb ) {
-    if( m_core != NULL ) m_core->logout( cb );
+void GlasslabSDK::logout() {
+    if( m_core != NULL ) m_core->logout();
 }
 
-void GlasslabSDK::startSession( string cb ) {
-    if( m_core != NULL ) m_core->startSession( cb );
+void GlasslabSDK::startSession() {
+    if( m_core != NULL ) m_core->startSession();
 }
 
-void GlasslabSDK::endSession( string cb ) {
-    if( m_core != NULL ) m_core->endSession( cb );
+void GlasslabSDK::endSession() {
+    if( m_core != NULL ) m_core->endSession();
 }
 
 void GlasslabSDK::saveGame(const char* gameData, string cb) {
@@ -99,6 +99,10 @@ void GlasslabSDK::saveAchievement( const char* item, const char* group, const ch
 
 void GlasslabSDK::sendTelemEvents() {
     if( m_core != NULL ) m_core->sendTelemEvents();
+}
+
+void GlasslabSDK::forceFlushTelemEvents() {
+    if( m_core != NULL ) m_core->forceFlushTelemEvents();
 }
 
 void GlasslabSDK::cancelRequest( const char* key ) {
@@ -169,6 +173,10 @@ void GlasslabSDK::setPlayerHandle( const char* handle ) {
 
 void GlasslabSDK::removePlayerHandle( const char* handle ) {
     if( m_core != NULL ) m_core->removePlayerHandle( handle );
+}
+
+void GlasslabSDK::setCookie( const char* cookie ) {
+    if( m_core != NULL ) m_core->setCookie( cookie );
 }
 
 

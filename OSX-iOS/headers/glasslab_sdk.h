@@ -14,10 +14,14 @@
 #define GLASSLAB_SDK
 /* ---------------------------- */
 
-//#include <unistd.h>
+#if !WIN32
+#include <unistd.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
-//#include <pthread.h>
+#if !WIN32
+#include <pthread.h>
+#endif
 #include <string.h>
 #include <string>
 #include <sstream>
@@ -29,8 +33,8 @@
 #include <cstdio>
 #include <time.h>
 
-#if 1
-//typedef __int8 int8_t;
+#if WIN32
+typedef __int8 int8_t;
 typedef unsigned __int8 uint8_t;
 typedef __int16 int16_t;
 typedef unsigned __int16 uint16_t;
