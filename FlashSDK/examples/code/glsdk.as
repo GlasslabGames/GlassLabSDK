@@ -221,6 +221,7 @@ package {
 			}
 			else if( event.charCode == 104 ) {	// H
 				writeText( "Attempting to post save game..." );
+				postSaveGame();
 				//saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
 			}
 		}
