@@ -1478,6 +1478,21 @@ namespace nsGlasslabSDK {
         // Attempt to dispatch the message queue
         attemptMessageDispatch();
     }
+    
+    /**
+     * This function will force a call to flushMsgQ to ensure all requests are made to the server.
+     * This is a useful function for games that store the database in memory, making it a temporary
+     * entity. Just before closing the application, it would be useful to flush the remaining events
+     * stored.
+     */
+    void Core::forceFlushTelemEvents() {
+        sendTotalTimePlayed();
+        
+        // Only flush the queue if we are connected
+        if( getConnectedState() ) {
+            m_dataSync->flushMsgQ();
+        }
+    }
 
     /**
      * Function attempts to dispatch the telemetry events in the message queue, based on the

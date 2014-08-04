@@ -87,6 +87,7 @@ class GlasslabSDK {
         void saveGame(const char* gameData, string cb = "" );
         void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
         void sendTelemEvents();
+        void forceFlushTelemEvents();
         void cancelRequest( const char* key );
     
         // Telemetry event values
@@ -128,6 +129,7 @@ class GlasslabSDK {
         void setTime( time_t time );
         void setPlayerHandle( const char* handle );
         void removePlayerHandle( const char* handle );
+        void setCookie( const char* cookie );
 
         // Game timer functions
         void startGameTimer();
