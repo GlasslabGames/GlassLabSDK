@@ -33,14 +33,14 @@ int main( int argc, const char * argv[] )
     // They include the URI, game Id, and location for the internal events
     // database.
     char host[] = "http://stage.argubotacademy.org";
-    //char host[] = "http://192.168.1.101:8001";
+    //char host[] = "http://192.168.2.16:8001";
     char gameId[] = "AA-1";
     
     // These variables are required for logging in and enrolling with a course.
     // Once a connection is successful, the server is open to accept login and
     // enroll requests
-    char username[] = "test2";
-    char password[] = "test";
+    char username[] = "ben";
+    char password[] = "glasslab";
     char courseCode[] = "83RLM";
     
     // The device Id is a way to uniquely identify a user with sessions and
@@ -197,10 +197,9 @@ int main( int argc, const char * argv[] )
                         glsdk->saveAchievement( "Persistent", "21st.Century.Skills", "a" );
                         
                         // Sleep a short duration between telemetry events and achievements
-                        usleep( telemEventLoopDelay );
+                        //usleep( telemEventLoopDelay );
                     }
                     
-                    glsdk->saveGame( "{\"a\":123,\"b\":4.31,\"c\":\"test\"}" );
                     step++;
                 }
             } break;
@@ -216,8 +215,8 @@ int main( int argc, const char * argv[] )
                 // Once we've saved some telemetry, test ending the session
                 if( step == 6 ) {
                     printf( "** End Session...\n" );
+
                     glsdk->endSession();
-                    
                     glsdk->stopGameTimer();
                     
                     step++;
@@ -234,9 +233,24 @@ int main( int argc, const char * argv[] )
                 // Once we've tested ending the session, simply delete the SDK
                 // The simulation is complete.
                 if( step == 7 ) {
+                    printf( "** Get Save Game...\n" );
+                    glsdk->getSaveGame();
+                    step++;
+                }
+            } break;
+                
+            //
+            // Saving the game state requires a JSON representation of the state information.
+            // The server will not enforce the content of the save state but is responsible
+            // for returning it upon request. A successful save will trigger a "Message_GameSave"
+            // message, otherwise "Message_Error".
+            //
+            case nsGlasslabSDK::Const::Message_GetGameSave : {
+                // Once we've saved the game state, test sending telemetry and achievements
+                if( step == 8 ) {
+                    printf( "Save game is: %s", resString.c_str() );
                     delete glsdk;
                     return 0;
-                    step++;
                 }
             } break;
                 

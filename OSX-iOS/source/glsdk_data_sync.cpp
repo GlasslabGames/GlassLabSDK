@@ -28,12 +28,14 @@ namespace nsGlasslabSDK {
         } else {
             char cwd[1024];
 #if __APPLE__
-            sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
-            m_dbName += cwd;
-#else
+#if TARGET_OS_IPHONE
             if(getcwd(cwd, sizeof(cwd)) != NULL) {
                 m_dbName += cwd;
             }
+#else
+            sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
+            m_dbName += cwd;
+#endif
 #endif
         }
         

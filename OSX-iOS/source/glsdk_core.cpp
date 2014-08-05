@@ -1132,13 +1132,13 @@ namespace nsGlasslabSDK {
         if( root && json_is_object( root ) ) {
             // First, check for errors
             if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
-                returnMessage = Const::Message_Error;
+                //returnMessage = Const::Message_Error;
             }
         }
         json_decref( root );
         
         // Push GameSave message
-        sdkInfo.core->pushMessageStack( returnMessage );
+        sdkInfo.core->pushMessageStack( returnMessage, json );
         
         // Run client callback
         if( sdkInfo.clientCB != NULL ) {
@@ -1155,7 +1155,8 @@ namespace nsGlasslabSDK {
         url += "/" + m_gameId;
         
         // Add this message to the message queue
-        mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+        //mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+        mf_httpGetRequest( url, "saveGame_Done", cb, gameData, "application/json" );
     }
 
     /**
@@ -1181,7 +1182,7 @@ namespace nsGlasslabSDK {
         if( root && json_is_object( root ) ) {
             // First, check for errors
             if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
-                returnMessage = Const::Message_Error;
+                //returnMessage = Const::Message_Error;
             }
         }
         json_decref( root );
@@ -1204,7 +1205,8 @@ namespace nsGlasslabSDK {
         url += "/" + m_gameId;
         
         // Add this message to the message queue
-        mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
+        //mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
+        mf_httpGetRequest( url, "getSaveGame_Done", cb );
     }
 
 
