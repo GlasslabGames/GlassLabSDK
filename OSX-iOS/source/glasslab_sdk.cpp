@@ -57,6 +57,10 @@ void GlasslabSDK::registerInstructor( const char* name, const char* email, const
     if( m_core != NULL ) m_core->registerInstructor( name, email, password, newsletter );
 }
 
+void GlasslabSDK::getUserInfo() {
+    if( m_core != NULL ) m_core->getUserInfo();
+}
+
 void GlasslabSDK::login( const char* username, const char* password, const char* type ) {
     if( m_core != NULL ) m_core->login( username, password, type );
 }

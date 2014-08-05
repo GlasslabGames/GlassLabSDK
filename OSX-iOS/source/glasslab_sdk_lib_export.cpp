@@ -88,6 +88,12 @@ extern "C"
         }
     }
 
+    void GlasslabSDK_GetUserInfo( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->getUserInfo();
+        }
+    }
+
     void GlasslabSDK_Login( void* inst, const char* username, const char* password, const char* type ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->login( username, password, type );

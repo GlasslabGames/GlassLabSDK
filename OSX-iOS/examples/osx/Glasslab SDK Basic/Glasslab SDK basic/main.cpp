@@ -121,6 +121,7 @@ int main( int argc, const char * argv[] )
                 if( step == 1 ) {
                     printf( "** Start Enroll...\n" );
                     glsdk->enroll( courseCode );
+                    glsdk->getUserInfo();
                     step++;
                 }
             } break;

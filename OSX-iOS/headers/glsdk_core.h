@@ -82,6 +82,7 @@ namespace nsGlasslabSDK {
             void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
             void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true, string cb = "" );
             void getPlayerInfo( string cb = "" );
+            void getUserInfo( string cb = "" );
             void login( const char* username, const char* password, const char* type = NULL, string cb = "" );
             void enroll( const char* courseCode, string cb = "" );
             void unenroll( const char* courseId, string cb = "" );
@@ -176,6 +177,9 @@ namespace nsGlasslabSDK {
 
             // Config object
             glConfig config;
+
+            // User info
+            glUserInfo userInfo;
 
             // Helper function for displaying warnings and errors
             void displayWarning( string location, string warning );

@@ -42,6 +42,7 @@ public class GlasslabSDK {
 	private ArrayList mEndSession_CBList;
 	private ArrayList m_GameSave_CBList;
 	private ArrayList m_GetGameSave_CBList;
+	private ArrayList m_GetUserInfo_CBList;
 	private char[]    mMsgChars;
 	private string    mMsgString;
 	private int       mMsgCode;
@@ -61,6 +62,7 @@ public class GlasslabSDK {
 		EndSession,
 		GameSave,
 		GetGameSave,
+		GetUserInfo
 		Event,
 		Error
 	};
@@ -97,6 +99,7 @@ public class GlasslabSDK {
 		mEndSession_CBList   = new ArrayList();
 		m_GameSave_CBList = new ArrayList();
 		m_GetGameSave_CBList = new ArrayList();
+		m_GetUserInfo_CBList = new ArrayList();
 		mInstSet = false;
 		
 		mMsgCode   = 0;
@@ -257,6 +260,15 @@ public class GlasslabSDK {
 					Debug.Log ( "in GET GAME SAVE callback: " + mMsgString );
 					ResponseCallback cb = (ResponseCallback)m_GetGameSave_CBList[0];
 					m_GetGameSave_CBList.RemoveAt (0);
+					cb();
+				}
+			} break;
+
+			case (int)GlasslabSDK.Message.GetUserInfo: {
+				if(m_GetUserInfo_CBList.Count > 0){
+					Debug.Log ( "in GET USER INFO callback: " + mMsgString );
+					ResponseCallback cb = (ResponseCallback)m_GetUserInfo_CBList[0];
+					m_GetUserInfo_CBList.RemoveAt (0);
 					cb();
 				}
 			} break;
@@ -454,6 +466,19 @@ public class GlasslabSDK {
 		}
 		
 		GlasslabSDK_GetSaveGame( mInst );
+		#endif
+	}
+
+	public void GetUserInfo(ResponseCallback cb = null) {
+		#if !UNITY_EDITOR && CLASSROOM
+		if (cb != null) {
+			m_GetUserInfo_CBList.Add (cb);
+		} else {
+			ResponseCallback tempCB = ResponseCallback_Stub;
+			m_GetUserInfo_CBList.Add (tempCB);
+		}
+		
+		GlasslabSDK_GetUserInfo( mInst );
 		#endif
 	}
 	
@@ -789,6 +814,8 @@ public class GlasslabSDK {
 	private static extern void GlasslabSDK_RegisterStudent(System.IntPtr inst, string username, string password, string firstName, string lastInitial);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_RegisterInstructor(System.IntPtr inst, string name, string email, string password, bool newsletter);
+	[DllImport ("__Internal")]
+	private static extern void GlasslabSDK_GetUserInfo(System.IntPtr inst);
 	[DllImport ("__Internal")]
 	private static extern void GlasslabSDK_Login(System.IntPtr inst, string username, string password, string type);
 	[DllImport ("__Internal")]

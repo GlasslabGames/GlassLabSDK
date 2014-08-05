@@ -76,6 +76,7 @@ class GlasslabSDK {
         void authStatus();
         void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial );
         void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true );
+        void getUserInfo();
         void login( const char* username, const char* password, const char* type = NULL );
         void login( const char* username, const char* password );
         void enroll( const char* courseCode );

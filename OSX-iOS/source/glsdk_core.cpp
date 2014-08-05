@@ -71,6 +71,12 @@ namespace nsGlasslabSDK {
         config.eventsMinSize = THROTTLE_MIN_SIZE_DEFAULT;
         config.eventsMaxSize = THROTTLE_MAX_SIZE_DEFAULT;
 
+        // Set default user info variables
+        userInfo.username = "";
+        userInfo.firstName = "";
+        userInfo.lastInitial = "";
+        userInfo.email = "";
+
         // Set the last time since telemetry was fired
         m_telemetryLastTime = time( NULL );
         // Get the game session event order to update
@@ -542,6 +548,86 @@ namespace nsGlasslabSDK {
         
         // Make the request
         mf_httpGetRequest( url, "getPlayerInfo_Done", cb );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_GET_USER_PROFILE is successful.
+     *
+     * Parses user info returned from the server.
+     */
+    void getUserInfo_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getUserInfo_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getUserInfo_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetUserInfo;
+
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+            
+            // Parse JSON data if there was no error
+            if( returnMessage != Const::Message_Error ) {
+
+                // The username must be valid
+                json_t* username = json_object_get( root, "username" );
+                if( username && json_is_string( username ) ) {
+                    sdkInfo.core->userInfo.username = json_string_value( username );
+                }
+
+                // The first name must be valid
+                json_t* firstName = json_object_get( root, "firstName" );
+                if( firstName && json_is_string( firstName ) ) {
+                    sdkInfo.core->userInfo.firstName = json_string_value( firstName );
+                }
+
+                // The last initial must be valid
+                json_t* lastName = json_object_get( root, "lastName" );
+                if( lastName && json_is_string( lastName ) ) {
+                    sdkInfo.core->userInfo.lastInitial = json_string_value( lastName );
+                }
+
+                // The email must be valid
+                json_t* email = json_object_get( root, "email" );
+                if( email && json_is_string( email ) ) {
+                    sdkInfo.core->userInfo.email = json_string_value( email );
+                }
+            }
+        }
+        json_decref( root );
+        
+        // Push SavePlayerInfo message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * GetUserInfo function will grab user info as JSON from server. This info
+     * contains username, first name, last initial, etc.
+     */
+    void Core::getUserInfo( string cb ) {
+        // Make the request
+        mf_httpGetRequest( API_GET_USER_PROFILE, "getUserInfo_Done", cb );
     }
 
     /**
@@ -1866,6 +1952,11 @@ namespace nsGlasslabSDK {
         getPlayerInfo_Structure.coreCB = getPlayerInfo_Done;
         getPlayerInfo_Structure.cancel = false;
         m_coreCallbackMap[ "getPlayerInfo_Done" ] = getPlayerInfo_Structure;
+
+        coreCallbackStructure getUserInfo_Structure;
+        getUserInfo_Structure.coreCB = getUserInfo_Done;
+        getUserInfo_Structure.cancel = false;
+        m_coreCallbackMap[ "getUserInfo_Done" ] = getUserInfo_Structure;
 
         coreCallbackStructure login_Structure;
         login_Structure.coreCB = login_Done;
