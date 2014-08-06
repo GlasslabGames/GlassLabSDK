@@ -17,8 +17,8 @@ package {
 
 	public class Document extends MovieClip {
 		
-		//public static const SERVER_URI 	: String = "http://192.168.1.101:8001";
-		public static const SERVER_URI 	: String = "http://aw.glgames.org";
+		public static const SERVER_URI 	: String = "http://192.168.1.101:8001";
+		//public static const SERVER_URI 	: String = "http://aw.glgames.org";
 		public static const GAME_LEVEL 	: String	= "Argument Wars";
 		public static const GAME_ID		: String = "AW-1";
 		

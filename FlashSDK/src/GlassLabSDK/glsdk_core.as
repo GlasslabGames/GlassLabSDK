@@ -455,8 +455,7 @@ package GlassLabSDK {
 		*/
 		public function getPlayerInfo() : void {
 			// Perform the request
-			var apiObject : Object = { KEY: "getPlayerInfo", API: "/api/v2/data/game/" + m_clientId + "/playInfo" };
-			httpRequest( new glsdk_dispatch( apiObject, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_PLAYER_INFO, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
 		}
 		
 
@@ -656,8 +655,7 @@ package GlassLabSDK {
 			postData.setTime = m_totalTimePlayed;
 			
 			// Store the dispatch message to be called later
-			var apiObject : Object = { KEY: "sendTotalTimePlayed", API: "/api/v2/data/game/" + m_clientId + "/totalTimePlayed" };
-			pushTelemetryQueue( new glsdk_dispatch( apiObject, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_TOTAL_TIME_PLAYED, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
 		}
 		
 		
@@ -697,8 +695,87 @@ package GlassLabSDK {
 		*/
 		public function getAchievements() : void {
 			// Store the dispatch message to be called later
-			var apiObject : Object = { KEY: "getAchievements", API: "/api/v2/dash/game/" + m_clientId + "/achievements" };
-			pushTelemetryQueue( new glsdk_dispatch( apiObject, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAchievements_Done, getAchievements_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_GET_ACHIEVEMENTS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAchievements_Done, getAchievements_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the getSaveGame() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getSaveGame_Fail( event:Object ) : void {
+			trace( "getSaveGame_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the getSaveGame() http request. Adds an MESSAGE_GET_SAVE_GAME response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getSaveGame_Done( event:Object ) : void {
+			trace( "getSaveGame_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_GET_SAVE_GAME, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for retrieving save game data from the server.
+		*
+		* If this request is successful, MESSAGE_GET_SAVE_GAME will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function getSaveGame() : void {
+			// Store the dispatch message to be called later
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_GET_SAVE_GAME, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getSaveGame_Done, getSaveGame_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the postSaveGame() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function postSaveGame_Fail( event:Object ) : void {
+			trace( "postSaveGame_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the postSaveGame() http request. Adds an MESSAGE_POST_SAVE_GAME response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function postSaveGame_Done( event:Object ) : void {
+			trace( "postSaveGame_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_POST_SAVE_GAME, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for retrieving save game data from the server.
+		*
+		* If this request is successful, MESSAGE_GET_SAVE_GAME will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function postSaveGame() : void {
+			// Store the dispatch message to be called later
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SAVE_GAME, "POST", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, postSaveGame_Done, postSaveGame_Fail ) );
 		}
 		
 		
@@ -745,8 +822,7 @@ package GlassLabSDK {
 			postData.subGroup = subGroup;
 			
 			// Store the dispatch message to be called later
-			var apiObject : Object = { KEY: "sendAchievement", API: "/api/v2/data/game/" + m_clientId + "/achievement" };
-			pushTelemetryQueue( new glsdk_dispatch( apiObject, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, saveAchievement_Done, saveAchievement_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_ACHIEVEMENTS, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, saveAchievement_Done, saveAchievement_Fail ) );
 		}
 		
 		
@@ -779,6 +855,10 @@ package GlassLabSDK {
 				req.method = dispatch.m_method;
 				req.contentType = dispatch.m_contentType;
 				
+				// Parse the API path for :gameId
+				req.api = req.api.split( ":gameId" ).join( m_clientId );
+				trace( req.api );
+				
 				// Set the request data if this is a POST request
 				if( dispatch.m_method == URLRequestMethod.POST ) {
 					dataAsJSON = glsdk_json.instance().stringify( dispatch.m_postData );
@@ -796,6 +876,10 @@ package GlassLabSDK {
 				urlReq.url = m_serverUri + dispatch.m_path.API;
 				urlReq.method = dispatch.m_method;
 				urlReq.contentType = dispatch.m_contentType;
+				
+				// Parse the API path for :gameId
+				urlReq.url = urlReq.url.split( ":gameId" ).join( m_clientId );
+				trace( urlReq.url );
 				
 				// Set the request data if this is a POST request
 				if( dispatch.m_method == URLRequestMethod.POST ) {
