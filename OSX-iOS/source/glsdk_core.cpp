@@ -311,7 +311,7 @@ namespace nsGlasslabSDK {
         data += m_gameId;
 
         // Make the request
-        mf_httpGetRequest( API_POST_DEVICE_UPDATE, "deviceUpdate_Done", "", data );
+        mf_httpGetRequest( API_POST_DEVICE_UPDATE, "deviceUpdate_Done", data );
     }
 
     //--------------------------------------
@@ -411,7 +411,7 @@ namespace nsGlasslabSDK {
     /**
      * Register student function passes registration information to the server for validation.
      */
-    void Core::registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb ) {
+    void Core::registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial ) {
         // Setup the data
         string data = "systemRole=student";
         data += "&username=";
@@ -424,13 +424,13 @@ namespace nsGlasslabSDK {
         data += password;
         
         // Make the request
-        mf_httpGetRequest( API_POST_REGISTER, "register_Done", cb, data );
+        mf_httpGetRequest( API_POST_REGISTER, "register_Done", data );
     }
 
     /**
      * Register teacher function passes registration information to the server for validation.
      */
-    void Core::registerInstructor( const char* name, const char* email, const char* password, bool newsletter, string cb ) {
+    void Core::registerInstructor( const char* name, const char* email, const char* password, bool newsletter ) {
         // Parse the name
         string fullName = name;
         string firstName = fullName.substr( 0, strchr( name, ' ' ) - name );
@@ -450,7 +450,7 @@ namespace nsGlasslabSDK {
         data += newsletter;
         
         // Make the request
-        mf_httpGetRequest( API_POST_REGISTER, "register_Done", cb, data );
+        mf_httpGetRequest( API_POST_REGISTER, "register_Done", data );
     }
 
 
@@ -521,13 +521,13 @@ namespace nsGlasslabSDK {
      * GetPlayerInfo function will grab player info as JSON from server. This info
      * contains total time played and achievement infofmration.
      */
-    void Core::getPlayerInfo( string cb ) {
+    void Core::getPlayerInfo() {
         // Set the URL
         string url = API_GET_PLAYERINFO;
         url += "/" + m_gameId + "/playInfo";
         
         // Make the request
-        mf_httpGetRequest( url, "getPlayerInfo_Done", cb );
+        mf_httpGetRequest( url, "getPlayerInfo_Done" );
     }
 
 
@@ -1113,7 +1113,7 @@ namespace nsGlasslabSDK {
     /**
      * SaveGame function communicates with the server to save the game data.
      */
-    void Core::saveGame( const char* gameData, string cb ) {
+    void Core::saveGame( const char* gameData ) {
         //printf( "Saving Game Data - %s", gameData );
         string url = API_POST_SAVEGAME;
         url += "/" + m_gameId;

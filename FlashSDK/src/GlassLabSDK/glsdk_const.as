@@ -24,8 +24,8 @@ package GlassLabSDK {
 		public static const API_POST_SESSION_START 		: Object = { KEY: "startSession", 			API: "/api/v2/data/session/start" };
 		public static const API_POST_SESSION_END 		: Object = { KEY: "endSession", 			API: "/api/v2/data/session/end" };
 		public static const API_POST_EVENTS 			: Object = { KEY: "sendTelemEvents", 		API: "/api/v2/data/events" };
-		public static const API_GET_ACHIEVEMENTS 		: Object = { KEY: "getAchievements", 		API: "/api/v2/dash/game/:gameId/achievements" };
-		public static const API_POST_ACHIEVEMENTS 		: Object = { KEY: "sendAchievement", 		API: "/api/v2/data/game/:gameId/achievement" };
+		public static const API_GET_ACHIEVEMENTS 		: Object = { KEY: "getAchievements", 		API: "/api/v2/dash/game/:gameId/achievements/all" };
+		public static const API_POST_ACHIEVEMENTS 		: Object = { KEY: "saveAchievement", 		API: "/api/v2/data/game/:gameId/achievement" };
 		public static const API_GET_SAVE_GAME 			: Object = { KEY: "getSaveGame", 			API: "/api/v2/data/game/:gameId" };
 		public static const API_POST_SAVE_GAME 			: Object = { KEY: "postSaveGame", 			API: "/api/v2/data/game/:gameId" };
 		

@@ -695,7 +695,7 @@ package GlassLabSDK {
 		*/
 		public function getAchievements() : void {
 			// Store the dispatch message to be called later
-			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_GET_ACHIEVEMENTS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAchievements_Done, getAchievements_Fail ) );
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_ACHIEVEMENTS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAchievements_Done, getAchievements_Fail ) );
 		}
 		
 		
@@ -735,7 +735,7 @@ package GlassLabSDK {
 		*/
 		public function getSaveGame() : void {
 			// Store the dispatch message to be called later
-			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_GET_SAVE_GAME, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getSaveGame_Done, getSaveGame_Fail ) );
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_SAVE_GAME, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getSaveGame_Done, getSaveGame_Fail ) );
 		}
 		
 		
@@ -773,9 +773,9 @@ package GlassLabSDK {
 		* If this request is successful, MESSAGE_GET_SAVE_GAME will be the response, otherwise
 		* MESSAGE_ERROR.
 		*/
-		public function postSaveGame() : void {
+		public function postSaveGame( data:Object ) : void {
 			// Store the dispatch message to be called later
-			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SAVE_GAME, "POST", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, postSaveGame_Done, postSaveGame_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SAVE_GAME, "POST", data, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, postSaveGame_Done, postSaveGame_Fail ) );
 		}
 		
 		
@@ -866,7 +866,7 @@ package GlassLabSDK {
 				}
 			
 				// Call the SDK service on angular
-				var result : String = ExternalInterface.call( "angular.element(document.body).injector().get(\"SDKSvc\").request", req );
+				var result : String = ExternalInterface.call( "GlassLabSDK.request", req );
 			}
 			else {
 				// Create a new URL request object
