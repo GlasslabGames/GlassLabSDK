@@ -13,7 +13,7 @@ package GlassLabSDK {
 	
 	public class glsdk_dispatch {
 
-		public var m_path : String;					// The API path
+		public var m_path : Object;					// The API key and path
 		public var m_method : String;				// The method type (GET or POST)
 		public var m_postData : Object;				// The post data.
 		public var m_contentType : String;			// The content type.
@@ -24,14 +24,14 @@ package GlassLabSDK {
 		/**
 		* Parameterized constructor requires all fields for a successful dispatch.
 		*
-		* param p_path The API path.
+		* param p_path The API key and path.
 		* param p_method The method type.
 		* param p_postData The post data. This can be blank or an empty JSON object.
 		* param p_contentType The content type.
 		* param p_successCallback The success callback function.
 		* param p_failureCallback The failure callback function.
 		*/
-		public function glsdk_dispatch( p_path:String, p_method:String, p_postData:Object, p_contentType:String, p_successCallback:Function, p_failureCallback:Function ) {
+		public function glsdk_dispatch( p_path:Object, p_method:String, p_postData:Object, p_contentType:String, p_successCallback:Function, p_failureCallback:Function ) {
 			m_path = p_path;
 			m_method = p_method;
 			m_postData = p_postData;

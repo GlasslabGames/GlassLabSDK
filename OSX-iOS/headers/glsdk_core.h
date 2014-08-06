@@ -82,6 +82,7 @@ namespace nsGlasslabSDK {
             void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
             void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true, string cb = "" );
             void getPlayerInfo( string cb = "" );
+            void getUserInfo( string cb = "" );
             void login( const char* username, const char* password, const char* type = NULL, string cb = "" );
             void enroll( const char* courseCode, string cb = "" );
             void unenroll( const char* courseId, string cb = "" );
@@ -90,9 +91,12 @@ namespace nsGlasslabSDK {
             void startSession( string cb = "" );
             void endSession( string cb = "" );
             void saveGame( const char* gameData, string cb = "" );
+            void getSaveGame( string cb = "" );
+            void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
             void savePlayerInfo( string cb = "" );
             void sendTotalTimePlayed( string cb = "" );
             void sendTelemEvents( string clientCB = "", string coreCB = "" );
+            void forceFlushTelemEvents();
             void attemptMessageDispatch();
             void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
 
@@ -126,7 +130,6 @@ namespace nsGlasslabSDK {
             // Telemetry event helpers
             void clearTelemEventValues();
             void saveTelemEvent( const char* name );
-            void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
             // These functions allow for control over the user info data structure
             void updatePlayerInfoKey( const char* key, const char* value );
@@ -161,6 +164,7 @@ namespace nsGlasslabSDK {
             void setSessionId( const char* sessionId );
         
             // Getters
+            int getUserId();
             const char* getId();
             const char* getCookie();
             const char* getSessionId();
@@ -173,6 +177,9 @@ namespace nsGlasslabSDK {
 
             // Config object
             glConfig config;
+
+            // User info
+            glUserInfo userInfo;
 
             // Helper function for displaying warnings and errors
             void displayWarning( string location, string warning );
@@ -213,7 +220,6 @@ namespace nsGlasslabSDK {
             json_t* m_userInfo;
             json_t* m_telemEvents;
             json_t* m_telemEventValues;
-            json_t* m_achievementEventValues;
             json_t* m_playerInfo;
 
             // Timer for delaying telemetry

@@ -50,7 +50,6 @@ namespace nsGlasslabSDK {
         // Set JSON telemetry objects
         m_telemEvents       = json_array();
         m_telemEventValues  = json_object();
-        m_achievementEventValues = json_object();
         // Clear telemetry
         clearTelemEventValues();
 
@@ -71,6 +70,12 @@ namespace nsGlasslabSDK {
         config.eventsPeriodSecs = THROTTLE_INTERVAL_DEFAULT;
         config.eventsMinSize = THROTTLE_MIN_SIZE_DEFAULT;
         config.eventsMaxSize = THROTTLE_MAX_SIZE_DEFAULT;
+
+        // Set default user info variables
+        userInfo.username = "";
+        userInfo.firstName = "";
+        userInfo.lastInitial = "";
+        userInfo.email = "";
 
         // Set the last time since telemetry was fired
         m_telemetryLastTime = time( NULL );
@@ -543,6 +548,86 @@ namespace nsGlasslabSDK {
         
         // Make the request
         mf_httpGetRequest( url, "getPlayerInfo_Done", cb );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_GET_USER_PROFILE is successful.
+     *
+     * Parses user info returned from the server.
+     */
+    void getUserInfo_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getUserInfo_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getUserInfo_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetUserInfo;
+
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+            
+            // Parse JSON data if there was no error
+            if( returnMessage != Const::Message_Error ) {
+
+                // The username must be valid
+                json_t* username = json_object_get( root, "username" );
+                if( username && json_is_string( username ) ) {
+                    sdkInfo.core->userInfo.username = json_string_value( username );
+                }
+
+                // The first name must be valid
+                json_t* firstName = json_object_get( root, "firstName" );
+                if( firstName && json_is_string( firstName ) ) {
+                    sdkInfo.core->userInfo.firstName = json_string_value( firstName );
+                }
+
+                // The last initial must be valid
+                json_t* lastName = json_object_get( root, "lastName" );
+                if( lastName && json_is_string( lastName ) ) {
+                    sdkInfo.core->userInfo.lastInitial = json_string_value( lastName );
+                }
+
+                // The email must be valid
+                json_t* email = json_object_get( root, "email" );
+                if( email && json_is_string( email ) ) {
+                    sdkInfo.core->userInfo.email = json_string_value( email );
+                }
+            }
+        }
+        json_decref( root );
+        
+        // Push SavePlayerInfo message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * GetUserInfo function will grab user info as JSON from server. This info
+     * contains username, first name, last initial, etc.
+     */
+    void Core::getUserInfo( string cb ) {
+        // Make the request
+        mf_httpGetRequest( API_GET_USER_PROFILE, "getUserInfo_Done", cb );
     }
 
     /**
@@ -1133,13 +1218,13 @@ namespace nsGlasslabSDK {
         if( root && json_is_object( root ) ) {
             // First, check for errors
             if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
-                returnMessage = Const::Message_Error;
+                //returnMessage = Const::Message_Error;
             }
         }
         json_decref( root );
         
         // Push GameSave message
-        sdkInfo.core->pushMessageStack( returnMessage );
+        sdkInfo.core->pushMessageStack( returnMessage, json );
         
         // Run client callback
         if( sdkInfo.clientCB != NULL ) {
@@ -1156,7 +1241,124 @@ namespace nsGlasslabSDK {
         url += "/" + m_gameId;
         
         // Add this message to the message queue
-        mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+        //mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+        mf_httpGetRequest( url, "saveGame_Done", cb, gameData, "application/json" );
+    }
+
+    /**
+     * Callback function occurs when API_GET_GAMEDATA is successful.
+     */
+    void getSaveGame_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "getSaveGame_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getSaveGame_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetGameSave;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * GetSaveGame function communicates with the server to sget the save game data for the user.
+     */
+    void Core::getSaveGame( string cb ) {
+        //printf( "Saving Game Data - %s", gameData );
+        string url = API_GET_SAVEGAME;
+        url += "/" + m_gameId;
+        
+        // Add this message to the message queue
+        //mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
+        mf_httpGetRequest( url, "getSaveGame_Done", cb );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_POST_ACHIEVEMENT is successful.
+     */
+    void saveAchievement_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "saveAchievement_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "saveAchievement_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_SaveAchievement;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage );
+        
+        // Run client callback
+        if( sdkInfo.clientCB != NULL ) {
+            sdkInfo.clientCB();
+        }
+    }
+
+    /**
+     * Functions saves an achievement event with the following information:
+     *  - item
+     *  - group
+     *  - subGroup
+     */
+    void Core::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
+        //printf( "Saving Game Data - %s", gameData );
+        string url = API_POST_ACHIEVEMENT;
+        url += "/" + m_gameId;
+        url += "/achievement";
+
+        // Append the parameter information to the postdata
+        string dataOut = "{\"item\":\"";
+        dataOut += item;
+        dataOut += "\",\"group\":\"";
+        dataOut += group;
+        dataOut += "\",\"subGroup\":\"";
+        dataOut += subGroup;
+        dataOut += "\"}";
+        
+        // Add this message to the message queue
+        mf_addMessageToDataQueue( url, "saveAchievement_Done", cb, dataOut, "application/json" );
     }
 
 
@@ -1412,6 +1614,21 @@ namespace nsGlasslabSDK {
 
         // Attempt to dispatch the message queue
         attemptMessageDispatch();
+    }
+    
+    /**
+     * This function will force a call to flushMsgQ to ensure all requests are made to the server.
+     * This is a useful function for games that store the database in memory, making it a temporary
+     * entity. Just before closing the application, it would be useful to flush the remaining events
+     * stored.
+     */
+    void Core::forceFlushTelemEvents() {
+        sendTotalTimePlayed();
+        
+        // Only flush the queue if we are connected
+        if( getConnectedState() ) {
+            m_dataSync->flushMsgQ();
+        }
     }
 
     /**
@@ -1736,6 +1953,11 @@ namespace nsGlasslabSDK {
         getPlayerInfo_Structure.cancel = false;
         m_coreCallbackMap[ "getPlayerInfo_Done" ] = getPlayerInfo_Structure;
 
+        coreCallbackStructure getUserInfo_Structure;
+        getUserInfo_Structure.coreCB = getUserInfo_Done;
+        getUserInfo_Structure.cancel = false;
+        m_coreCallbackMap[ "getUserInfo_Done" ] = getUserInfo_Structure;
+
         coreCallbackStructure login_Structure;
         login_Structure.coreCB = login_Done;
         login_Structure.cancel = false;
@@ -1775,6 +1997,16 @@ namespace nsGlasslabSDK {
         saveGame_Structure.coreCB = saveGame_Done;
         saveGame_Structure.cancel = false;
         m_coreCallbackMap[ "saveGame_Done" ] = saveGame_Structure;
+
+        coreCallbackStructure getSaveGame_Structure;
+        getSaveGame_Structure.coreCB = getSaveGame_Done;
+        getSaveGame_Structure.cancel = false;
+        m_coreCallbackMap[ "getSaveGame_Done" ] = getSaveGame_Structure;
+
+        coreCallbackStructure saveAchievement_Structure;
+        saveAchievement_Structure.coreCB = saveAchievement_Done;
+        saveAchievement_Structure.cancel = false;
+        m_coreCallbackMap[ "saveAchievement_Done" ] = saveAchievement_Structure;
 
         coreCallbackStructure savePlayerInfo_Structure;
         savePlayerInfo_Structure.coreCB = savePlayerInfo_Done;
@@ -1991,72 +2223,6 @@ namespace nsGlasslabSDK {
         }
     }
 
-    /**
-     * Functions saves an achievement event by name with all default parameters,
-     * including a timestamp, name, gameId, gameSessionId, deviceId, 
-     * clientVersion, gameType, and the data itself.
-     *
-     * Achievements are different from regular telemetry in that they always send
-     * over the same event information, stored in "eventData":
-     *  - item
-     *  - group
-     *  - subGroup
-     */
-    void Core::saveAchievementEvent( const char* item, const char* group, const char* subGroup ) {
-        //printf( "saving achievement: %s, %s, %s\n", item, group, subGroup );
-        // Create the JSON event object to populate
-        json_t* event = json_object();
-        if( event ) {
-            // Set default information
-            time_t t = time(NULL);
-            json_object_set_new( event, "clientTimeStamp", json_integer( (int)t ) );
-            json_object_set_new( event, "eventName", json_string( "$Achievement" ) );
-            json_object_set_new( event, "gameId",  json_string( m_gameId.c_str() ) );
-            json_object_set_new( event, "gameSessionId", json_string( "$gameSessionId$" ) );
-            json_object_set_new( event, "gameSessionEventOrder", json_integer( m_gameSessionEventOrder++ ) );// "$gameSessionEventOrder$" ) );
-
-            // Set the deviceId if it exists
-            if( m_deviceId.length() > 0 ) {
-                json_object_set_new( event, "deviceId", json_string( m_deviceId.c_str() ) );
-            }
-            // Set the clientVersion if it exists
-            if( m_clientVersion.length() > 0 ) {
-                json_object_set_new( event, "clientVersion", json_string( m_clientVersion.c_str() ) );
-            }
-            // Set the gameLevel if it exists
-            if( m_gameLevel.length() > 0 ) {
-                json_object_set_new( event, "gameType", json_string( m_gameLevel.c_str() ) );
-            }
-            // Set the eventData as a separate JSON document using the values
-            json_object_set_new( m_achievementEventValues, "item", json_string( item ) );
-            json_object_set_new( m_achievementEventValues, "group", json_string( group ) );
-            json_object_set_new( m_achievementEventValues, "subGroup", json_string( subGroup ) );
-            json_object_set_new( event, "eventData", m_achievementEventValues );
-
-            // Get the total time played from the player info and set it (-1 indicates an error or it doesn't exist)
-            float totalTimePlay = getTotalTimePlayed();
-            json_object_set_new( event, "totalTimePlayed", json_real( totalTimePlay ) );
-            
-            // Append the final event structure to the telemetry events JSON object
-            json_array_append_new( m_telemEvents, event );
-
-            //string jsonOut = "";
-            //char* rootJSON = json_dumps( event, JSON_SORT_KEYS );//JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
-            //jsonOut = rootJSON;
-            //free( rootJSON );            
-            //printf( "\n---------------------------\n" );
-            //printf( "saveTelemEvent: \n%s", jsonOut.c_str() );
-            //printf( "\n---------------------------\n" );
-            
-            // Reset all memebers in achievement events object
-            m_achievementEventValues = json_object();
-        }
-        // If the JSON object wasn't created properly, we have an error
-        else {
-            displayError( "Core::saveTelemEvent()", "Could not create a new event document, unable to send event." );
-        }
-    }
-
 
     //--------------------------------------
     //--------------------------------------
@@ -2262,6 +2428,10 @@ namespace nsGlasslabSDK {
     /**
      * Getters.
      */
+    int Core::getUserId() {
+        return m_userId;
+    }
+
     const char* Core::getId() {
         return m_gameId.c_str();
     }

@@ -74,18 +74,22 @@ class GlasslabSDK {
         void connect( const char* gameId, const char* uri );
         void deviceUpdate();
         void authStatus();
-        void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
-        void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true, string cb = "" );
-        void login( const char* username, const char* password, const char* type = NULL, string cb = "" );
-        void login( const char* username, const char* password, string cb );
-        void enroll( const char* courseCode, string cb = "" );
-        void unenroll( const char* courseId, string cb = "" );
-        void getCourses( string cb = "" );
-        void logout( string cb = "" );
-        void startSession( string cb = "" );
-        void endSession( string cb = "" );
-        void saveGame(const char* gameData, string cb = "");
+        void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial );
+        void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true );
+        void getUserInfo();
+        void login( const char* username, const char* password, const char* type = NULL );
+        void login( const char* username, const char* password );
+        void enroll( const char* courseCode );
+        void unenroll( const char* courseId );
+        void getCourses();
+        void logout();
+        void startSession();
+        void endSession();
+        void saveGame(const char* gameData, string cb = "" );
+        void getSaveGame();
+        void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
         void sendTelemEvents();
+        void forceFlushTelemEvents();
         void cancelRequest( const char* key );
     
         // Telemetry event values
@@ -104,7 +108,6 @@ class GlasslabSDK {
         // Telemetry event helpers
         void clearTelemEventValues();
         void saveTelemEvent( const char* name );
-        void saveAchievementEvent( const char* item, const char* group, const char* subGroup );
 
         // These functions allow for control over the user info data structure
         void updatePlayerInfoKey( const char* key, const char* value );
@@ -128,12 +131,14 @@ class GlasslabSDK {
         void setTime( time_t time );
         void setPlayerHandle( const char* handle );
         void removePlayerHandle( const char* handle );
+        void setCookie( const char* cookie );
 
         // Game timer functions
         void startGameTimer();
         void stopGameTimer();
 
         // Getters
+        int getUserId();
         const char* getCookie();
 
         // Debug logging pop

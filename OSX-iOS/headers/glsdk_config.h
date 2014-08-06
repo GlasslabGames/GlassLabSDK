@@ -19,6 +19,7 @@
 #define THROTTLE_MAX_SIZE_DEFAULT 50
 
 #define API_POST_REGISTER			"/api/v2/auth/user/register"
+#define API_GET_USER_PROFILE		"/api/v2/auth/user/profile"
 #define API_GET_AUTH_STATUS			"/api/v2/auth/login/status"
 #define API_POST_LOGIN        		"/api/v2/auth/login/glasslab"
 #define API_POST_LOGOUT        		"/api/v2/auth/logout"
