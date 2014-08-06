@@ -22,6 +22,13 @@ namespace nsGlasslabSDK {
         int eventsDetailLevel;
     } glConfig;
 
+    typedef struct _glUserInfo {
+        std::string username;
+        std::string firstName;
+        std::string lastInitial;
+        std::string email;
+    } glUserInfo;
+
     class Const {
     public:
         enum Status {
@@ -43,8 +50,11 @@ namespace nsGlasslabSDK {
             Message_StartSession,
             Message_EndSession,
             Message_GameSave,
+            Message_GetGameSave,
+            Message_SaveAchievement,
             Message_SavePlayerInfo,
             Message_GetPlayerInfo,
+            Message_GetUserInfo,
             Message_SendTotalTimePlayed,
             Message_Event,
             Message_Error

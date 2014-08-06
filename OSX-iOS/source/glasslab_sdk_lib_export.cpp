@@ -88,6 +88,12 @@ extern "C"
         }
     }
 
+    void GlasslabSDK_GetUserInfo( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->getUserInfo();
+        }
+    }
+
     void GlasslabSDK_Login( void* inst, const char* username, const char* password, const char* type ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->login( username, password, type );
@@ -132,7 +138,19 @@ extern "C"
     
     void GlasslabSDK_SaveGame( void* inst, const char* gameData ) {
         if( inst != NULL ) {
-            static_cast<GlasslabSDK *>( inst )->saveGame(gameData);
+            static_cast<GlasslabSDK *>( inst )->saveGame( gameData );
+        }
+    }
+
+    void GlasslabSDK_GetSaveGame( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->getSaveGame();
+        }
+    }
+
+    void GlasslabSDK_SaveAchievement( void* inst, const char* item, const char* group, const char* subGroup ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->saveAchievement( item, group, subGroup );
         }
     }
 
@@ -169,12 +187,6 @@ extern "C"
     void GlasslabSDK_SaveTelemEvent( void* inst, const char* name ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->saveTelemEvent( name );
-        }
-    }
-
-    void GlasslabSDK_SaveAchievementEvent( void* inst, const char* item, const char* group, const char* subGroup  ) {
-        if( inst != NULL ) {
-            static_cast<GlasslabSDK *>( inst )->saveAchievementEvent( item, group, subGroup );
         }
     }
 
@@ -238,6 +250,15 @@ extern "C"
     void GlasslabSDK_StopGameTimer( void* inst ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->stopGameTimer();
+        }
+    }
+
+
+    int GlasslabSDK_GetUserId( void* inst ) {
+        if( inst != NULL ) {
+            return ( static_cast<GlasslabSDK *>( inst )->getUserId() );
+        } else {
+            return -1;
         }
     }
     
