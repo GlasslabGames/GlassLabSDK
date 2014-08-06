@@ -65,8 +65,6 @@ namespace nsGlasslabSDK {
             std::string m_data;
         };
     };
-
-    typedef void(*ClientCallback_Func)();
     
 }; // end nsGlasslabSDK
 

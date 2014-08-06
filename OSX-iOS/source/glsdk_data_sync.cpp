@@ -195,7 +195,7 @@ namespace nsGlasslabSDK {
      *
      * Inserts a new entry into the MSG_QUEUE table.
      */
-    void DataSync::addToMsgQ( string deviceId, string path, string coreCB, string clientCB, string postdata, const char* contentType ) {
+    void DataSync::addToMsgQ( string deviceId, string path, string coreCB, string postdata, const char* contentType ) {
         if( m_messageTableSize > DB_MESSAGE_CAP ) {
             cout << "------------------------------------" << endl;
             cout << "Database has reached a message cap! No longer inserting events!" << endl;
@@ -211,7 +211,7 @@ namespace nsGlasslabSDK {
             //cout << "------------------------------------" << endl;
             s += "INSERT INTO ";
             s += MSG_QUEUE_TABLE_NAME;
-            s += " (deviceId, path, coreCB, clientCB, postdata, contentType, status) VALUES ('";
+            s += " (deviceId, path, coreCB, postdata, contentType, status) VALUES ('";
             s += deviceId;
             s += "', ";
 
@@ -233,17 +233,6 @@ namespace nsGlasslabSDK {
             else {
                 s += "'";
                 s += coreCB;
-                s += "'";
-            }
-            s += ", ";
-            
-            // Check the Client Callback key
-            if( clientCB.c_str() == NULL ) {
-                s += "''";
-            }
-            else {
-                s += "'";
-                s += clientCB;
                 s += "'";
             }
             s += ", ";
@@ -923,7 +912,6 @@ namespace nsGlasslabSDK {
                 - deviceId
                 - path
                 - coreCB
-                - clientCB
                 - postdata
                 - contentType
                 - status (ready, pending, failed, success)
@@ -987,9 +975,8 @@ namespace nsGlasslabSDK {
 
                                 // Get the event information
                                 string coreCB = msgQuery.fieldValue( 3 );
-                                string clientCB = msgQuery.fieldValue( 4 );
-                                string postdata = msgQuery.fieldValue( 5 );
-                                const char* contentType = msgQuery.fieldValue( 6 );
+                                string postdata = msgQuery.fieldValue( 4 );
+                                const char* contentType = msgQuery.fieldValue( 5 );
 
                                 // If this is a telemetry event or end session, update the postdata to include the correct gameSessionId
                                 if( apiPath == API_POST_EVENTS || apiPath == API_POST_SESSION_END ) {
@@ -1012,7 +999,7 @@ namespace nsGlasslabSDK {
                                 //printf("Updating result: %d\n", r);
 
                                 // Perform the get request using the message information
-                                m_core->mf_httpGetRequest( apiPath, coreCB, clientCB, postdata, contentType, rowId );
+                                m_core->mf_httpGetRequest( apiPath, coreCB, postdata, contentType, rowId );
                                 requestsMade++;
                             }
                             else {
@@ -1113,7 +1100,6 @@ namespace nsGlasslabSDK {
                 s += "deviceId char(256), ";
                 s += "path char(256), ";
                 s += "coreCB char(256), ";
-                s += "clientCB char(256), ";
                 s += "postdata text, ";
                 s += "contentType char(256), ";
                 s += "status char(256) ";
@@ -1134,7 +1120,6 @@ namespace nsGlasslabSDK {
                 s += MSG_QUEUE_TABLE_NAME;
                 CppSQLite3Table t = m_db.getTable( s.c_str() );
                 m_messageTableSize = t.numRows();
-
             }
             
             // Create the SESSION table
@@ -1237,7 +1222,6 @@ namespace nsGlasslabSDK {
                 "deviceId char(256), "
                 "path char(256), "
                 "coreCB char(256), "
-                "clientCB char(256), "
                 "postdata text, "
                 "contentType char(256), "
                 "status char(256) "

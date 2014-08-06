@@ -93,16 +93,16 @@ void GlasslabSDK::endSession() {
     if( m_core != NULL ) m_core->endSession();
 }
 
-void GlasslabSDK::saveGame(const char* gameData, string cb) {
-    if( m_core != NULL ) m_core->saveGame(gameData, cb);
+void GlasslabSDK::saveGame( const char* gameData ) {
+    if( m_core != NULL ) m_core->saveGame( gameData );
 }
 
 void GlasslabSDK::getSaveGame() {
     if( m_core != NULL ) m_core->getSaveGame();
 }
 
-void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
-    if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup, cb );
+void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup ) {
+    if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup );
 }
 
 void GlasslabSDK::sendTelemEvents() {

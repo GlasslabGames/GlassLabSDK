@@ -85,9 +85,9 @@ class GlasslabSDK {
         void logout();
         void startSession();
         void endSession();
-        void saveGame(const char* gameData, string cb = "" );
+        void saveGame( const char* gameData );
         void getSaveGame();
-        void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
+        void saveAchievement( const char* item, const char* group, const char* subGroup );
         void sendTelemEvents();
         void forceFlushTelemEvents();
         void cancelRequest( const char* key );
