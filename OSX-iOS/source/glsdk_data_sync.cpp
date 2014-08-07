@@ -81,7 +81,7 @@ namespace nsGlasslabSDK {
             cout << "------------------------------------" << endl;
 
             // Open the database
-            m_db.open( ":memory:" );//m_dbName.c_str() );
+            m_db.open( m_dbName.c_str() );
             
             /*
             CppSQLite3Query q = m_db.execQuery("PRAGMA page_size;");
