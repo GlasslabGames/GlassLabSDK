@@ -1953,7 +1953,7 @@ namespace nsGlasslabSDK {
     /**
      * Functions saves a telemetry event by name with all default parameters,
      * including a timestamp, name, gameId, gameSessionId, deviceId, 
-     * clientVersion, gameType, and the data itself.
+     * clientVersion, gameLevel, and the data itself.
      */
     void Core::saveTelemEvent( const char* name ) {
         // Create the JSON event object to populate
@@ -1977,7 +1977,7 @@ namespace nsGlasslabSDK {
             }
             // Set the gameLevel if it exists
             if( m_gameLevel.length() > 0 ) {
-                json_object_set_new( event, "gameType", json_string( m_gameLevel.c_str() ) );
+                json_object_set_new( event, "gameLevel", json_string( m_gameLevel.c_str() ) );
             }
             // Set the eventData as a separate JSON document using the values
             json_object_set_new( event, "eventData", m_telemEventValues );
