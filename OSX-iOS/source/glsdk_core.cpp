@@ -46,6 +46,7 @@ namespace nsGlasslabSDK {
         m_lastStatus    = Const::Status_Ok;
         m_userInfo      = NULL;
         m_playerInfo    = json_object();
+        m_autoSessionManagement = false;
         
         // Set JSON telemetry objects
         m_telemEvents       = json_array();
@@ -82,8 +83,14 @@ namespace nsGlasslabSDK {
         // Get the game session event order to update
         m_gameSessionEventOrder = m_dataSync->getGameSessionEventOrderFromDeviceId( m_deviceId );
 
-        // The game timer is initially deactivated
-        m_gameTimerActive = false;
+        // Stop the timers, initially
+        stopGameTimer();
+        stopSessionTimer();
+
+
+        // Set the initial player handle and cookie
+        setPlayerHandle( "" );
+        setCookie( "" );
 
 
         // Attempt a connection now that the SDK is created
@@ -157,7 +164,61 @@ namespace nsGlasslabSDK {
             return NULL;
         }
     }
-    
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_CONNECT is successful.
+     *
+     * Sets the server we should be pointing at.
+     */
+    void getConnect_Done( p_glSDKInfo sdkInfo ) {
+        const char* uri = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getConnect_Done", uri );
+        sdkInfo.core->logMessage( "---------------------------" );
+        
+        // Call getConfig next
+        sdkInfo.core->getConfig( uri );
+    }
+
+    /**
+     * Function is triggered when the user first connects to the server. Called
+     * automatically when the SDK object is created. Continues only if the gameId
+     * and URI are valid strings.
+     */
+    int Core::connect( const char* gameId, const char* uri ) {
+        // If the URI was set properly, record it
+        if( ( uri != NULL ) && strcmp( uri, "" ) != 0 ) {
+            m_connectUri = uri;
+            logMessage( "connectUri set:", m_connectUri.c_str() );
+        }
+        // URI was not set properly
+        else {
+            displayError( "Core::connect()", "Valid URI was not specified when trying to connect." );
+            return 1;
+        }
+        
+        // If the gameId was set properly, record it
+        if( ( gameId != NULL ) && strcmp( gameId, "" ) != 0 ) {
+            m_gameId = gameId;
+            logMessage( "gameId set:", m_gameId.c_str() );
+        }
+        // gameId was not set properly
+        else {
+            displayError( "Core::connect()", "The gameId was not set or is invalid." );
+            return 1;
+        }
+        
+        // Make the request
+        mf_httpGetRequest( API_CONNECT, "getConnect_Done" );
+        
+        // Success
+        return 0;
+    }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -224,31 +285,17 @@ namespace nsGlasslabSDK {
     }
 
     /**
-     * Function is triggered when the user first connects to the server. Called
-     * automatically when the SDK object is created. Continues only if the gameId
-     * and URI are valid strings.
+     * Function is triggered whenever we want to get config information from the server.
      */
-    int Core::connect( const char* gameId, const char* uri ) {
+    void Core::getConfig( const char* uri ) {
         // If the URI was set properly, record it
         if( ( uri != NULL ) && strcmp( uri, "" ) != 0 ) {
             m_connectUri = uri;
-            logMessage( "connectUri set:", m_connectUri.c_str() );
+            logMessage( "connectUri set from CONFIG:", m_connectUri.c_str() );
         }
         // URI was not set properly
         else {
-            displayError( "Core::connect()", "Valid URI was not specified when trying to connect." );
-            return 1;
-        }
-        
-        // If the gameId was set properly, record it
-        if( ( gameId != NULL ) && strcmp( gameId, "" ) != 0 ) {
-            m_gameId = gameId;
-            logMessage( "gameId set:", m_gameId.c_str() );
-        }
-        // gameId was not set properly
-        else {
-            displayError( "Core::connect()", "The gameId was not set or is invalid." );
-            return 1;
+            displayError( "getConnect_Done", "Valid URI was not specified when trying to retrieve config." );
         }
 
         // Reset the connected state
@@ -257,11 +304,9 @@ namespace nsGlasslabSDK {
         // Make the request
         string url = API_GET_CONFIG;
         url += "/" + m_gameId;
-        mf_httpGetRequest( url, "getConfig_Done");
-        
-        // Success
-        return 0;
+        mf_httpGetRequest( url, "getConfig_Done" );
     }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -968,6 +1013,10 @@ namespace nsGlasslabSDK {
      * also sent along but optional.
      */
     void Core::startSession() {
+        // Start the session timer
+        startSessionTimer();
+
+        // Set initial parameters to set in the API call
         string courseOut = "";
         string dataOut = "";
         
@@ -1005,6 +1054,9 @@ namespace nsGlasslabSDK {
 
         // Add this message to the message queue
         mf_addMessageToDataQueue( API_POST_SESSION_START, "startSession_Done", dataOut, "application/x-www-form-urlencoded" );
+
+        // Record an "start session" telemetry event
+        saveTelemEvent( "Game_start_session" );
     }
 
 
@@ -1058,6 +1110,12 @@ namespace nsGlasslabSDK {
      * during the message queue flushing.
      */
     void Core::endSession() {
+        // Stop the session timer
+        stopSessionTimer();
+
+        // Record an "end session" telemetry event
+        saveTelemEvent( "Game_end_session" );
+
         // Send all events before end session
         sendTelemEvents();
 
@@ -1166,6 +1224,52 @@ namespace nsGlasslabSDK {
         // Add this message to the message queue
         //mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
         mf_httpGetRequest( url, "getSaveGame_Done" );
+    }
+
+
+    /**
+     * Callback function occurs when API_DELETE_SAVEGAME is successful.
+     */
+    void deleteSaveGame_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "deleteSaveGame_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        printf( "\n---------------------------\n" );
+        printf( "deleteSaveGame_Done: %s", json );
+        printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_DeleteGameSave;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+    }
+
+    /**
+     * DeleteSaveGame function communicates with the server to get the save game data for the user.
+     */
+    void Core::deleteSaveGame() {
+        //printf( "Deleting Game Data - %s", gameData );
+        string url = API_DELETE_SAVEGAME;
+        url += "/" + m_gameId;
+        
+        // Add this message to the message queue
+        //mf_addMessageToDataQueue( url, "deleteSaveGame_Done", cb );
+        mf_httpGetRequest( url, "deleteSaveGame_Done" );
     }
 
 
@@ -1400,7 +1504,7 @@ namespace nsGlasslabSDK {
         if( m_gameTimerActive ) {
             // Get the current time
             time_t currentTime = time( NULL );
-
+            
             // Measure the time between last game time and current (in seconds)
             float delta = difftime( currentTime, m_gameTimerLast );
             m_gameTimerLast = currentTime;
@@ -1639,7 +1743,7 @@ namespace nsGlasslabSDK {
         if( port == -1 ) {
             port = 80;
         }
-        printf("connect url: %s, host: %s, port:%d\n", url.c_str(), host, port);
+        printf("connect url: %s, host: %s, port:%d, path: %s, cookie: %s\n", url.c_str(), host, port, path.c_str(), m_cookie.c_str());
 
         // Reset the cancel state of the callback
         setCoreCallbackCancelState( coreCB, false );
@@ -1689,7 +1793,16 @@ namespace nsGlasslabSDK {
                 // Add the postdata to the request and reset the type to POST
                 evbuffer_add_buffer( httpRequest->req->output_buffer, postdata_buffer );
                 requestType = EVHTTP_REQ_POST;
-                
+            }
+            
+
+            //
+            // TODO: we need to build an API-requestType map so we can elegantly pass in
+            // GET, POST, DELETE types.
+            // Remove this line when we have that.
+            //
+            if( coreCB == "deleteSaveGame_Done" ) {
+                requestType = EVHTTP_REQ_DELETE;
             }
 
             // Dispatch the request
@@ -1727,6 +1840,11 @@ namespace nsGlasslabSDK {
      * TODO: include client callback functions
      */
     void Core::mf_setupCallbacks() {
+        coreCallbackStructure getConnect_Structure;
+        getConnect_Structure.coreCB = getConnect_Done;
+        getConnect_Structure.cancel = false;
+        m_coreCallbackMap[ "getConnect_Done" ] = getConnect_Structure;
+
         coreCallbackStructure getConfig_Structure;
         getConfig_Structure.coreCB = getConfig_Done;
         getConfig_Structure.cancel = false;
@@ -1801,6 +1919,11 @@ namespace nsGlasslabSDK {
         getSaveGame_Structure.coreCB = getSaveGame_Done;
         getSaveGame_Structure.cancel = false;
         m_coreCallbackMap[ "getSaveGame_Done" ] = getSaveGame_Structure;
+
+        coreCallbackStructure deleteSaveGame_Structure;
+        deleteSaveGame_Structure.coreCB = deleteSaveGame_Done;
+        deleteSaveGame_Structure.cancel = false;
+        m_coreCallbackMap[ "deleteSaveGame_Done" ] = deleteSaveGame_Structure;
 
         coreCallbackStructure saveAchievement_Structure;
         saveAchievement_Structure.coreCB = saveAchievement_Done;
@@ -1959,8 +2082,23 @@ namespace nsGlasslabSDK {
         // Create the JSON event object to populate
         json_t* event = json_object();
         if( event ) {
-            // Set default information
+            // Time this event occurred
             time_t t = time(NULL);
+
+            // Increment the session timer if it is active
+            if( m_autoSessionManagement && m_sessionTimerActive ) {
+                // Measure the time between last session time and current (in seconds)
+                float delta = difftime( t, m_sessionTimerLast );
+                m_sessionTimerLast = t;
+
+                // If the time since last event is greater than the SESSION_TIMEOUT, start a new session
+                if( delta >= SESSION_TIMEOUT ) {
+                    endSession();
+                    startSession();
+                }
+            }
+
+            // Set default information
             json_object_set_new( event, "clientTimeStamp", json_integer( (int)t ) );
             json_object_set_new( event, "eventName", json_string( name ) );
             json_object_set_new( event, "gameId",  json_string( m_gameId.c_str() ) );
@@ -2101,6 +2239,42 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     //--------------------------------------
     /**
+     * Session timer function for starting. This function also resets the timer to be current.
+     */
+    void Core::startSessionTimer() {
+        // Only reset the last time if we were previously inactive
+        if( !m_sessionTimerActive ) {
+            m_sessionTimerActive = true;
+            m_sessionTimerLast = time( NULL );
+        }
+    }
+
+    /**
+     * Session timer function for stopping.
+     */
+    void Core::stopSessionTimer() {
+        m_sessionTimerActive = false;
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Function will reset the internal database containing all CONFIG, SESSION,
+     * and MESSAGE information.
+     */
+    void Core::resetDatabase() {
+        if( m_dataSync != NULL ) {
+            m_dataSync->resetDatabase();
+        }
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
      * Setters.
      */
     void Core::setConnectUri( const char* uri ) {
@@ -2132,7 +2306,7 @@ namespace nsGlasslabSDK {
     }
 
     void Core::setPlayerHandle( const char* handle ) {
-        logMessage( "player handle to set:", handle );
+        printf( "player handle to set: %s\n" , handle );
 
         m_playerHandle = handle;
 
@@ -2144,7 +2318,7 @@ namespace nsGlasslabSDK {
 
         // Update the database with this information
         if( m_dataSync != NULL ) {
-            logMessage( "setting new device Id using player handle:", newDeviceId );
+            printf( "setting new device Id using player handle: %s", newDeviceId );
             m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId );
 
             // Get the cookie stored for this device Id
@@ -2202,6 +2376,10 @@ namespace nsGlasslabSDK {
             // Get the game session event order to update
             m_gameSessionEventOrder = m_dataSync->getGameSessionEventOrderFromDeviceId( m_deviceId );
         }
+    }
+
+    void Core::setAutoSessionManagement( bool state ) {
+        m_autoSessionManagement = state;
     }
 
 

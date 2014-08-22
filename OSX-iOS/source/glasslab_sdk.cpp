@@ -101,6 +101,10 @@ void GlasslabSDK::getSaveGame() {
     if( m_core != NULL ) m_core->getSaveGame();
 }
 
+void GlasslabSDK::deleteSaveGame() {
+    if( m_core != NULL ) m_core->deleteSaveGame();
+}
+
 void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup ) {
     if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup );
 }
@@ -187,6 +191,10 @@ void GlasslabSDK::setCookie( const char* cookie ) {
     if( m_core != NULL ) m_core->setCookie( cookie );
 }
 
+void GlasslabSDK::setAutoSessionManagement( bool state ) {
+    if( m_core != NULL ) m_core->setAutoSessionManagement( state );
+}
+
 
 void GlasslabSDK::startGameTimer() {
     if( m_core != NULL ) m_core->startGameTimer();
@@ -194,6 +202,10 @@ void GlasslabSDK::startGameTimer() {
 
 void GlasslabSDK::stopGameTimer() {
     if( m_core != NULL ) m_core->stopGameTimer();
+}
+
+void GlasslabSDK::resetDatabase() {
+    if( m_core != NULL ) m_core->resetDatabase();
 }
 
 

@@ -51,10 +51,11 @@ namespace nsGlasslabSDK {
             Message_EndSession,
             Message_GameSave,
             Message_GetGameSave,
+            Message_DeleteGameSave,
+            Message_GetUserInfo,
             Message_SaveAchievement,
             Message_SavePlayerInfo,
             Message_GetPlayerInfo,
-            Message_GetUserInfo,
             Message_SendTotalTimePlayed,
             Message_Event,
             Message_Error

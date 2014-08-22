@@ -32,8 +32,9 @@ int main( int argc, const char * argv[] )
     // These variables are required for making a connection to the server.
     // They include the URI, game Id, and location for the internal events
     // database.
-    char host[] = "http://stage.argubotacademy.org";
-    //char host[] = "http://192.168.2.16:8001";
+    //char host[] = "http://stage.argubotacademy.org";
+    //char host[] = "http://54.193.118.96";
+    char host[] = "http://192.168.1.101:8001";
     char gameId[] = "AA-1";
     
     // These variables are required for logging in and enrolling with a course.
