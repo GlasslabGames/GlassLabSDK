@@ -2405,6 +2405,10 @@ namespace nsGlasslabSDK {
     /**
      * Getters.
      */
+    const char* Core::getConnectUri() {
+        return m_connectUri.c_str();
+    }
+
     int Core::getUserId() {
         return m_userId;
     }
