@@ -143,6 +143,7 @@ class GlasslabSDK {
         void resetDatabase();
 
         // Getters
+        const char* getConnectUri();
         int getUserId();
         const char* getCookie();
 

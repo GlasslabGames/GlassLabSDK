@@ -49,7 +49,7 @@ extern "C"
         }
     }
     
-    const char * GlasslabSDK_ReadTopMessageString( void* inst) {
+    const char * GlasslabSDK_ReadTopMessageString( void* inst ) {
         if( inst != NULL ) {
             return static_cast<GlasslabSDK *>( inst )->readTopMessageString();
         } else {
@@ -279,25 +279,27 @@ extern "C"
     }
 
 
+    const char * GlasslabSDK_GetConnectUri( void* inst) {
+        if( inst != NULL ) {
+            return static_cast<GlasslabSDK *>( inst )->getConnectUri();
+        } else {
+            return NULL;
+        }
+    }
+
+
     int GlasslabSDK_GetUserId( void* inst ) {
         if( inst != NULL ) {
-            return ( static_cast<GlasslabSDK *>( inst )->getUserId() );
+            return static_cast<GlasslabSDK *>( inst )->getUserId();
         } else {
             return -1;
         }
     }
     
 
-    char* GlasslabSDK_GetCookie( void* inst ) {
+    const char* GlasslabSDK_GetCookie( void* inst ) {
         if( inst != NULL ) {
-            std::string string = static_cast<GlasslabSDK *>( inst )->getCookie();
-            size_t stringSize = strlen( string.c_str() ) + sizeof(char);
-            char* cReturn;
-            cReturn = (char*)malloc( stringSize );
-            strcpy(cReturn, string.c_str());
-            
-            //size_t size = strlen(static_cast<GlasslabSDK *>( inst )->getCookie())
-            return cReturn;// static_cast<GlasslabSDK *>( inst )->getCookie();
+            return static_cast<GlasslabSDK *>( inst )->getCookie();
         }
         else {
             return NULL;
@@ -305,16 +307,9 @@ extern "C"
     }
 
 
-    char* GlasslabSDK_PopLogQueue( void* inst ) {
+    const char* GlasslabSDK_PopLogQueue( void* inst ) {
         if( inst != NULL ) {
-            std::string string = static_cast<GlasslabSDK *>( inst )->popLogQueue();
-            size_t stringSize = strlen( string.c_str() ) + sizeof(char);
-            char* cReturn;
-            cReturn = (char*)malloc( stringSize );
-            strcpy(cReturn, string.c_str());
-            
-            //size_t size = strlen(static_cast<GlasslabSDK *>( inst )->getCookie())
-            return cReturn;// static_cast<GlasslabSDK *>( inst )->getCookie();
+            return static_cast<GlasslabSDK *>( inst )->popLogQueue();
         }
         else {
             return NULL;

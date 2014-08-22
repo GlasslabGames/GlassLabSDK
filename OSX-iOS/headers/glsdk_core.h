@@ -171,6 +171,7 @@ namespace nsGlasslabSDK {
             void setAutoSessionManagement( bool state );
         
             // Getters
+            const char* getConnectUri();
             int getUserId();
             const char* getId();
             const char* getCookie();

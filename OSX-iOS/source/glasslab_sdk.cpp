@@ -209,6 +209,15 @@ void GlasslabSDK::resetDatabase() {
 }
 
 
+const char* GlasslabSDK::getConnectUri() {
+    if( m_core != NULL ) {
+        return m_core->getConnectUri();
+    }
+    else {
+        return "";
+    }
+}
+
 int GlasslabSDK::getUserId() {
     if( m_core != NULL ) {
         return m_core->getUserId();
