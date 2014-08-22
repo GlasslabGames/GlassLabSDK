@@ -171,7 +171,7 @@ namespace nsGlasslabSDK {
 
             // Reset the tables if we need to
             if( resetTables ) {
-                cout << "Need to drop the tables in " << CONFIG_TABLE_NAME << endl;
+                cout << "Need to reset all tables." << endl;
                 dropTables();
             }
             // Or migrate the contents if we need to
@@ -546,7 +546,7 @@ namespace nsGlasslabSDK {
                 printf("%d rows inserted\n", nRows);
                 printf("------------------------------------\n");
             }
-            // Otherwise, update an existing entry
+            // Otherwise, update an existing entry if we need to
             else {
                 printf("FOUND entry with new device Id, we can ignore\n");
             }
@@ -949,6 +949,7 @@ namespace nsGlasslabSDK {
 
                             // Get the path from MSG_QUEUE
                             string apiPath = msgQuery.fieldValue( 2 );
+                            string coreCB = msgQuery.fieldValue( 3 );
                             //cout << "api path is: " << apiPath << endl;
 
                             // We only care about startsession, endsession, and sendtelemetry
@@ -964,7 +965,7 @@ namespace nsGlasslabSDK {
                             if( apiPath == API_POST_SESSION_START ||
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
                                 strstr( apiPath.c_str(), API_POST_PLAYERINFO ) ||
-                                strstr( apiPath.c_str(), API_POST_ACHIEVEMENT ) ||
+                                strstr( coreCB.c_str(), "saveAchievement_Done" ) ||
                                 ( ( apiPath == API_POST_SESSION_END || apiPath == API_POST_EVENTS ) &&
                                     gameSessionId.c_str() != NULL &&
                                     gameSessionId.length() != 0
@@ -974,7 +975,7 @@ namespace nsGlasslabSDK {
                                 //cout << "performing the GET request for: " << apiPath << endl;
 
                                 // Get the event information
-                                string coreCB = msgQuery.fieldValue( 3 );
+                                //string coreCB = msgQuery.fieldValue( 3 );
                                 string postdata = msgQuery.fieldValue( 4 );
                                 const char* contentType = msgQuery.fieldValue( 5 );
 
@@ -1046,6 +1047,18 @@ namespace nsGlasslabSDK {
         m_core->logMessage( "reached the end of MSG_QUEUE" );
         //displayTable( MSG_QUEUE_TABLE_NAME );
         //displayTable( SESSION_TABLE_NAME );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Function resets all tables in the database and recreates them.
+     */
+    void DataSync::resetDatabase() {
+        dropTables();
+        createTables();
     }
 
 

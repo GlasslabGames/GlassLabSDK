@@ -148,6 +148,12 @@ extern "C"
         }
     }
 
+    void GlasslabSDK_DeleteSaveGame( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->deleteSaveGame();
+        }
+    }
+
     void GlasslabSDK_SaveAchievement( void* inst, const char* item, const char* group, const char* subGroup ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->saveAchievement( item, group, subGroup );
@@ -240,6 +246,18 @@ extern "C"
         }
     }
 
+    void GlasslabSDK_SetCookie( void* inst, const char* cookie ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->setCookie( cookie );
+        }
+    }
+
+    void GlasslabSDK_SetAutoSessionManagement( void* inst, bool state ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->setAutoSessionManagement( state );
+        }
+    }
+
 
     void GlasslabSDK_StartGameTimer( void* inst ) {
         if( inst != NULL ) {
@@ -250,6 +268,13 @@ extern "C"
     void GlasslabSDK_StopGameTimer( void* inst ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->stopGameTimer();
+        }
+    }
+
+
+    void GlasslabSDK_ResetDatabase( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->resetDatabase();
         }
     }
 

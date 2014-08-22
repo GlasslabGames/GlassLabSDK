@@ -87,6 +87,7 @@ class GlasslabSDK {
         void endSession();
         void saveGame( const char* gameData );
         void getSaveGame();
+        void deleteSaveGame();
         void saveAchievement( const char* item, const char* group, const char* subGroup );
         void sendTelemEvents();
         void forceFlushTelemEvents();
@@ -132,10 +133,14 @@ class GlasslabSDK {
         void setPlayerHandle( const char* handle );
         void removePlayerHandle( const char* handle );
         void setCookie( const char* cookie );
+        void setAutoSessionManagement( bool state );
 
         // Game timer functions
         void startGameTimer();
         void stopGameTimer();
+
+        // Function to clear the database
+        void resetDatabase();
 
         // Getters
         int getUserId();

@@ -74,6 +74,7 @@ namespace nsGlasslabSDK {
         
             // Primary GLGS API functions
             int connect( const char* gameId, const char* uri = NULL );
+            void getConfig( const char* uri );
             int setUserInfo( const char* json );
             void deviceUpdate();
             void authStatus();
@@ -90,6 +91,7 @@ namespace nsGlasslabSDK {
             void endSession();
             void saveGame( const char* gameData );
             void getSaveGame();
+            void deleteSaveGame();
             void saveAchievement( const char* item, const char* group, const char* subGroup );
             void savePlayerInfo();
             void sendTotalTimePlayed();
@@ -147,6 +149,13 @@ namespace nsGlasslabSDK {
             void startGameTimer();
             void stopGameTimer();
 
+            // Session timer functions
+            void startSessionTimer();
+            void stopSessionTimer();
+
+            // Function to clear the database
+            void resetDatabase();
+
             // Setters
             void setConnectUri( const char* uri );
             void setName( const char* name );
@@ -159,6 +168,7 @@ namespace nsGlasslabSDK {
             void removePlayerHandle( const char* handle );
             void setCookie( const char* cookie );
             void setSessionId( const char* sessionId );
+            void setAutoSessionManagement( bool state );
         
             // Getters
             int getUserId();
@@ -198,6 +208,9 @@ namespace nsGlasslabSDK {
             // State indicates if the user is connected
             bool m_connected;
 
+            // State indicates if the SDK will automatically handle sessions
+            bool m_autoSessionManagement;
+
             // General members
             string m_connectUri;
             string m_cookie;
@@ -228,6 +241,10 @@ namespace nsGlasslabSDK {
             // Game timer variables used for total time played
             time_t m_gameTimerLast;
             bool m_gameTimerActive;
+
+            // Session timer variables used for auto session management
+            time_t m_sessionTimerLast;
+            bool m_sessionTimerActive;
         
             // Status members
             Const::Status m_lastStatus;
