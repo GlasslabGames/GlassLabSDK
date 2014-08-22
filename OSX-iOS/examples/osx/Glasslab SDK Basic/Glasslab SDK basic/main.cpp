@@ -34,14 +34,19 @@ int main( int argc, const char * argv[] )
     // database.
     //char host[] = "http://stage.argubotacademy.org";
     //char host[] = "http://54.193.118.96";
-    char host[] = "http://192.168.1.101:8001";
+    //char host[] = "http://192.168.1.101:8001";
+    
+    char host[] = "http://127.0.0.1:8001";
+    //char host[] = "http://54.183.156.129";
     char gameId[] = "AA-1";
     
     // These variables are required for logging in and enrolling with a course.
     // Once a connection is successful, the server is open to accept login and
     // enroll requests
-    char username[] = "ben";
-    char password[] = "glasslab";
+    //char username[] = "ben";
+    //char password[] = "glasslab";
+    char username[] = "test2";
+    char password[] = "test";
     char courseCode[] = "83RLM";
     
     // The device Id is a way to uniquely identify a user with sessions and
@@ -190,7 +195,6 @@ int main( int argc, const char * argv[] )
                         glsdk->addTelemEventValue( "int key", i );
                         glsdk->addTelemEventValue( "float key", i * 1.23 );
                         glsdk->saveTelemEvent( "GL_Scenario_Score" );
-                        
                         
                         glsdk->saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
                         glsdk->saveAchievement( "Evidence Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );

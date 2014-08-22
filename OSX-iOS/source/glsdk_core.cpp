@@ -213,7 +213,7 @@ namespace nsGlasslabSDK {
         }
         
         // Make the request
-        mf_httpGetRequest( API_CONNECT, "getConnect_Done" );
+        mf_httpGetRequest( API_CONNECT, "getConnect_Done", "", "text/plain; charset=utf-8" );
         
         // Success
         return 0;
@@ -1731,7 +1731,7 @@ namespace nsGlasslabSDK {
         struct evhttp_uri* uri;
         int port;
         const char* host;
-        string url;
+        string url, requestMethod;
         struct evbuffer* postdata_buffer = NULL;
 
         // Set the URI, host, and port information
@@ -1743,7 +1743,6 @@ namespace nsGlasslabSDK {
         if( port == -1 ) {
             port = 80;
         }
-        printf("connect url: %s, host: %s, port:%d, path: %s, cookie: %s\n", url.c_str(), host, port, path.c_str(), m_cookie.c_str());
 
         // Reset the cancel state of the callback
         setCoreCallbackCancelState( coreCB, false );
@@ -1770,18 +1769,20 @@ namespace nsGlasslabSDK {
             
             // Set the request type to GET by default
             evhttp_cmd_type requestType = EVHTTP_REQ_GET;
+            requestMethod = "GET";
+            
+            // add header if contentType set
+            if( contentType != NULL && strlen(contentType) != 0 ) {
+                evhttp_add_header( httpRequest->req->output_headers, "Content-type", contentType );
+            }
 
             // If postdata exists in this request, ensure it has the correct information
             if( postdata.length() > 0 ) {
                 postdata_buffer = evbuffer_new();
                 evbuffer_add_printf( postdata_buffer, "%s", postdata.c_str() );
 
-                // Use existing contentType
-                if( contentType != NULL && strlen(contentType) != 0 ) {
-                    evhttp_add_header( httpRequest->req->output_headers, "Content-type", contentType );
-                }
-                // Or, add default contentType
-                else {
+                // add default contentType
+                if( contentType == NULL || strlen(contentType) == 0 ) {
                     evhttp_add_header( httpRequest->req->output_headers, "Content-type", "application/x-www-form-urlencoded" );
                 }
                 
@@ -1793,8 +1794,20 @@ namespace nsGlasslabSDK {
                 // Add the postdata to the request and reset the type to POST
                 evbuffer_add_buffer( httpRequest->req->output_buffer, postdata_buffer );
                 requestType = EVHTTP_REQ_POST;
+                requestMethod = "POST";
             }
             
+            char headerUserAgent[255];
+            if(m_clientName.length() == 0) {
+                sprintf(headerUserAgent, "GlassLab SDK v%s", SDK_VERSION);
+            } else {
+                sprintf(headerUserAgent, "GlassLab SDK v%s - Client \"%s\" v%s", SDK_VERSION, m_clientName.c_str(), m_clientVersion.c_str());
+            }
+            evhttp_add_header( httpRequest->req->output_headers, "User-Agent", headerUserAgent);
+            char headerHost[255];
+            sprintf(headerHost, "%s:%d", host, port);
+            evhttp_add_header( httpRequest->req->output_headers, "Host", headerHost );
+            evhttp_add_header( httpRequest->req->output_headers, "Accept", "*/*" );
 
             //
             // TODO: we need to build an API-requestType map so we can elegantly pass in
@@ -1803,7 +1816,10 @@ namespace nsGlasslabSDK {
             //
             if( coreCB == "deleteSaveGame_Done" ) {
                 requestType = EVHTTP_REQ_DELETE;
+                requestMethod = "DELETE";
             }
+            
+            printf("connect url: %s, method: %s, host: %s, port:%d, path: %s, cookie: %s\n", url.c_str(), requestMethod.c_str(), host, port, path.c_str(), m_cookie.c_str());
 
             // Dispatch the request
             evhttp_connection_set_timeout( httpRequest->conn, 600 );

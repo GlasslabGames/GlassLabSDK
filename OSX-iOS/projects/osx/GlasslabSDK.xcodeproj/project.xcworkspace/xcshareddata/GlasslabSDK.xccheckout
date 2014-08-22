@@ -5,36 +5,36 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>45BE8B04-0877-43BE-9F69-7152E510B6C3</string>
+	<string>4C5FA4D2-7A7B-4AE9-A95D-52C2F1A3EFA7</string>
 	<key>IDESourceControlProjectName</key>
 	<string>GlasslabSDK</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>0CE953DA-EEAE-4725-AFF3-FCB2501F03A2</key>
-		<string>https://github.com/bendapkiewicz/GlassLabSDK.git</string>
+		<key>0461DD52-84A2-42DB-A082-0441F25EDB66</key>
+		<string>https://github.com/jstty/GlassLabSDK.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>OSX-iOS/projects/osx/GlasslabSDK.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>0CE953DA-EEAE-4725-AFF3-FCB2501F03A2</key>
+		<key>0461DD52-84A2-42DB-A082-0441F25EDB66</key>
 		<string>../../../../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/bendapkiewicz/GlassLabSDK.git</string>
+	<string>https://github.com/jstty/GlassLabSDK.git</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>0CE953DA-EEAE-4725-AFF3-FCB2501F03A2</string>
+	<string>0461DD52-84A2-42DB-A082-0441F25EDB66</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>0CE953DA-EEAE-4725-AFF3-FCB2501F03A2</string>
+			<string>0461DD52-84A2-42DB-A082-0441F25EDB66</string>
 			<key>IDESourceControlWCCName</key>
-			<string>GlasslabSDK</string>
+			<string>GlassLabSDK</string>
 		</dict>
 	</array>
 </dict>
