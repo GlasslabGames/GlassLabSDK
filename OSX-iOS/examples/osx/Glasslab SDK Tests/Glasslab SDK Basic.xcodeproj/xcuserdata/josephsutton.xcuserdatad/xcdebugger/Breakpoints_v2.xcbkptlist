@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Glasslab SDK basic/main.cpp"
-            timestampString = "430374113.014796"
+            timestampString = "429670564.576249"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "157"
-            endingLineNumber = "157"
+            startingLineNumber = "156"
+            endingLineNumber = "156"
             landmarkName = "main( int argc, const char * argv[] )"
             landmarkType = "7">
          </BreakpointContent>
@@ -31,8 +31,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1428"
             endingLineNumber = "1428"
-            landmarkName = "sendTotalTimePlayed_Done( p_glSDKInfo sdkInfo )"
-            landmarkType = "7">
+            landmarkName = "Core::attemptMessageDispatch()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -47,8 +47,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1430"
             endingLineNumber = "1430"
-            landmarkName = "sendTotalTimePlayed_Done( p_glSDKInfo sdkInfo )"
-            landmarkType = "7">
+            landmarkName = "Core::attemptMessageDispatch()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -58,11 +58,13 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "430376495.042896"
+            timestampString = "425867156.720039"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2185"
-            endingLineNumber = "2185">
+            startingLineNumber = "2169"
+            endingLineNumber = "2169"
+            landmarkName = "Core::setConfig( glConfig _config )"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -72,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Glasslab SDK basic/main.cpp"
-            timestampString = "430374113.014796"
+            timestampString = "429670564.576249"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "90"
-            endingLineNumber = "90"
+            startingLineNumber = "86"
+            endingLineNumber = "86"
             landmarkName = "main( int argc, const char * argv[] )"
             landmarkType = "7">
          </BreakpointContent>
@@ -92,7 +94,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "124"
-            endingLineNumber = "124">
+            endingLineNumber = "124"
+            landmarkName = "Core::popMessageStack()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -102,11 +106,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Glasslab SDK basic/main.cpp"
-            timestampString = "430374113.014796"
+            timestampString = "429670564.576249"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "93"
-            endingLineNumber = "93"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
             landmarkName = "main( int argc, const char * argv[] )"
             landmarkType = "7">
          </BreakpointContent>
@@ -118,11 +122,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Glasslab SDK basic/main.cpp"
-            timestampString = "430374113.014796"
+            timestampString = "430351943.765618"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "221"
-            endingLineNumber = "221"
+            startingLineNumber = "366"
+            endingLineNumber = "366"
             landmarkName = "main( int argc, const char * argv[] )"
             landmarkType = "7">
          </BreakpointContent>
@@ -134,12 +138,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "430376495.042896"
+            timestampString = "425867156.720039"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "2088"
-            endingLineNumber = "2088"
-            landmarkName = "Core::clearTelemEventValues()"
+            startingLineNumber = "2072"
+            endingLineNumber = "2072"
+            landmarkName = "Core::updatePlayerInfoKey( const char* key, float value )"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -187,7 +191,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1438"
             endingLineNumber = "1438"
-            landmarkName = "Core::sendTotalTimePlayed()"
+            landmarkName = "Core::attemptMessageDispatch()"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -205,6 +209,22 @@
             endingLineNumber = "1235"
             landmarkName = "CppSQLite3DB::close()"
             landmarkType = "5">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Glasslab SDK basic/main.cpp"
+            timestampString = "429655643.03979"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "65"
+            endingLineNumber = "65"
+            landmarkName = "main( int argc, const char * argv[] )"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -235,7 +255,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1464"
             endingLineNumber = "1464"
-            landmarkName = "sendTelemEvent_Done( p_glSDKInfo sdkInfo )"
+            landmarkName = "httpGetRequest_Done( struct evhttp_request* req, void* arg )"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -246,12 +266,12 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "430376495.042896"
+            timestampString = "425867156.720039"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1971"
-            endingLineNumber = "1971"
-            landmarkName = "Core::getCoreCallback( string key )"
+            startingLineNumber = "1955"
+            endingLineNumber = "1955"
+            landmarkName = "Core::saveTelemEvent( const char* name )"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
@@ -261,14 +281,14 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../../../source/glasslab_sdk.cpp"
-            timestampString = "430372445.055056"
+            filePath = "Glasslab SDK basic/main.cpp"
+            timestampString = "430351943.765618"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "16"
-            endingLineNumber = "16"
-            landmarkName = "GlasslabSDK::GlasslabSDK( const char* clientId, const char* deviceId, const char* dataPath, const char* uri )"
-            landmarkType = "5">
+            startingLineNumber = "369"
+            endingLineNumber = "369"
+            landmarkName = "main( int argc, const char * argv[] )"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -277,29 +297,13 @@
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "430372455.772119"
+            filePath = "Glasslab SDK basic/main.cpp"
+            timestampString = "430351943.765618"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "98"
-            endingLineNumber = "98"
-            landmarkName = "Core::Core( GlasslabSDK* sdk, const char* gameId, const char* deviceId, const char* dataPath, const char* uri )"
-            landmarkType = "5">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../../source/glsdk_core.cpp"
-            timestampString = "430372481.321658"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "184"
-            endingLineNumber = "184"
-            landmarkName = "getConnect_Done( p_glSDKInfo sdkInfo )"
+            startingLineNumber = "351"
+            endingLineNumber = "351"
+            landmarkName = "main( int argc, const char * argv[] )"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

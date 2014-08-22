@@ -33,18 +33,14 @@ int main( int argc, const char * argv[] )
     // They include the URI, game Id, and location for the internal events
     // database.
     //char host[] = "http://stage.argubotacademy.org";
-    //char host[] = "http://54.193.118.96";
-    //char host[] = "http://192.168.1.101:8001";
-    
+    //char host[] = "http://192.168.2.16:8001";
     char host[] = "http://127.0.0.1:8001";
-    //char host[] = "http://54.183.156.129";
     char gameId[] = "AA-1";
+    //char gameId[] = "SC";
     
     // These variables are required for logging in and enrolling with a course.
     // Once a connection is successful, the server is open to accept login and
     // enroll requests
-    //char username[] = "ben";
-    //char password[] = "glasslab";
     char username[] = "test2";
     char password[] = "test";
     char courseCode[] = "83RLM";
@@ -74,7 +70,6 @@ int main( int argc, const char * argv[] )
     printf( "Setting game properties...\n" );
     glsdk->setName( "SimCityEDU" );
     glsdk->setVersion( "1.2.4156" );
-    glsdk->setGameLevel( "Parktown" );
     
     //
     // The remainder of this program will iterate through each of the SDK calls and
@@ -126,9 +121,12 @@ int main( int argc, const char * argv[] )
                 // Once we're logged in, test enrollment
                 if( step == 1 ) {
                     printf( "** Start Enroll...\n" );
-                    glsdk->enroll( courseCode );
-                    glsdk->getUserInfo();
+                    //glsdk->enroll( courseCode );
                     step++;
+                    
+                    printf( "** Saving Game...\n" );
+                    glsdk->saveGame( "{\"a\":123,\"b\":4.31,\"c\":\"test\"}" );
+                    step = 5;
                 }
             } break;
                 
@@ -157,6 +155,7 @@ int main( int argc, const char * argv[] )
                 // Once we have received our enrolled courses, test starting a new session
                 if( step == 3 ) {
                     printf( "** Start Session...\n" );
+                    glsdk->setGameLevel( "MedusaA1School01" );
                     glsdk->startSession();
                     step++;
                 }
@@ -188,23 +187,170 @@ int main( int argc, const char * argv[] )
             case nsGlasslabSDK::Const::Message_GameSave : {
                 // Once we've saved the game state, test sending telemetry and achievements
                 if( step == 5 ) {
+                    
+                    
+                    glsdk->setGameLevel( "Parktown" );
+                    glsdk->startSession();
+                    
                     for( int i = 0; i < numTelemEvents; i++ ) {
                         printf( "** Saving Event (%d)...\n", i );
                         
-                        glsdk->addTelemEventValue( "string key", "asd" );
-                        glsdk->addTelemEventValue( "int key", i );
-                        glsdk->addTelemEventValue( "float key", i * 1.23 );
-                        glsdk->saveTelemEvent( "GL_Scenario_Score" );
-                        
+                        /*
                         glsdk->saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
                         glsdk->saveAchievement( "Evidence Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
                         glsdk->saveAchievement( "Bot Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
                         glsdk->saveAchievement( "Bold", "21st.Century.Skills", "a" );
                         glsdk->saveAchievement( "Persistent", "21st.Century.Skills", "a" );
+                        */
+                        
+                        
+                        glsdk->addTelemEventValue( "weakness", (i % 2 == 0) ? "inconsistent" : "none" );
+                        glsdk->saveTelemEvent( "Fuse_core" );
+                        
+                        glsdk->addTelemEventValue( "playerTurn", (i % 2 == 0) ? true : false);
+                        glsdk->addTelemEventValue( "success", (i % 2 == 0) ? true : false );
+                        glsdk->saveTelemEvent( "Launch_attack" );
                         
                         // Sleep a short duration between telemetry events and achievements
-                        //usleep( telemEventLoopDelay );
+                        usleep( telemEventLoopDelay );
                     }
+                    
+                    
+                    
+                     // AA-1
+                     glsdk->addTelemEventValue( "room", "cheese" );
+                     glsdk->saveTelemEvent( "Enter_room" );
+                     
+                     glsdk->saveTelemEvent( "Access_bot_builder" );
+                     glsdk->saveTelemEvent( "Access_telos" );
+                     
+                     glsdk->addTelemEventValue( "id", 1 );
+                     glsdk->addTelemEventValue( "botId", 10 );
+                     glsdk->saveTelemEvent( "Battle_Select_NotRelevant" );
+                     
+                     glsdk->addTelemEventValue( "weakness", "inconsistent" );
+                     glsdk->saveTelemEvent( "Set_up_battle" );
+                     
+                     glsdk->addTelemEventValue( "weakness", "inconsistent" );
+                     glsdk->saveTelemEvent( "Fuse_core" );
+                     glsdk->addTelemEventValue( "weakness", "inconsistent" );
+                     glsdk->saveTelemEvent( "Fuse_core" );
+                    
+                    /*
+                    glsdk->addTelemEventValue( "playerTurn", true);
+                    glsdk->addTelemEventValue( "success", true );
+                    glsdk->saveTelemEvent( "Launch_attack" );
+                    
+                    glsdk->addTelemEventValue( "playerTurn", true);
+                    glsdk->addTelemEventValue( "success", false );
+                    glsdk->saveTelemEvent( "Launch_attack" );
+                    
+                    glsdk->addTelemEventValue( "playerTurn", true);
+                    glsdk->addTelemEventValue( "success", false );
+                    glsdk->saveTelemEvent( "Launch_attack" );
+                    */
+                    
+                    
+                    glsdk->addTelemEventValue( "playerTurn", true);
+                    glsdk->addTelemEventValue( "success", true );
+                    glsdk->saveTelemEvent( "Launch_attack" );
+                    
+                    glsdk->addTelemEventValue( "playerTurn", true);
+                    glsdk->addTelemEventValue( "success", true );
+                    glsdk->saveTelemEvent( "Launch_attack" );
+
+                    glsdk->addTelemEventValue( "playerTurn", true);
+                    glsdk->addTelemEventValue( "success", true );
+                    glsdk->saveTelemEvent( "Launch_attack" );
+                    
+                    
+                    // -------------------------------------
+                    // CS - SOWO
+                    /*
+                    // ---------------
+                    // Parktown
+                    glsdk->setGameLevel( "MedusaA1School01" );
+                    glsdk->startSession();
+                    
+                    // WO 1
+                    glsdk->addTelemEventValue( "busStops", 11 );
+                    glsdk->saveTelemEvent( "GL_Scenario_Summary" );
+                    
+                    // SO 1
+                    glsdk->addTelemEventValue( "type", "residential" );
+                    glsdk->saveTelemEvent( "GL_Zone" );
+                    */
+                    //
+                    
+                    /*
+                    // ---------------
+                    // Alexandria
+                    glsdk->setGameLevel( "MedusaA1Jobs01" );
+                    glsdk->startSession();
+                     
+                    // WO 1
+                    glsdk->addTelemEventValue( "type", "industrial" );
+                    glsdk->saveTelemEvent( "GL_Zone" );
+                     
+                    // SO 1
+                    glsdk->addTelemEventValue( "type", "commercial" );
+                    glsdk->saveTelemEvent( "GL_Zone" );
+                    glsdk->addTelemEventValue( "type", "commercial" );
+                    glsdk->saveTelemEvent( "GL_Zone" );
+                    glsdk->addTelemEventValue( "jobsScore", 1000 );
+                    glsdk->saveTelemEvent( "GL_Scenario_Summary" );
+                    */
+                    
+                    /*
+                    // ---------------
+                    // Sierra
+                    glsdk->setGameLevel( "MedusaA1Power01" );
+                    glsdk->startSession();
+                    
+                    // WO 1
+                    //glsdk->addTelemEventValue( "type", "Low Power" );
+                    //glsdk->saveTelemEvent( "GL_Power_Warning" );
+                    // OR
+                    //glsdk->addTelemEventValue( "info", "Power Failure" );
+                    //glsdk->saveTelemEvent( "GL_Failure" );
+                    
+                    // SO 1
+                    glsdk->addTelemEventValue( "UGuid", "0x0f03c3ca" );
+                    //glsdk->addTelemEventValue( "UGuid", "0xbfe4d762" );
+                    //glsdk->addTelemEventValue( "UGuid", "Coal Power Plant" );
+                    //glsdk->addTelemEventValue( "UGuid", "Dirty Coal Generator" );
+                    glsdk->saveTelemEvent( "GL_Unit_Bulldoze" );
+                    */
+                    
+                    /*
+                    // ---------------
+                    // Jackson
+                    glsdk->setGameLevel( "MedusaA1Pollution01" );
+                    glsdk->startSession();
+                    
+                    // WO 1
+                    glsdk->addTelemEventValue( "type", "residential" );
+                    glsdk->saveTelemEvent( "GL_Zone" );
+                    
+                    // SO 1
+                    glsdk->addTelemEventValue( "UGuid", "0x0f03c3ca" );
+                    //glsdk->addTelemEventValue( "UGuid", "0xbfe4d762" );
+                    //glsdk->addTelemEventValue( "UGuid", "Coal Power Plant" );
+                    //glsdk->addTelemEventValue( "UGuid", "Dirty Coal Generator" );
+                    glsdk->saveTelemEvent( "GL_Unit_Bulldoze" );
+                    
+                    // NOT
+                    //glsdk->addTelemEventValue( "type", "Low Power" );
+                    //glsdk->saveTelemEvent( "GL_Power_Warning" );
+                    // OR
+                    //glsdk->addTelemEventValue( "info", "Power Failure" );
+                    //glsdk->saveTelemEvent( "GL_Failure" );
+                    */
+                     
+                    //
+                    glsdk->forceFlushTelemEvents();
+                    glsdk->endSession();
+                    step++;
                     
                     step++;
                 }
