@@ -93,6 +93,7 @@ class GlasslabSDK {
         void authStatus();
         void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial );
         void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true );
+        void getUserInfo();
         void login( const char* username, const char* password, const char* type = NULL );
         void login( const char* username, const char* password );
         void enroll( const char* courseCode );
@@ -101,8 +102,10 @@ class GlasslabSDK {
         void logout();
         void startSession();
         void endSession();
-        void saveGame(const char* gameData, string cb = "" );
-        void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
+        void saveGame( const char* gameData );
+        void getSaveGame();
+        void deleteSaveGame();
+        void saveAchievement( const char* item, const char* group, const char* subGroup );
         void sendTelemEvents();
         void forceFlushTelemEvents();
         void cancelRequest( const char* key );
@@ -147,12 +150,18 @@ class GlasslabSDK {
         void setPlayerHandle( const char* handle );
         void removePlayerHandle( const char* handle );
         void setCookie( const char* cookie );
+        void setAutoSessionManagement( bool state );
 
         // Game timer functions
         void startGameTimer();
         void stopGameTimer();
 
+        // Function to clear the database
+        void resetDatabase();
+
         // Getters
+        const char* getConnectUri();
+        int getUserId();
         const char* getCookie();
 
         // Debug logging pop

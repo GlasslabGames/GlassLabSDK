@@ -28,7 +28,7 @@ namespace nsGlasslabSDK {
         ~DataSync();
         
         // Message Queue (MSG_QUEUE) table operations
-        void addToMsgQ( string deviceId, string path, string coreCB, string clientCB, string postdata, const char* contentType );
+        void addToMsgQ( string deviceId, string path, string coreCB, string postdata, const char* contentType );
         void removeFromMsgQ( int rowId );
         void updateMessageStatus( int rowId, string status );
         int getMessageTableSize();
@@ -46,6 +46,9 @@ namespace nsGlasslabSDK {
 
         // Function flushes MSG_QUEUE, converting all stored API events into HTTP requests on Core
         void flushMsgQ();
+
+        // Function forces a database reset
+        void resetDatabase();
 
         
     private:

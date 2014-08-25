@@ -57,6 +57,10 @@ void GlasslabSDK::registerInstructor( const char* name, const char* email, const
     if( m_core != NULL ) m_core->registerInstructor( name, email, password, newsletter );
 }
 
+void GlasslabSDK::getUserInfo() {
+    if( m_core != NULL ) m_core->getUserInfo();
+}
+
 void GlasslabSDK::login( const char* username, const char* password, const char* type ) {
     if( m_core != NULL ) m_core->login( username, password, type );
 }
@@ -89,12 +93,20 @@ void GlasslabSDK::endSession() {
     if( m_core != NULL ) m_core->endSession();
 }
 
-void GlasslabSDK::saveGame(const char* gameData, string cb) {
-    if( m_core != NULL ) m_core->saveGame(gameData, cb);
+void GlasslabSDK::saveGame( const char* gameData ) {
+    if( m_core != NULL ) m_core->saveGame( gameData );
 }
 
-void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
-    if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup, cb );
+void GlasslabSDK::getSaveGame() {
+    if( m_core != NULL ) m_core->getSaveGame();
+}
+
+void GlasslabSDK::deleteSaveGame() {
+    if( m_core != NULL ) m_core->deleteSaveGame();
+}
+
+void GlasslabSDK::saveAchievement( const char* item, const char* group, const char* subGroup ) {
+    if( m_core != NULL ) m_core->saveAchievement( item, group, subGroup );
 }
 
 void GlasslabSDK::sendTelemEvents() {
@@ -179,6 +191,10 @@ void GlasslabSDK::setCookie( const char* cookie ) {
     if( m_core != NULL ) m_core->setCookie( cookie );
 }
 
+void GlasslabSDK::setAutoSessionManagement( bool state ) {
+    if( m_core != NULL ) m_core->setAutoSessionManagement( state );
+}
+
 
 void GlasslabSDK::startGameTimer() {
     if( m_core != NULL ) m_core->startGameTimer();
@@ -188,6 +204,28 @@ void GlasslabSDK::stopGameTimer() {
     if( m_core != NULL ) m_core->stopGameTimer();
 }
 
+void GlasslabSDK::resetDatabase() {
+    if( m_core != NULL ) m_core->resetDatabase();
+}
+
+
+const char* GlasslabSDK::getConnectUri() {
+    if( m_core != NULL ) {
+        return m_core->getConnectUri();
+    }
+    else {
+        return "";
+    }
+}
+
+int GlasslabSDK::getUserId() {
+    if( m_core != NULL ) {
+        return m_core->getUserId();
+    }
+    else {
+        return -1;
+    }
+}
 
 const char* GlasslabSDK::getCookie() {
     if( m_core != NULL ) {

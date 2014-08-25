@@ -49,7 +49,7 @@ extern "C"
         }
     }
     
-    const char * GlasslabSDK_ReadTopMessageString( void* inst) {
+    const char * GlasslabSDK_ReadTopMessageString( void* inst ) {
         if( inst != NULL ) {
             return static_cast<GlasslabSDK *>( inst )->readTopMessageString();
         } else {
@@ -85,6 +85,12 @@ extern "C"
     void GlasslabSDK_RegisterInstructor( void* inst, const char* name, const char* email, const char* password, bool newsletter ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->registerInstructor( name, email, password, newsletter );
+        }
+    }
+
+    void GlasslabSDK_GetUserInfo( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->getUserInfo();
         }
     }
 
@@ -133,6 +139,18 @@ extern "C"
     void GlasslabSDK_SaveGame( void* inst, const char* gameData ) {
         if( inst != NULL ) {
             static_cast<GlasslabSDK *>( inst )->saveGame( gameData );
+        }
+    }
+
+    void GlasslabSDK_GetSaveGame( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->getSaveGame();
+        }
+    }
+
+    void GlasslabSDK_DeleteSaveGame( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->deleteSaveGame();
         }
     }
 
@@ -228,6 +246,18 @@ extern "C"
         }
     }
 
+    void GlasslabSDK_SetCookie( void* inst, const char* cookie ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->setCookie( cookie );
+        }
+    }
+
+    void GlasslabSDK_SetAutoSessionManagement( void* inst, bool state ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->setAutoSessionManagement( state );
+        }
+    }
+
 
     void GlasslabSDK_StartGameTimer( void* inst ) {
         if( inst != NULL ) {
@@ -240,18 +270,36 @@ extern "C"
             static_cast<GlasslabSDK *>( inst )->stopGameTimer();
         }
     }
+
+
+    void GlasslabSDK_ResetDatabase( void* inst ) {
+        if( inst != NULL ) {
+            static_cast<GlasslabSDK *>( inst )->resetDatabase();
+        }
+    }
+
+
+    const char * GlasslabSDK_GetConnectUri( void* inst) {
+        if( inst != NULL ) {
+            return static_cast<GlasslabSDK *>( inst )->getConnectUri();
+        } else {
+            return NULL;
+        }
+    }
+
+
+    int GlasslabSDK_GetUserId( void* inst ) {
+        if( inst != NULL ) {
+            return static_cast<GlasslabSDK *>( inst )->getUserId();
+        } else {
+            return -1;
+        }
+    }
     
 
-    char* GlasslabSDK_GetCookie( void* inst ) {
+    const char* GlasslabSDK_GetCookie( void* inst ) {
         if( inst != NULL ) {
-            std::string string = static_cast<GlasslabSDK *>( inst )->getCookie();
-            size_t stringSize = strlen( string.c_str() ) + sizeof(char);
-            char* cReturn;
-            cReturn = (char*)malloc( stringSize );
-            strcpy(cReturn, string.c_str());
-            
-            //size_t size = strlen(static_cast<GlasslabSDK *>( inst )->getCookie())
-            return cReturn;// static_cast<GlasslabSDK *>( inst )->getCookie();
+            return static_cast<GlasslabSDK *>( inst )->getCookie();
         }
         else {
             return NULL;
@@ -259,16 +307,9 @@ extern "C"
     }
 
 
-    char* GlasslabSDK_PopLogQueue( void* inst ) {
+    const char* GlasslabSDK_PopLogQueue( void* inst ) {
         if( inst != NULL ) {
-            std::string string = static_cast<GlasslabSDK *>( inst )->popLogQueue();
-            size_t stringSize = strlen( string.c_str() ) + sizeof(char);
-            char* cReturn;
-            cReturn = (char*)malloc( stringSize );
-            strcpy(cReturn, string.c_str());
-            
-            //size_t size = strlen(static_cast<GlasslabSDK *>( inst )->getCookie())
-            return cReturn;// static_cast<GlasslabSDK *>( inst )->getCookie();
+            return static_cast<GlasslabSDK *>( inst )->popLogQueue();
         }
         else {
             return NULL;

@@ -26,6 +26,7 @@ package GlassLabSDK {
 	import flash.net.URLLoader;
 	
 	import flash.external.ExternalInterface;
+	import flash.system.Security;
 	
 	import flash.events.*;
 	import flash.utils.Timer;
@@ -75,6 +76,16 @@ package GlassLabSDK {
 		* ready to communicate to the server.
 		*/
 		public function glsdk_core() {
+			// Setup the ExternalInterface callback functions. These callback functions will redirect
+			// to the appropriate internal callback function using the attached "api" variable.
+			if( !isLocal() ) {
+				Security.allowDomain( "*" );
+				if( ExternalInterface.available ) {
+					ExternalInterface.addCallback( "success", eiSuccessCallback );
+					ExternalInterface.addCallback( "failure", eiFailureCallback );
+				}
+			}
+			
 			// Default id variables
 			m_serverUri = "";
 			m_clientId = "";
@@ -240,7 +251,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function connect_Fail( event:IOErrorEvent ) : void {
+		private function connect_Fail( event:Object ) : void {
 			trace( "connect_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
@@ -253,7 +264,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function connect_Done( event:Event) : void {
+		private function connect_Done( event:Object ) : void {
 			trace( "connect_Done: " + event.target.data );
 			
 			// Parse the returned JSON and retrieve the telemetry throttle parameters
@@ -314,7 +325,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function deviceUpdate_Fail( event:IOErrorEvent ) : void {
+		private function deviceUpdate_Fail( event:Object ) : void {
 			trace( "deviceUpdate_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
@@ -327,7 +338,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function deviceUpdate_Done( event:Event ) : void {
+		private function deviceUpdate_Done( event:Object ) : void {
 			trace( "deviceUpdate_Done: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_DEVICE_UPDATE, event.target.data );
@@ -359,7 +370,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function getAuthStatus_Fail( event:IOErrorEvent ) : void {
+		private function getAuthStatus_Fail( event:Object ) : void {
 			trace( "getAuthStatus_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
@@ -372,7 +383,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function getAuthStatus_Done( event:Event ) : void {
+		private function getAuthStatus_Done( event:Object ) : void {
 			trace( "getAuthStatus_Done: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_AUTH_STATUS, event.target.data );
@@ -388,7 +399,7 @@ package GlassLabSDK {
 		*/
 		public function getAuthStatus() : void {
 			// Perform the request
-			//httpRequest( new glsdk_dispatch( glsdk_const.API_GET_AUTH_STATUS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAuthStatus_Done, getAuthStatus_Fail ) );
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_AUTH_STATUS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAuthStatus_Done, getAuthStatus_Fail ) );
 		}
 		
 		
@@ -400,7 +411,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function getPlayerInfo_Fail( event:IOErrorEvent ) : void {
+		private function getPlayerInfo_Fail( event:Object ) : void {
 			trace( "getPlayerInfo_Fail: " + event.target.data );
 			
 			// Set totalTimePlayed to 0 and start the timer
@@ -417,7 +428,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function getPlayerInfo_Done( event:Event ) : void {
+		private function getPlayerInfo_Done( event:Object ) : void {
 			trace( "getPlayerInfo_Done: " + event.target.data );
 			
 			// Parse the returned JSON and retrieve the total time played
@@ -444,7 +455,7 @@ package GlassLabSDK {
 		*/
 		public function getPlayerInfo() : void {
 			// Perform the request
-			//httpRequest( new glsdk_dispatch( glsdk_const.API_GET_PLAYER_INFO + "/" + m_clientId + "/playInfo", "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_PLAYER_INFO, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getPlayerInfo_Done, getPlayerInfo_Fail ) );
 		}
 		
 
@@ -456,7 +467,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function startSession_Fail( event:IOErrorEvent ) : void {
+		private function startSession_Fail( event:Object ) : void {
 			trace( "startSession_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
@@ -471,7 +482,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function startSession_Done( event:Event ) : void {
+		private function startSession_Done( event:Object ) : void {
 			trace( "startSession_Done: " + event.target.data );
 			
 			// Parse the returned JSON and retrieve the game session Id
@@ -516,7 +527,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function endSession_Fail( event:IOErrorEvent ) : void {
+		private function endSession_Fail( event:Object ) : void {
 			trace( "endSession_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
@@ -529,7 +540,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function endSession_Done( event:Event ) : void {
+		private function endSession_Done( event:Object ) : void {
 			trace( "endSession_Done: " + event.target.data );
 
 			// Reset the game session Id
@@ -572,7 +583,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function sendTelemEvents_Fail( event:IOErrorEvent ) : void {
+		private function sendTelemEvents_Fail( event:Object ) : void {
 			trace( "sendTelemEvents_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
@@ -585,7 +596,7 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function sendTelemEvents_Done( event:Event ) : void {
+		private function sendTelemEvents_Done( event:Object ) : void {
 			trace( "sendTelemEvents_Done: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_EVENTS, event.target.data );
@@ -611,20 +622,21 @@ package GlassLabSDK {
 		*
 		* @see pushMessageQueue
 		*/
-		private function sendTotalTimePlayed_Fail( event:IOErrorEvent ) : void {
+		private function sendTotalTimePlayed_Fail( event:Object ) : void {
 			trace( "sendTotalTimePlayed_Fail: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
 		}
 		/**
-		* Success callback function for the sendTotalTimePlayed() http request. Adds an END_SESSION response
-		* to the message queue. This callback should also reset the current gameSessionId.
+		* Success callback function for the sendTotalTimePlayed() http request. Adds an POST_TOTAL_TIME_PLAYED response
+		* to the message queue.
 		*
 		* @param event A reference to the Event object sent along with the listener.
 		*
 		* @see pushMessageQueue
 		*/
-		private function sendTotalTimePlayed_Done( event:Event ) : void {
+		private function sendTotalTimePlayed_Done( event:Object ) : void {
 			trace( "sendTotalTimePlayed_Done: " + event.target.data );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_POST_TOTAL_TIME_PLAYED, event.target.data );
@@ -643,13 +655,183 @@ package GlassLabSDK {
 			postData.setTime = m_totalTimePlayed;
 			
 			// Store the dispatch message to be called later
-			//pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_TOTAL_TIME_PLAYED + "/" + m_clientId + "/totalTimePlayed", "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_TOTAL_TIME_PLAYED, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, sendTotalTimePlayed_Done, sendTotalTimePlayed_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the getAchievements() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getAchievements_Fail( event:Object ) : void {
+			trace( "sendAchievement_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the getAchievements() http request. Adds an MESSAGE_GET_ACHIEVEMENTS response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getAchievements_Done( event:Object ) : void {
+			trace( "sendAchievement_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_GET_ACHIEVEMENTS, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for sending an achievement to the server.
+		*
+		* If this request is successful, MESSAGE_GET_ACHIEVEMENTS will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function getAchievements() : void {
+			// Store the dispatch message to be called later
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_ACHIEVEMENTS, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getAchievements_Done, getAchievements_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the getSaveGame() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getSaveGame_Fail( event:Object ) : void {
+			trace( "getSaveGame_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the getSaveGame() http request. Adds an MESSAGE_GET_SAVE_GAME response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getSaveGame_Done( event:Object ) : void {
+			trace( "getSaveGame_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_GET_SAVE_GAME, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for retrieving save game data from the server.
+		*
+		* If this request is successful, MESSAGE_GET_SAVE_GAME will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function getSaveGame() : void {
+			// Store the dispatch message to be called later
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_SAVE_GAME, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getSaveGame_Done, getSaveGame_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the postSaveGame() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function postSaveGame_Fail( event:Object ) : void {
+			trace( "postSaveGame_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the postSaveGame() http request. Adds an MESSAGE_POST_SAVE_GAME response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function postSaveGame_Done( event:Object ) : void {
+			trace( "postSaveGame_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_POST_SAVE_GAME, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for retrieving save game data from the server.
+		*
+		* If this request is successful, MESSAGE_GET_SAVE_GAME will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function postSaveGame( data:Object ) : void {
+			// Store the dispatch message to be called later
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SAVE_GAME, "POST", data, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, postSaveGame_Done, postSaveGame_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the saveAchievement() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function saveAchievement_Fail( event:Object ) : void {
+			trace( "saveAchievement_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Success callback function for the saveAchievement() http request. Adds an MESSAGE_POST_ACHIEVEMENT response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function saveAchievement_Done( event:Object ) : void {
+			trace( "saveAchievement_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_POST_ACHIEVEMENT, event.target.data );
+			dispatchNext();
+		}
+		/**
+		* Helper function for saving an achievement to the server.
+		*
+		* If this request is successful, MESSAGE_POST_ACHIEVEMENT will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function saveAchievement( item:String, group:String, subGroup:String ) : void {
+			var date:Date = new Date();
+			
+			var postData : Object = new Object();
+			postData.item = item;
+			postData.group = group;
+			postData.subGroup = subGroup;
+			
+			// Store the dispatch message to be called later
+			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_ACHIEVEMENTS, "POST", postData, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, saveAchievement_Done, saveAchievement_Fail ) );
 		}
 		
 		
 		/**
 		* Function will create a new URLRequest for server communication. The data that populates
-		* the request is passed along in the glsdk_dispatch object.
+		* the request is passed along in the glsdk_dispatch object. The URLRequest will either be
+		* created with the Flash object or via ExternalInterface. If an external javascript interface
+		* is available, all requests will funnel through there and callbacks will be triggered back
+		* on the flash client.
 		*
 		* Three event listeners are attached to each request, including the success and failure
 		* callback functions, and the SECURITY_ERROR event.
@@ -660,28 +842,90 @@ package GlassLabSDK {
 		* @see onSecurityError
 		*/
 		private function httpRequest( dispatch:glsdk_dispatch ) : void {
-			// Create a new URL request object
-			var req : URLRequest = new URLRequest();
+			// Set default postdata is we need to use it
+			var dataAsJSON : String = "";
 			
-			// Set the request attributes
-			req.url = m_serverUri + dispatch.m_path;
-			req.method = dispatch.m_method;
-			req.contentType = dispatch.m_contentType;
+			// Check for the existence of an external interface
+			// If it does exist, perform requests on the javascript layer
+			if( !isLocal() && ExternalInterface.available ) {
+				// Create the request object as a blob
+				var req : Object = new Object();
+				req.key = dispatch.m_path.KEY
+				req.api = dispatch.m_path.API;
+				req.method = dispatch.m_method;
+				req.contentType = dispatch.m_contentType;
+				
+				// Parse the API path for :gameId
+				req.api = req.api.split( ":gameId" ).join( m_clientId );
+				trace( req.api );
+				
+				// Set the request data if this is a POST request
+				if( dispatch.m_method == URLRequestMethod.POST ) {
+					dataAsJSON = glsdk_json.instance().stringify( dispatch.m_postData );
+					req.data = dataAsJSON;
+				}
 			
-			// Set the request data if this is a POST request
-			if( dispatch.m_method == URLRequestMethod.POST ) {
-				var dataAsJSON : String = glsdk_json.instance().stringify( dispatch.m_postData );
-				req.data = dataAsJSON;
+				// Call the SDK service on angular
+				var result : String = ExternalInterface.call( "GlassLabSDK.request", req );
 			}
+			else {
+				// Create a new URL request object
+				var urlReq : URLRequest = new URLRequest();
+				
+				// Set the request attributes
+				urlReq.url = m_serverUri + dispatch.m_path.API;
+				urlReq.method = dispatch.m_method;
+				urlReq.contentType = dispatch.m_contentType;
+				
+				// Parse the API path for :gameId
+				urlReq.url = urlReq.url.split( ":gameId" ).join( m_clientId );
+				trace( urlReq.url );
+				
+				// Set the request data if this is a POST request
+				if( dispatch.m_method == URLRequestMethod.POST ) {
+					dataAsJSON = glsdk_json.instance().stringify( dispatch.m_postData );
+					urlReq.data = dataAsJSON;
+				}
+				
+				// Create a URL loader to load the request
+				var loader : URLLoader = new URLLoader();
+				loader.load( urlReq );
+				
+				// Add necessary loader listeners
+				loader.addEventListener( Event.COMPLETE, dispatch.m_successCallback );
+				loader.addEventListener( IOErrorEvent.IO_ERROR, dispatch.m_failureCallback );
+				loader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onSecurityError );
+			}
+		}
+		
+		/**
+		* Generic success callback function for all HTTP requests going through ExternalInterface.
+		*
+		* @param key The api key referring to the callback function to fire.
+		* @param response The server response JSON blob.
+		*/
+		private function eiSuccessCallback( key:String, response:String ) : void {
+			//writeText( "in success (" + key + ") callback: " + response );
 			
-			// Create a URL loader to load the request
-			var loader : URLLoader = new URLLoader();
-			loader.load( req );
+			var event:Object = {};
+			event.target = { data: response };
 			
-			// Add necessary loader listeners
-			loader.addEventListener( Event.COMPLETE, dispatch.m_successCallback );
-			loader.addEventListener( IOErrorEvent.IO_ERROR, dispatch.m_failureCallback );
-			loader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, onSecurityError );
+			this[ key + "_Done" ]( event );
+		}
+		
+		/**
+		* Generic failure callback function for all HTTP requests going through ExternalInterface.
+		*
+		* @param key The api key referring to the callback function to fire.
+		* @param response The server response JSON blob.
+		*/
+		private function eiFailureCallback( key:String, response:String ) : void {
+			//writeText( "in failure (" + key + ") callback: " + response );
+			
+			var event:Object = {};
+			event.target = { data: response };
+			
+			this[ key + "_Done" ]( event );
 		}
 		
 		/**
@@ -693,7 +937,7 @@ package GlassLabSDK {
 		* @see pushMessageQueue
 		*/
 		private function onSecurityError( event:SecurityErrorEvent ) : void {
-			trace( "onSecurityError: " + event.toString() );
+			writeText( "onSecurityError: " + event.toString() );
 			
 			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.toString() );
 		}
@@ -877,6 +1121,21 @@ package GlassLabSDK {
 			
 			// Clear the event values
 			clearTelemEventValues();
+		}
+		
+		
+		/**
+		* Helper function for determining which encironment this application is running in. If the
+		* environment is anything but "remote", we don't want to use ExternalInterface; we'll use
+		* Flash's URLRequest and URLLoader classes instead.
+		*/
+		private function isLocal() : Boolean {
+			if( Security.sandboxType == Security.LOCAL_TRUSTED ||
+				Security.sandboxType == Security.LOCAL_WITH_FILE ||
+				Security.sandboxType == Security.LOCAL_WITH_NETWORK ) {
+				return true;
+			}
+			return false;
 		}
 		
 		

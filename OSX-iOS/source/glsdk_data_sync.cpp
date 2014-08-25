@@ -26,22 +26,24 @@ namespace nsGlasslabSDK {
         if(dbPath) {
             m_dbName += dbPath;
         } else {
-            char cwd[1024];
+			char cwd[1024];
 #if __APPLE__
-            sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
-            m_dbName += cwd;
+#if TARGET_OS_IPHONE
+			if(getcwd(cwd, sizeof(cwd)) != NULL) {
+				m_dbName += cwd;
+			}
+#else
+			sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
+			m_dbName += cwd;
+#endif
 #endif
 #if WIN32
 			sprintf( cwd, "%s%s\\Documents", getenv( "HOMEDRIVE" ), getenv( "HOMEPATH" ) );
-            //if(getcwd(cwd, sizeof(cwd)) != NULL) {
-                m_dbName += cwd;
-            //}
-#else
-            if(getcwd(cwd, sizeof(cwd)) != NULL) {
-                m_dbName += cwd;
-            }
+            m_dbName += cwd;
 #endif
-        }
+		}
+
+
         
         m_dbName += "/glasslabsdk.db";
         
@@ -85,7 +87,7 @@ namespace nsGlasslabSDK {
             cout << "------------------------------------" << endl;
 
             // Open the database
-            m_db.open( ":memory:" );//m_dbName.c_str() );
+            m_db.open( m_dbName.c_str() );
             
             /*
             CppSQLite3Query q = m_db.execQuery("PRAGMA page_size;");
@@ -175,7 +177,7 @@ namespace nsGlasslabSDK {
 
             // Reset the tables if we need to
             if( resetTables ) {
-                cout << "Need to drop the tables in " << CONFIG_TABLE_NAME << endl;
+                cout << "Need to reset all tables." << endl;
                 dropTables();
             }
             // Or migrate the contents if we need to
@@ -199,7 +201,7 @@ namespace nsGlasslabSDK {
      *
      * Inserts a new entry into the MSG_QUEUE table.
      */
-    void DataSync::addToMsgQ( string deviceId, string path, string coreCB, string clientCB, string postdata, const char* contentType ) {
+    void DataSync::addToMsgQ( string deviceId, string path, string coreCB, string postdata, const char* contentType ) {
         if( m_messageTableSize > DB_MESSAGE_CAP ) {
             cout << "------------------------------------" << endl;
             cout << "Database has reached a message cap! No longer inserting events!" << endl;
@@ -215,7 +217,7 @@ namespace nsGlasslabSDK {
             //cout << "------------------------------------" << endl;
             s += "INSERT INTO ";
             s += MSG_QUEUE_TABLE_NAME;
-            s += " (deviceId, path, coreCB, clientCB, postdata, contentType, status) VALUES ('";
+            s += " (deviceId, path, coreCB, postdata, contentType, status) VALUES ('";
             s += deviceId;
             s += "', ";
 
@@ -237,17 +239,6 @@ namespace nsGlasslabSDK {
             else {
                 s += "'";
                 s += coreCB;
-                s += "'";
-            }
-            s += ", ";
-            
-            // Check the Client Callback key
-            if( clientCB.c_str() == NULL ) {
-                s += "''";
-            }
-            else {
-                s += "'";
-                s += clientCB;
                 s += "'";
             }
             s += ", ";
@@ -561,7 +552,7 @@ namespace nsGlasslabSDK {
                 printf("%d rows inserted\n", nRows);
                 printf("------------------------------------\n");
             }
-            // Otherwise, update an existing entry
+            // Otherwise, update an existing entry if we need to
             else {
                 printf("FOUND entry with new device Id, we can ignore\n");
             }
@@ -927,7 +918,6 @@ namespace nsGlasslabSDK {
                 - deviceId
                 - path
                 - coreCB
-                - clientCB
                 - postdata
                 - contentType
                 - status (ready, pending, failed, success)
@@ -965,6 +955,7 @@ namespace nsGlasslabSDK {
 
                             // Get the path from MSG_QUEUE
                             string apiPath = msgQuery.fieldValue( 2 );
+                            string coreCB = msgQuery.fieldValue( 3 );
                             //cout << "api path is: " << apiPath << endl;
 
                             // We only care about startsession, endsession, and sendtelemetry
@@ -980,7 +971,7 @@ namespace nsGlasslabSDK {
                             if( apiPath == API_POST_SESSION_START ||
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
                                 strstr( apiPath.c_str(), API_POST_PLAYERINFO ) ||
-                                strstr( apiPath.c_str(), API_POST_ACHIEVEMENT ) ||
+                                strstr( coreCB.c_str(), "saveAchievement_Done" ) ||
                                 ( ( apiPath == API_POST_SESSION_END || apiPath == API_POST_EVENTS ) &&
                                     gameSessionId.c_str() != NULL &&
                                     gameSessionId.length() != 0
@@ -990,10 +981,9 @@ namespace nsGlasslabSDK {
                                 //cout << "performing the GET request for: " << apiPath << endl;
 
                                 // Get the event information
-                                string coreCB = msgQuery.fieldValue( 3 );
-                                string clientCB = msgQuery.fieldValue( 4 );
-                                string postdata = msgQuery.fieldValue( 5 );
-                                const char* contentType = msgQuery.fieldValue( 6 );
+                                //string coreCB = msgQuery.fieldValue( 3 );
+                                string postdata = msgQuery.fieldValue( 4 );
+                                const char* contentType = msgQuery.fieldValue( 5 );
 
                                 // If this is a telemetry event or end session, update the postdata to include the correct gameSessionId
                                 if( apiPath == API_POST_EVENTS || apiPath == API_POST_SESSION_END ) {
@@ -1016,7 +1006,7 @@ namespace nsGlasslabSDK {
                                 //printf("Updating result: %d\n", r);
 
                                 // Perform the get request using the message information
-                                m_core->mf_httpGetRequest( apiPath, coreCB, clientCB, postdata, contentType, rowId );
+                                m_core->mf_httpGetRequest( apiPath, coreCB, postdata, contentType, rowId );
                                 requestsMade++;
                             }
                             else {
@@ -1063,6 +1053,18 @@ namespace nsGlasslabSDK {
         m_core->logMessage( "reached the end of MSG_QUEUE" );
         //displayTable( MSG_QUEUE_TABLE_NAME );
         //displayTable( SESSION_TABLE_NAME );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Function resets all tables in the database and recreates them.
+     */
+    void DataSync::resetDatabase() {
+        dropTables();
+        createTables();
     }
 
 
@@ -1117,7 +1119,6 @@ namespace nsGlasslabSDK {
                 s += "deviceId char(256), ";
                 s += "path char(256), ";
                 s += "coreCB char(256), ";
-                s += "clientCB char(256), ";
                 s += "postdata text, ";
                 s += "contentType char(256), ";
                 s += "status char(256) ";
@@ -1138,7 +1139,6 @@ namespace nsGlasslabSDK {
                 s += MSG_QUEUE_TABLE_NAME;
                 CppSQLite3Table t = m_db.getTable( s.c_str() );
                 m_messageTableSize = t.numRows();
-
             }
             
             // Create the SESSION table
@@ -1241,7 +1241,6 @@ namespace nsGlasslabSDK {
                 "deviceId char(256), "
                 "path char(256), "
                 "coreCB char(256), "
-                "clientCB char(256), "
                 "postdata text, "
                 "contentType char(256), "
                 "status char(256) "

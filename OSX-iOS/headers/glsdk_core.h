@@ -42,7 +42,6 @@ namespace nsGlasslabSDK {
         GlasslabSDK*        sdk;
         Core*               core;
         string              data;
-        ClientCallback_Func clientCB;
         void*               userData;
     } p_glSDKInfo;
 
@@ -53,7 +52,6 @@ namespace nsGlasslabSDK {
         struct evhttp_connection*   conn;
         struct evhttp_request*      req;
         string                      coreCBKey;
-        ClientCallback_Func         clientCB;
         int                         msgQRowId;
     } p_glHttpRequest;
 
@@ -76,27 +74,31 @@ namespace nsGlasslabSDK {
         
             // Primary GLGS API functions
             int connect( const char* gameId, const char* uri = NULL );
+            void getConfig( const char* uri );
             int setUserInfo( const char* json );
             void deviceUpdate();
             void authStatus();
-            void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb = "" );
-            void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true, string cb = "" );
-            void getPlayerInfo( string cb = "" );
-            void login( const char* username, const char* password, const char* type = NULL, string cb = "" );
-            void enroll( const char* courseCode, string cb = "" );
-            void unenroll( const char* courseId, string cb = "" );
-            void getCourses( string cb = "" );
-            void logout( string cb = "" );
-            void startSession( string cb = "" );
-            void endSession( string cb = "" );
-            void saveGame( const char* gameData, string cb = "" );
-            void saveAchievement( const char* item, const char* group, const char* subGroup, string cb = "" );
-            void savePlayerInfo( string cb = "" );
-            void sendTotalTimePlayed( string cb = "" );
-            void sendTelemEvents( string clientCB = "", string coreCB = "" );
+            void registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial );
+            void registerInstructor( const char* name, const char* email, const char* password, bool newsletter = true);
+            void getPlayerInfo();
+            void getUserInfo();
+            void login( const char* username, const char* password, const char* type = NULL );
+            void enroll( const char* courseCode );
+            void unenroll( const char* courseId );
+            void getCourses();
+            void logout();
+            void startSession();
+            void endSession();
+            void saveGame( const char* gameData );
+            void getSaveGame();
+            void deleteSaveGame();
+            void saveAchievement( const char* item, const char* group, const char* subGroup );
+            void savePlayerInfo();
+            void sendTotalTimePlayed();
+            void sendTelemEvents();
             void forceFlushTelemEvents();
             void attemptMessageDispatch();
-            void mf_httpGetRequest( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL, int rowId = -1 );
+            void mf_httpGetRequest( string path, string coreCB, string postdata = "", const char* contentType = NULL, int rowId = -1 );
 
             // Allow the user to cancel a request from being sent to the server, or ignore the response
             void cancelRequest( const char* requestKey );
@@ -105,10 +107,9 @@ namespace nsGlasslabSDK {
             CoreCallback_Func getCoreCallback( string key );
             bool getCoreCallbackCancelState( string key );
             void setCoreCallbackCancelState( string key, bool state );
-            ClientCallback_Func getClientCallback( string key );
 
             // SQLite message queue functions
-            void mf_addMessageToDataQueue( string path, string coreCB, string clientCB = "", string postdata = "", const char* contentType = NULL );
+            void mf_addMessageToDataQueue( string path, string coreCB, string postdata = "", const char* contentType = NULL );
             void mf_updateMessageStatusInDataQueue( int rowId, string status );
             // SQLite session table functions
             void mf_updateTotalTimePlayedInSessionTable( float totalTimePlayed );
@@ -148,6 +149,13 @@ namespace nsGlasslabSDK {
             void startGameTimer();
             void stopGameTimer();
 
+            // Session timer functions
+            void startSessionTimer();
+            void stopSessionTimer();
+
+            // Function to clear the database
+            void resetDatabase();
+
             // Setters
             void setConnectUri( const char* uri );
             void setName( const char* name );
@@ -160,8 +168,11 @@ namespace nsGlasslabSDK {
             void removePlayerHandle( const char* handle );
             void setCookie( const char* cookie );
             void setSessionId( const char* sessionId );
+            void setAutoSessionManagement( bool state );
         
             // Getters
+            const char* getConnectUri();
+            int getUserId();
             const char* getId();
             const char* getCookie();
             const char* getSessionId();
@@ -174,6 +185,9 @@ namespace nsGlasslabSDK {
 
             // Config object
             glConfig config;
+
+            // User info
+            glUserInfo userInfo;
 
             // Helper function for displaying warnings and errors
             void displayWarning( string location, string warning );
@@ -194,6 +208,9 @@ namespace nsGlasslabSDK {
 
             // State indicates if the user is connected
             bool m_connected;
+
+            // State indicates if the SDK will automatically handle sessions
+            bool m_autoSessionManagement;
 
             // General members
             string m_connectUri;
@@ -225,6 +242,10 @@ namespace nsGlasslabSDK {
             // Game timer variables used for total time played
             time_t m_gameTimerLast;
             bool m_gameTimerActive;
+
+            // Session timer variables used for auto session management
+            time_t m_sessionTimerLast;
+            bool m_sessionTimerActive;
         
             // Status members
             Const::Status m_lastStatus;
@@ -237,7 +258,6 @@ namespace nsGlasslabSDK {
             void mf_setupCallbacks();
             // Callback function maps
             map<string, coreCallbackStructure> m_coreCallbackMap;
-            map<string, ClientCallback_Func> m_clientCallbackMap;
     };
 };
 #pragma GCC visibility pop

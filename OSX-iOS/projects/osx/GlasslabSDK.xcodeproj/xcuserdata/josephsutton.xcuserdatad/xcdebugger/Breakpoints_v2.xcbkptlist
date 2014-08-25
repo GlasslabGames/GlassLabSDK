@@ -14,9 +14,7 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "903"
-            endingLineNumber = "903"
-            landmarkName = "startSession_Done( p_glSDKInfo sdkInfo )"
-            landmarkType = "7">
+            endingLineNumber = "903">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -30,7 +28,9 @@
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "1439"
-            endingLineNumber = "1439">
+            endingLineNumber = "1439"
+            landmarkName = "Core::sendTotalTimePlayed()"
+            landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

@@ -46,6 +46,7 @@ namespace nsGlasslabSDK {
         m_lastStatus    = Const::Status_Ok;
         m_userInfo      = NULL;
         m_playerInfo    = json_object();
+        m_autoSessionManagement = false;
         
         // Set JSON telemetry objects
         m_telemEvents       = json_array();
@@ -71,13 +72,25 @@ namespace nsGlasslabSDK {
         config.eventsMinSize = THROTTLE_MIN_SIZE_DEFAULT;
         config.eventsMaxSize = THROTTLE_MAX_SIZE_DEFAULT;
 
+        // Set default user info variables
+        userInfo.username = "";
+        userInfo.firstName = "";
+        userInfo.lastInitial = "";
+        userInfo.email = "";
+
         // Set the last time since telemetry was fired
         m_telemetryLastTime = time( NULL );
         // Get the game session event order to update
         m_gameSessionEventOrder = m_dataSync->getGameSessionEventOrderFromDeviceId( m_deviceId );
 
-        // The game timer is initially deactivated
-        m_gameTimerActive = false;
+        // Stop the timers, initially
+        stopGameTimer();
+        stopSessionTimer();
+
+
+        // Set the initial player handle and cookie
+        setPlayerHandle( "" );
+        setCookie( "" );
 
 
         // Attempt a connection now that the SDK is created
@@ -151,7 +164,61 @@ namespace nsGlasslabSDK {
             return NULL;
         }
     }
-    
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_CONNECT is successful.
+     *
+     * Sets the server we should be pointing at.
+     */
+    void getConnect_Done( p_glSDKInfo sdkInfo ) {
+        const char* uri = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getConnect_Done", uri );
+        sdkInfo.core->logMessage( "---------------------------" );
+        
+        // Call getConfig next
+        sdkInfo.core->getConfig( uri );
+    }
+
+    /**
+     * Function is triggered when the user first connects to the server. Called
+     * automatically when the SDK object is created. Continues only if the gameId
+     * and URI are valid strings.
+     */
+    int Core::connect( const char* gameId, const char* uri ) {
+        // If the URI was set properly, record it
+        if( ( uri != NULL ) && strcmp( uri, "" ) != 0 ) {
+            m_connectUri = uri;
+            logMessage( "connectUri set:", m_connectUri.c_str() );
+        }
+        // URI was not set properly
+        else {
+            displayError( "Core::connect()", "Valid URI was not specified when trying to connect." );
+            return 1;
+        }
+        
+        // If the gameId was set properly, record it
+        if( ( gameId != NULL ) && strcmp( gameId, "" ) != 0 ) {
+            m_gameId = gameId;
+            logMessage( "gameId set:", m_gameId.c_str() );
+        }
+        // gameId was not set properly
+        else {
+            displayError( "Core::connect()", "The gameId was not set or is invalid." );
+            return 1;
+        }
+        
+        // Make the request
+        mf_httpGetRequest( API_CONNECT, "getConnect_Done", "", "text/plain; charset=utf-8" );
+        
+        // Success
+        return 0;
+    }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -218,31 +285,17 @@ namespace nsGlasslabSDK {
     }
 
     /**
-     * Function is triggered when the user first connects to the server. Called
-     * automatically when the SDK object is created. Continues only if the gameId
-     * and URI are valid strings.
+     * Function is triggered whenever we want to get config information from the server.
      */
-    int Core::connect( const char* gameId, const char* uri ) {
+    void Core::getConfig( const char* uri ) {
         // If the URI was set properly, record it
         if( ( uri != NULL ) && strcmp( uri, "" ) != 0 ) {
             m_connectUri = uri;
-            logMessage( "connectUri set:", m_connectUri.c_str() );
+            logMessage( "connectUri set from CONFIG:", m_connectUri.c_str() );
         }
         // URI was not set properly
         else {
-            displayError( "Core::connect()", "Valid URI was not specified when trying to connect." );
-            return 1;
-        }
-        
-        // If the gameId was set properly, record it
-        if( ( gameId != NULL ) && strcmp( gameId, "" ) != 0 ) {
-            m_gameId = gameId;
-            logMessage( "gameId set:", m_gameId.c_str() );
-        }
-        // gameId was not set properly
-        else {
-            displayError( "Core::connect()", "The gameId was not set or is invalid." );
-            return 1;
+            displayError( "getConnect_Done", "Valid URI was not specified when trying to retrieve config." );
         }
 
         // Reset the connected state
@@ -251,11 +304,9 @@ namespace nsGlasslabSDK {
         // Make the request
         string url = API_GET_CONFIG;
         url += "/" + m_gameId;
-        mf_httpGetRequest( url, "getConfig_Done");
-        
-        // Success
-        return 0;
+        mf_httpGetRequest( url, "getConfig_Done" );
     }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -290,11 +341,6 @@ namespace nsGlasslabSDK {
         
         // Push Login message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run the client callback if it exists
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
@@ -310,7 +356,7 @@ namespace nsGlasslabSDK {
         data += m_gameId;
 
         // Make the request
-        mf_httpGetRequest( API_POST_DEVICE_UPDATE, "deviceUpdate_Done", "", data );
+        mf_httpGetRequest( API_POST_DEVICE_UPDATE, "deviceUpdate_Done", data );
     }
 
     //--------------------------------------
@@ -346,11 +392,6 @@ namespace nsGlasslabSDK {
         
         // Push Login message
         sdkInfo.core->pushMessageStack( returnMessage, json );
-        
-        // Run the client callback if it exists
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
 
         // Get the player info
         sdkInfo.core->getPlayerInfo();
@@ -407,11 +448,6 @@ namespace nsGlasslabSDK {
         
         // Push Login message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run the client callback if it exists
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
 
         // Call the update device Id API
         sdkInfo.core->deviceUpdate();
@@ -420,7 +456,7 @@ namespace nsGlasslabSDK {
     /**
      * Register student function passes registration information to the server for validation.
      */
-    void Core::registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial, string cb ) {
+    void Core::registerStudent( const char* username, const char* password, const char* firstName, const char* lastInitial ) {
         // Setup the data
         string data = "systemRole=student";
         data += "&username=";
@@ -433,13 +469,13 @@ namespace nsGlasslabSDK {
         data += password;
         
         // Make the request
-        mf_httpGetRequest( API_POST_REGISTER, "register_Done", cb, data );
+        mf_httpGetRequest( API_POST_REGISTER, "register_Done", data );
     }
 
     /**
      * Register teacher function passes registration information to the server for validation.
      */
-    void Core::registerInstructor( const char* name, const char* email, const char* password, bool newsletter, string cb ) {
+    void Core::registerInstructor( const char* name, const char* email, const char* password, bool newsletter ) {
         // Parse the name
         string fullName = name;
         string firstName = fullName.substr( 0, strchr( name, ' ' ) - name );
@@ -459,7 +495,7 @@ namespace nsGlasslabSDK {
         data += newsletter;
         
         // Make the request
-        mf_httpGetRequest( API_POST_REGISTER, "register_Done", cb, data );
+        mf_httpGetRequest( API_POST_REGISTER, "register_Done", data );
     }
 
 
@@ -524,24 +560,94 @@ namespace nsGlasslabSDK {
         
         // Push SavePlayerInfo message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
      * GetPlayerInfo function will grab player info as JSON from server. This info
      * contains total time played and achievement infofmration.
      */
-    void Core::getPlayerInfo( string cb ) {
+    void Core::getPlayerInfo() {
         // Set the URL
         string url = API_GET_PLAYERINFO;
         url += "/" + m_gameId + "/playInfo";
         
         // Make the request
-        mf_httpGetRequest( url, "getPlayerInfo_Done", cb );
+        mf_httpGetRequest( url, "getPlayerInfo_Done" );
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Callback function occurs when API_GET_USER_PROFILE is successful.
+     *
+     * Parses user info returned from the server.
+     */
+    void getUserInfo_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        sdkInfo.core->logMessage( "---------------------------" );
+        sdkInfo.core->logMessage( "getUserInfo_Done", json );
+        sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getUserInfo_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetUserInfo;
+
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+            
+            // Parse JSON data if there was no error
+            if( returnMessage != Const::Message_Error ) {
+
+                // The username must be valid
+                json_t* username = json_object_get( root, "username" );
+                if( username && json_is_string( username ) ) {
+                    sdkInfo.core->userInfo.username = json_string_value( username );
+                }
+
+                // The first name must be valid
+                json_t* firstName = json_object_get( root, "firstName" );
+                if( firstName && json_is_string( firstName ) ) {
+                    sdkInfo.core->userInfo.firstName = json_string_value( firstName );
+                }
+
+                // The last initial must be valid
+                json_t* lastName = json_object_get( root, "lastName" );
+                if( lastName && json_is_string( lastName ) ) {
+                    sdkInfo.core->userInfo.lastInitial = json_string_value( lastName );
+                }
+
+                // The email must be valid
+                json_t* email = json_object_get( root, "email" );
+                if( email && json_is_string( email ) ) {
+                    sdkInfo.core->userInfo.email = json_string_value( email );
+                }
+            }
+        }
+        json_decref( root );
+        
+        // Push SavePlayerInfo message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+    }
+
+    /**
+     * GetUserInfo function will grab user info as JSON from server. This info
+     * contains username, first name, last initial, etc.
+     */
+    void Core::getUserInfo() {
+        // Make the request
+        mf_httpGetRequest( API_GET_USER_PROFILE, "getUserInfo_Done" );
     }
 
     /**
@@ -617,11 +723,6 @@ namespace nsGlasslabSDK {
         
         // Push Login message
         sdkInfo.core->pushMessageStack( returnMessage, json );
-        
-        // Run the client callback if it exists
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
 
         // Call the update device Id API
         sdkInfo.core->deviceUpdate();
@@ -633,7 +734,7 @@ namespace nsGlasslabSDK {
     /**
      * Login function passes username and password strings to the server for validation.
      */
-    void Core::login( const char* username, const char* password, const char* type, string cb ) {
+    void Core::login( const char* username, const char* password, const char* type ) {
         // Allow for null types and "glasslab"
         if( type == NULL || strncmp( type, "glasslab", 8 ) ) {
             // Set the username and password in the postdata
@@ -643,7 +744,7 @@ namespace nsGlasslabSDK {
             data += password;
             
             // Make the request
-            mf_httpGetRequest( API_POST_LOGIN, "login_Done", cb, data );
+            mf_httpGetRequest( API_POST_LOGIN, "login_Done", data );
         }
         // Type is unrecognized
         else {
@@ -687,23 +788,18 @@ namespace nsGlasslabSDK {
         
         // Push Enroll message
         sdkInfo.core->pushMessageStack( returnMessage, json );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
     
     /**
      * Enroll function passes the courseCode to the server to attempt enrollment into a class.
      */
-    void Core::enroll( const char* courseCode, string cb ) {
+    void Core::enroll( const char* courseCode ) {
         // Setup the data
         string data = "courseCode=";
         data += courseCode;
         
         // Make the request
-        mf_httpGetRequest( API_POST_ENROLL, "enroll_Done", cb, data );
+        mf_httpGetRequest( API_POST_ENROLL, "enroll_Done", data );
     }
     
     /**
@@ -738,23 +834,18 @@ namespace nsGlasslabSDK {
         
         // Push UnEnroll message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
     
     /**
      * Unenroll function passes the courseId to the server to attempt unenrollment from a class.
      */
-    void Core::unenroll( const char* courseId, string cb ) {
+    void Core::unenroll( const char* courseId ) {
         // Setup the data
         string data = "courseId=";
         data += courseId;
 
         // Make the request
-        mf_httpGetRequest( API_POST_UNENROLL, "unenroll_Done", cb, data );
+        mf_httpGetRequest( API_POST_UNENROLL, "unenroll_Done", data );
     }
 
 
@@ -793,19 +884,14 @@ namespace nsGlasslabSDK {
         
         // Push GetCourses message
         sdkInfo.core->pushMessageStack( returnMessage, json );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
     
     /**
      * GetCourses function communicates with the server to get course information.
      */
-    void Core::getCourses( string cb ) {
+    void Core::getCourses() {
         // Make the request
-        mf_httpGetRequest( API_GET_COURSES, "getCourses_Done", cb );
+        mf_httpGetRequest( API_GET_COURSES, "getCourses_Done" );
     }
     
 
@@ -844,22 +930,17 @@ namespace nsGlasslabSDK {
         
         // Push Logout message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
      * Logout function communicates with the server to log the current user out.
      */
-    void Core::logout( string cb ) {
+    void Core::logout() {
         // Setup the data
         string data = " ";
 
         // Make the request
-        mf_httpGetRequest( API_POST_LOGOUT, "logout_Done", cb, data );
+        mf_httpGetRequest( API_POST_LOGOUT, "logout_Done", data );
     }
 
 
@@ -926,11 +1007,6 @@ namespace nsGlasslabSDK {
         
         // Push the StartSession message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
@@ -938,7 +1014,11 @@ namespace nsGlasslabSDK {
      * Server requires deviceId in order to proceed. CourseId and gameLevel are
      * also sent along but optional.
      */
-    void Core::startSession( string cb ) {
+    void Core::startSession() {
+        // Start the session timer
+        startSessionTimer();
+
+        // Set initial parameters to set in the API call
         string courseOut = "";
         string dataOut = "";
         
@@ -953,63 +1033,6 @@ namespace nsGlasslabSDK {
             displayError( "Core::startSession()", "The deviceId was missing in the startSession API call!" );
             return;
         }
-
-        // TODO: remove when ACTIVITY_RESULTS course dependancies is removed
-
-        // Check if the course information exists
-        if( m_userInfo == NULL ) {
-            //printf( "\n---------\n----------\t\t\tuser info is null\t\t\t\n------------\n-----------" );
-        }
-        /*json_t* courses = json_object_get( m_userInfo, "courses" );
-        if( courses && json_is_array( courses ) ) {
-            // Iterate over the courses and select each one
-            for( int i = 0; i < json_array_size( courses ); i++ ) {
-                json_t* course = json_array_get( courses, i );
-                
-                // If the course is found, grab the id
-                if( course && json_is_object( course ) ) {
-                    json_t* id = json_object_get( course, "id" );
-                    
-                    // Only check valid id's
-                    if( id ) {
-                        // Perform string conversion if necessary
-                        if( json_is_number( id ) ) {
-                            // convert int to string
-                            char tmp[32];
-                            sprintf( tmp, "%d", (int)( json_integer_value( id ) ) );
-                            courseOut = tmp;
-                        }
-                        // Append string normally to the postdata
-                        else if( json_is_string( id ) ) {
-                            courseOut = json_string_value( id );
-                        }
-                        // Invalid format
-                        else {
-                            displayWarning( "Core::startSession()", "The courseId data format is invalid. No courseId will be set." );
-                        }
-                        printf( "startSession using first courseId: %s\n", courseOut.c_str() );
-                    
-                        // Decrease the reference count, this way Jansson can release "id" resources
-                        json_decref( m_userInfo );
-                        
-                        // Found id, break loop
-                        break;
-                    }
-                    
-                    // Decrease the reference count, this way Jansson can release "course" resources
-                    json_decref( m_userInfo );
-                }
-            }
-            
-            // Decrease the reference count, this way Jansson can release "courses" resources
-            json_decref( m_userInfo );
-        }
-        
-        // Append courseId info to the postdata if it exists
-        if(courseOut.length() > 0){
-            dataOut += "&courseId=";
-            dataOut += courseOut;
-        }*/
 
         // Reset the gameSessionEventOrder in the SQLite database
         m_gameSessionEventOrder = 1;
@@ -1032,7 +1055,10 @@ namespace nsGlasslabSDK {
         dataOut += t;
 
         // Add this message to the message queue
-        mf_addMessageToDataQueue( API_POST_SESSION_START, "startSession_Done", cb, dataOut, "application/x-www-form-urlencoded" );
+        mf_addMessageToDataQueue( API_POST_SESSION_START, "startSession_Done", dataOut, "application/x-www-form-urlencoded" );
+
+        // Record an "start session" telemetry event
+        saveTelemEvent( "Game_start_session" );
     }
 
 
@@ -1076,11 +1102,6 @@ namespace nsGlasslabSDK {
 
         // Push EndSession message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
@@ -1090,9 +1111,15 @@ namespace nsGlasslabSDK {
      * stored as "$gameSessionId$", as it will be replaced later with the correct value
      * during the message queue flushing.
      */
-    void Core::endSession( string cb ) {
+    void Core::endSession() {
+        // Stop the session timer
+        stopSessionTimer();
+
+        // Record an "end session" telemetry event
+        saveTelemEvent( "Game_end_session" );
+
         // Send all events before end session
-        sendTelemEvents( cb );
+        sendTelemEvents();
 
         // Append the gameSessionId to the postdata
         string dataOut = "";
@@ -1104,7 +1131,7 @@ namespace nsGlasslabSDK {
         dataOut += t;
 
         // Add this message to the message queue
-        mf_addMessageToDataQueue( API_POST_SESSION_END, "endSession_Done", cb, dataOut, "application/x-www-form-urlencoded" );
+        mf_addMessageToDataQueue( API_POST_SESSION_END, "endSession_Done", dataOut, "application/x-www-form-urlencoded" );
     }
     
     
@@ -1134,30 +1161,117 @@ namespace nsGlasslabSDK {
         if( root && json_is_object( root ) ) {
             // First, check for errors
             if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
-                returnMessage = Const::Message_Error;
+                //returnMessage = Const::Message_Error;
             }
         }
         json_decref( root );
         
         // Push GameSave message
-        sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
+        sdkInfo.core->pushMessageStack( returnMessage, json );
     }
     
     /**
      * SaveGame function communicates with the server to save the game data.
      */
-    void Core::saveGame( const char* gameData, string cb ) {
+    void Core::saveGame( const char* gameData ) {
         //printf( "Saving Game Data - %s", gameData );
         string url = API_POST_SAVEGAME;
         url += "/" + m_gameId;
         
         // Add this message to the message queue
-        mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+        //mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
+        mf_httpGetRequest( url, "saveGame_Done", gameData, "application/json" );
+    }
+
+    /**
+     * Callback function occurs when API_GET_GAMEDATA is successful.
+     */
+    void getSaveGame_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "getSaveGame_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //printf( "\n---------------------------\n" );
+        //printf( "getSaveGame_Done: %s", json );
+        //printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_GetGameSave;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+    }
+
+    /**
+     * GetSaveGame function communicates with the server to sget the save game data for the user.
+     */
+    void Core::getSaveGame() {
+        //printf( "Saving Game Data - %s", gameData );
+        string url = API_GET_SAVEGAME;
+        url += "/" + m_gameId;
+        
+        // Add this message to the message queue
+        //mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
+        mf_httpGetRequest( url, "getSaveGame_Done" );
+    }
+
+
+    /**
+     * Callback function occurs when API_DELETE_SAVEGAME is successful.
+     */
+    void deleteSaveGame_Done( p_glSDKInfo sdkInfo ) {
+        const char* json = sdkInfo.data.c_str();
+        //sdkInfo.core->logMessage( "---------------------------" );
+        //sdkInfo.core->logMessage( "deleteSaveGame_Done", json );
+        //sdkInfo.core->logMessage( "---------------------------" );
+        printf( "\n---------------------------\n" );
+        printf( "deleteSaveGame_Done: %s", json );
+        printf( "\n---------------------------\n" );
+        
+        json_t* root;
+        json_error_t error;
+        
+        // Set the return message
+        Const::Message returnMessage = Const::Message_DeleteGameSave;
+        
+        // Parse the JSON data from the response
+        root = json_loads( json, 0, &error );
+        if( root && json_is_object( root ) ) {
+            // First, check for errors
+            if( sdkInfo.core->mf_checkForJSONErrors( root ) ) {
+                //returnMessage = Const::Message_Error;
+            }
+        }
+        json_decref( root );
+        
+        // Push GameSave message
+        sdkInfo.core->pushMessageStack( returnMessage, json );
+    }
+
+    /**
+     * DeleteSaveGame function communicates with the server to get the save game data for the user.
+     */
+    void Core::deleteSaveGame() {
+        //printf( "Deleting Game Data - %s", gameData );
+        string url = API_DELETE_SAVEGAME;
+        url += "/" + m_gameId;
+        
+        // Add this message to the message queue
+        //mf_addMessageToDataQueue( url, "deleteSaveGame_Done", cb );
+        mf_httpGetRequest( url, "deleteSaveGame_Done" );
     }
 
 
@@ -1194,11 +1308,6 @@ namespace nsGlasslabSDK {
         
         // Push GameSave message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
@@ -1207,7 +1316,7 @@ namespace nsGlasslabSDK {
      *  - group
      *  - subGroup
      */
-    void Core::saveAchievement( const char* item, const char* group, const char* subGroup, string cb ) {
+    void Core::saveAchievement( const char* item, const char* group, const char* subGroup ) {
         //printf( "Saving Game Data - %s", gameData );
         string url = API_POST_ACHIEVEMENT;
         url += "/" + m_gameId;
@@ -1223,7 +1332,7 @@ namespace nsGlasslabSDK {
         dataOut += "\"}";
         
         // Add this message to the message queue
-        mf_addMessageToDataQueue( url, "saveAchievement_Done", cb, dataOut, "application/json" );
+        mf_addMessageToDataQueue( url, "saveAchievement_Done", dataOut, "application/json" );
     }
 
 
@@ -1261,17 +1370,12 @@ namespace nsGlasslabSDK {
         
         // Push SavePlayerInfo message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
     
     /**
      * SavePlayerInfo function communicates with the server to save player info data.
      */
-    void Core::savePlayerInfo( string cb ) {
+    void Core::savePlayerInfo() {
         // Get the player info JSON as string
         char* rootJSON = json_dumps( m_playerInfo, JSON_ENCODE_ANY | JSON_INDENT(3) | JSON_SORT_KEYS );
         string jsonOut = rootJSON;
@@ -1287,7 +1391,7 @@ namespace nsGlasslabSDK {
         // Add this message to the queue
         //string url = API_POST_PLAYERINFO;
         //url += "/" + m_gameId;
-        //mf_addMessageToDataQueue( url, "savePlayerInfo_Done", cb, jsonOut.c_str(), "application/json" );
+        //mf_addMessageToDataQueue( url, "savePlayerInfo_Done", jsonOut.c_str(), "application/json" );
     }
 
 
@@ -1325,17 +1429,12 @@ namespace nsGlasslabSDK {
         
         // Push SavePlayerInfo message
         sdkInfo.core->pushMessageStack( returnMessage );
-        
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
     
     /**
      * SendTotalTimePlayed function communicates with the server to send totalTimePlayed data.
      */
-    void Core::sendTotalTimePlayed( string cb ) {
+    void Core::sendTotalTimePlayed() {
         // Append the totalTimePlayed to the postdata
         string dataOut = "";
         dataOut += "{\"setTime\":";
@@ -1348,7 +1447,7 @@ namespace nsGlasslabSDK {
         // Add this message to the queue
         string url = API_POST_TOTAL_TIME_PLAYED;
         url += "/" + m_gameId + "/totalTimePlayed";
-        mf_addMessageToDataQueue( url, "sendTotalTimePlayed_Done", cb, dataOut, "application/json" );
+        mf_addMessageToDataQueue( url, "sendTotalTimePlayed_Done", dataOut, "application/json" );
     }
 
 
@@ -1392,11 +1491,6 @@ namespace nsGlasslabSDK {
         // Since the client does nothing with Message_Event yet, we won't send this.
         // It tends to clog the queue.
         //sdkInfo.core->pushMessageStack( returnMessage );
-       
-        // Run client callback
-        if( sdkInfo.clientCB != NULL ) {
-            sdkInfo.clientCB();
-        }
     }
 
     /**
@@ -1404,7 +1498,7 @@ namespace nsGlasslabSDK {
      * for processing later. This function is generally called on update, so if no
      * events exist, it will call the callbacks normally.
      */
-    void Core::sendTelemEvents( string clientCB, string coreCB ) {
+    void Core::sendTelemEvents() {
         // Get the current total time played for updating and setting in the internal database
         float newTime = getTotalTimePlayed();
 
@@ -1412,7 +1506,7 @@ namespace nsGlasslabSDK {
         if( m_gameTimerActive ) {
             // Get the current time
             time_t currentTime = time( NULL );
-
+            
             // Measure the time between last game time and current (in seconds)
             float delta = difftime( currentTime, m_gameTimerLast );
             m_gameTimerLast = currentTime;
@@ -1427,19 +1521,6 @@ namespace nsGlasslabSDK {
         // Set the initial JSON postdata string
         string jsonOut = "";
         
-        // TODO: use config settings
-        // TODO: batch
-        
-        // Make sure the correct core callback function is set
-        string cb = "";
-        if( getCoreCallback( coreCB ) != NULL ) {
-            cb = coreCB;
-        }
-        // Use the default
-        else {
-            cb = "sendTelemEvent_Done";
-        }
-        
         // Continue with the request if there is telemetry to send
         if( json_array_size( m_telemEvents ) > 0 ) {
             // Get the telemetry JSON
@@ -1453,7 +1534,7 @@ namespace nsGlasslabSDK {
             printf( "\n---------------------------\n" );
          
             // Add this message to the queue
-            mf_addMessageToDataQueue( API_POST_EVENTS, cb, clientCB, jsonOut.c_str(), "application/json" );
+            mf_addMessageToDataQueue( API_POST_EVENTS, "sendTelemEvent_Done", jsonOut.c_str(), "application/json" );
             
             // Reset all memebers in event list
             clearTelemEventValues();
@@ -1565,35 +1646,8 @@ namespace nsGlasslabSDK {
                 // Get the cookie if it was passed along from the server
                 const char* setCookie = evhttp_find_header(req->input_headers, "set-cookie" );
                 if( setCookie ) {
-                    //printf( "+++++++ SETTING COOKIE TO: %s +++++++\n", setCookie );
                     request->core->setCookie( setCookie );
-                    //printf( "----------------------------------\n" );
-                    //printf( "set-cookie: %s\n", request->core->getCookie() );
-                    //printf( "----------------------------------\n" );
-
-                    //
-                    // Compare the cookie received here with the one stored in the internal database
-                    // What to do about mismatches?
-                    // What to assume about matches?
-                    //
-
-                    //
-                    // If there is a mismatch, that means the previous cookie is now invalid
-                    // We must assume the player is logged out (UNLESS login or register was called)
-                    // If login or register was called, we need to verify with API_GET_AUTH_STATUS
-                    //
-                
-                    // Make the request
-                    //mf_httpGetRequest( API_GET_AUTH_STATUS, "authStatus_Done", cb, data );
                 }
-     
-                // Get the contentType if it was passed along from the server
-                //const char* contentType = evhttp_find_header( req->input_headers, "content-type" );
-                //if( contentType ){
-                //    printf( "----------------------------------\n" );
-                //    printf( "content-type: %s\n", contentType );
-                //    printf( "----------------------------------\n" );
-                //}
 
                 // Mark the status of the event as success to remove it from the table
                 request->core->mf_updateMessageStatusInDataQueue( request->msgQRowId, "success" );
@@ -1610,13 +1664,8 @@ namespace nsGlasslabSDK {
                         sdkInfo.sdk = request->sdk;
                         sdkInfo.core = request->core;
                         sdkInfo.data = inbuffer;
-                        sdkInfo.clientCB = request->clientCB;
                         request->core->getCoreCallback( request->coreCBKey )( sdkInfo );
                     }
-                }
-                // Else, run the client callback
-                else if( request->clientCB != NULL ) {
-                    request->clientCB();
                 }
 
                 // Delete the info buffer
@@ -1657,13 +1706,8 @@ namespace nsGlasslabSDK {
                         sdkInfo.sdk = request->sdk;
                         sdkInfo.core = request->core;
                         sdkInfo.data = errorMessage.c_str();
-                        sdkInfo.clientCB = request->clientCB;
                         request->core->getCoreCallback( request->coreCBKey )( sdkInfo );
                     }
-                }
-                // Else, run the client callback
-                else if( request->clientCB != NULL ) {
-                    request->clientCB();
                 }
 
                 if(request) {
@@ -1684,12 +1728,12 @@ namespace nsGlasslabSDK {
      * HttpGetRequest function performs a GET/POST request to the server for
      * a single event extracted from the SQLite database.
      */
-    void Core::mf_httpGetRequest( string path, string coreCB, string clientCB, string postdata, const char* contentType, int rowId ) {
+    void Core::mf_httpGetRequest( string path, string coreCB, string postdata, const char* contentType, int rowId ) {
         // Set initial information to send to the server
         struct evhttp_uri* uri;
         int port;
         const char* host;
-        string url;
+        string url, requestMethod;
         struct evbuffer* postdata_buffer = NULL;
 
 		#ifdef _WIN32
@@ -1705,9 +1749,8 @@ namespace nsGlasslabSDK {
         // Default to port 80
         if( port == -1 ) {
             port = 80;
-        }
-        printf("connect url: %s, host: %s, port:%d\n", url.c_str(), host, port);
-		//return;
+		}
+
         // Reset the cancel state of the callback
         setCoreCallbackCancelState( coreCB, false );
 
@@ -1716,15 +1759,11 @@ namespace nsGlasslabSDK {
         httpRequest->sdk        = m_sdk;
         httpRequest->core       = this;
         httpRequest->coreCBKey  = coreCB;
-        httpRequest->clientCB   = getClientCallback( clientCB );
         httpRequest->msgQRowId  = rowId;
         // Set additional information in the HTTP request
         httpRequest->base       = event_base_new();
         httpRequest->conn       = evhttp_connection_base_new( httpRequest->base, NULL, host, port );
         httpRequest->req        = evhttp_request_new( httpGetRequest_Done, (void *)httpRequest );
-
-        // TODO: add user agent info
-        // TODO: add referer info
 
         // Only proceed if the HTTP request is valid
         if( httpRequest->req != NULL ) {
@@ -1737,18 +1776,20 @@ namespace nsGlasslabSDK {
             
             // Set the request type to GET by default
             evhttp_cmd_type requestType = EVHTTP_REQ_GET;
+            requestMethod = "GET";
+            
+            // add header if contentType set
+            if( contentType != NULL && strlen(contentType) != 0 ) {
+                evhttp_add_header( httpRequest->req->output_headers, "Content-type", contentType );
+            }
 
             // If postdata exists in this request, ensure it has the correct information
             if( postdata.length() > 0 ) {
                 postdata_buffer = evbuffer_new();
                 evbuffer_add_printf( postdata_buffer, "%s", postdata.c_str() );
 
-                // Use existing contentType
-                if( contentType != NULL && strlen(contentType) != 0 ) {
-                    evhttp_add_header( httpRequest->req->output_headers, "Content-type", contentType );
-                }
-                // Or, add default contentType
-                else {
+                // add default contentType
+                if( contentType == NULL || strlen(contentType) == 0 ) {
                     evhttp_add_header( httpRequest->req->output_headers, "Content-type", "application/x-www-form-urlencoded" );
                 }
                 
@@ -1760,8 +1801,32 @@ namespace nsGlasslabSDK {
                 // Add the postdata to the request and reset the type to POST
                 evbuffer_add_buffer( httpRequest->req->output_buffer, postdata_buffer );
                 requestType = EVHTTP_REQ_POST;
-                
+                requestMethod = "POST";
             }
+            
+            char headerUserAgent[255];
+            if(m_clientName.length() == 0) {
+                sprintf(headerUserAgent, "GlassLab SDK v%s", SDK_VERSION);
+            } else {
+                sprintf(headerUserAgent, "GlassLab SDK v%s - Client \"%s\" v%s", SDK_VERSION, m_clientName.c_str(), m_clientVersion.c_str());
+            }
+            evhttp_add_header( httpRequest->req->output_headers, "User-Agent", headerUserAgent);
+            char headerHost[255];
+            sprintf(headerHost, "%s:%d", host, port);
+            evhttp_add_header( httpRequest->req->output_headers, "Host", headerHost );
+            evhttp_add_header( httpRequest->req->output_headers, "Accept", "*/*" );
+
+            //
+            // TODO: we need to build an API-requestType map so we can elegantly pass in
+            // GET, POST, DELETE types.
+            // Remove this line when we have that.
+            //
+            if( coreCB == "deleteSaveGame_Done" ) {
+                requestType = EVHTTP_REQ_DELETE;
+                requestMethod = "DELETE";
+            }
+            
+            printf("connect url: %s, method: %s, host: %s, port:%d, path: %s, cookie: %s\n", url.c_str(), requestMethod.c_str(), host, port, path.c_str(), m_cookie.c_str());
 
             // Dispatch the request
             evhttp_connection_set_timeout( httpRequest->conn, 600 );
@@ -1798,6 +1863,11 @@ namespace nsGlasslabSDK {
      * TODO: include client callback functions
      */
     void Core::mf_setupCallbacks() {
+        coreCallbackStructure getConnect_Structure;
+        getConnect_Structure.coreCB = getConnect_Done;
+        getConnect_Structure.cancel = false;
+        m_coreCallbackMap[ "getConnect_Done" ] = getConnect_Structure;
+
         coreCallbackStructure getConfig_Structure;
         getConfig_Structure.coreCB = getConfig_Done;
         getConfig_Structure.cancel = false;
@@ -1822,6 +1892,11 @@ namespace nsGlasslabSDK {
         getPlayerInfo_Structure.coreCB = getPlayerInfo_Done;
         getPlayerInfo_Structure.cancel = false;
         m_coreCallbackMap[ "getPlayerInfo_Done" ] = getPlayerInfo_Structure;
+
+        coreCallbackStructure getUserInfo_Structure;
+        getUserInfo_Structure.coreCB = getUserInfo_Done;
+        getUserInfo_Structure.cancel = false;
+        m_coreCallbackMap[ "getUserInfo_Done" ] = getUserInfo_Structure;
 
         coreCallbackStructure login_Structure;
         login_Structure.coreCB = login_Done;
@@ -1862,6 +1937,16 @@ namespace nsGlasslabSDK {
         saveGame_Structure.coreCB = saveGame_Done;
         saveGame_Structure.cancel = false;
         m_coreCallbackMap[ "saveGame_Done" ] = saveGame_Structure;
+
+        coreCallbackStructure getSaveGame_Structure;
+        getSaveGame_Structure.coreCB = getSaveGame_Done;
+        getSaveGame_Structure.cancel = false;
+        m_coreCallbackMap[ "getSaveGame_Done" ] = getSaveGame_Structure;
+
+        coreCallbackStructure deleteSaveGame_Structure;
+        deleteSaveGame_Structure.coreCB = deleteSaveGame_Done;
+        deleteSaveGame_Structure.cancel = false;
+        m_coreCallbackMap[ "deleteSaveGame_Done" ] = deleteSaveGame_Structure;
 
         coreCallbackStructure saveAchievement_Structure;
         saveAchievement_Structure.coreCB = saveAchievement_Done;
@@ -1920,22 +2005,6 @@ namespace nsGlasslabSDK {
         }
     }
 
-    /**
-     * Function returns a Client Callback function from the map using the key parameter.
-     */
-    ClientCallback_Func Core::getClientCallback( string key ) {
-        
-        // Callback function does not exist
-        if( m_clientCallbackMap.find( key ) == m_clientCallbackMap.end() ) {
-            return NULL;
-        }
-        // Callback function exists
-        else {
-            return m_clientCallbackMap[ key ];
-        }
-        
-    }
-
 
     //--------------------------------------
     //--------------------------------------
@@ -1943,10 +2012,10 @@ namespace nsGlasslabSDK {
     /**
      * Function adds a new message to the SQLite message queue.
      */
-    void Core::mf_addMessageToDataQueue( string path, string coreCB, string clientCB, string postdata, const char* contentType ) {
+    void Core::mf_addMessageToDataQueue( string path, string coreCB, string postdata, const char* contentType ) {
         // Only proceed if the data sync object exists
         if( m_dataSync != NULL ) {
-            m_dataSync->addToMsgQ( m_deviceId, path, coreCB, clientCB, postdata, contentType );
+            m_dataSync->addToMsgQ( m_deviceId, path, coreCB, postdata, contentType );
         }
         else {
             displayError( "Core::mf_addMessageToDataQueue()", "Tried to add a message to MSG_QUEUE but the sync object was NULL!" );
@@ -2036,8 +2105,23 @@ namespace nsGlasslabSDK {
         // Create the JSON event object to populate
         json_t* event = json_object();
         if( event ) {
-            // Set default information
+            // Time this event occurred
             time_t t = time(NULL);
+
+            // Increment the session timer if it is active
+            if( m_autoSessionManagement && m_sessionTimerActive ) {
+                // Measure the time between last session time and current (in seconds)
+                float delta = difftime( t, m_sessionTimerLast );
+                m_sessionTimerLast = t;
+
+                // If the time since last event is greater than the SESSION_TIMEOUT, start a new session
+                if( delta >= SESSION_TIMEOUT ) {
+                    endSession();
+                    startSession();
+                }
+            }
+
+            // Set default information
             json_object_set_new( event, "clientTimeStamp", json_integer( (int)t ) );
             json_object_set_new( event, "eventName", json_string( name ) );
             json_object_set_new( event, "gameId",  json_string( m_gameId.c_str() ) );
@@ -2178,6 +2262,42 @@ namespace nsGlasslabSDK {
     //--------------------------------------
     //--------------------------------------
     /**
+     * Session timer function for starting. This function also resets the timer to be current.
+     */
+    void Core::startSessionTimer() {
+        // Only reset the last time if we were previously inactive
+        if( !m_sessionTimerActive ) {
+            m_sessionTimerActive = true;
+            m_sessionTimerLast = time( NULL );
+        }
+    }
+
+    /**
+     * Session timer function for stopping.
+     */
+    void Core::stopSessionTimer() {
+        m_sessionTimerActive = false;
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
+     * Function will reset the internal database containing all CONFIG, SESSION,
+     * and MESSAGE information.
+     */
+    void Core::resetDatabase() {
+        if( m_dataSync != NULL ) {
+            m_dataSync->resetDatabase();
+        }
+    }
+
+
+    //--------------------------------------
+    //--------------------------------------
+    //--------------------------------------
+    /**
      * Setters.
      */
     void Core::setConnectUri( const char* uri ) {
@@ -2209,7 +2329,7 @@ namespace nsGlasslabSDK {
     }
 
     void Core::setPlayerHandle( const char* handle ) {
-        logMessage( "player handle to set:", handle );
+        printf( "player handle to set: %s\n" , handle );
 
         m_playerHandle = handle;
 
@@ -2221,7 +2341,7 @@ namespace nsGlasslabSDK {
 
         // Update the database with this information
         if( m_dataSync != NULL ) {
-            logMessage( "setting new device Id using player handle:", newDeviceId );
+            printf( "setting new device Id using player handle: %s", newDeviceId );
             m_dataSync->updateSessionTableWithPlayerHandle( newDeviceId );
 
             // Get the cookie stored for this device Id
@@ -2281,6 +2401,10 @@ namespace nsGlasslabSDK {
         }
     }
 
+    void Core::setAutoSessionManagement( bool state ) {
+        m_autoSessionManagement = state;
+    }
+
 
     //--------------------------------------
     //--------------------------------------
@@ -2288,6 +2412,14 @@ namespace nsGlasslabSDK {
     /**
      * Getters.
      */
+    const char* Core::getConnectUri() {
+        return m_connectUri.c_str();
+    }
+
+    int Core::getUserId() {
+        return m_userId;
+    }
+
     const char* Core::getId() {
         return m_gameId.c_str();
     }
