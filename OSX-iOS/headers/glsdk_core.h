@@ -43,6 +43,7 @@ namespace nsGlasslabSDK {
         Core*               core;
         string              data;
         void*               userData;
+        bool                success;
     } p_glSDKInfo;
 
     typedef struct _glHttpRequest {
