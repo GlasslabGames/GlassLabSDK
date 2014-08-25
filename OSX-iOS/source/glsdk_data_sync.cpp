@@ -23,7 +23,7 @@ namespace nsGlasslabSDK {
         m_core = core;
         
         m_dbName = "";
-        if(dbPath) {
+        if( dbPath ) {
             m_dbName += dbPath;
         } else {
 			char cwd[1024];
@@ -45,7 +45,10 @@ namespace nsGlasslabSDK {
 
 
         
-        m_dbName += "/glasslabsdk.db";
+        // If the database path exists, append the glasslabsdk.db, unless it is ":memory:"
+        if( !strstr( dbPath, ":memory:" ) ) {
+            m_dbName += "/glasslabsdk.db";
+        }
         
         m_core->logMessage( "Database file:", m_dbName.c_str() );
         //cout << "Database file: " << result << endl;

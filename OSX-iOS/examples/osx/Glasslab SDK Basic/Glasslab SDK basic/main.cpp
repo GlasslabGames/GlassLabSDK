@@ -36,7 +36,7 @@ int main( int argc, const char * argv[] )
     //char host[] = "http://54.193.118.96";
     //char host[] = "http://192.168.1.101:8001";
     
-    char host[] = "http://127.0.0.1:8001";
+    char host[] = "http://stage.playfully.org";
     //char host[] = "http://54.183.156.129";
     char gameId[] = "AA-1";
     
@@ -45,9 +45,9 @@ int main( int argc, const char * argv[] )
     // enroll requests
     //char username[] = "ben";
     //char password[] = "glasslab";
-    char username[] = "test2";
-    char password[] = "test";
-    char courseCode[] = "83RLM";
+    char username[] = "annabellek";
+    char password[] = "glasslab";
+    char courseCode[] = "YW8XD";
     
     // The device Id is a way to uniquely identify a user with sessions and
     // associated events. It is used to distinguish users using the same device.
@@ -196,11 +196,17 @@ int main( int argc, const char * argv[] )
                         glsdk->addTelemEventValue( "float key", i * 1.23 );
                         glsdk->saveTelemEvent( "GL_Scenario_Score" );
                         
-                        glsdk->saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
+                        //glsdk->saveAchievement( "Bot Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
                         glsdk->saveAchievement( "Evidence Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
-                        glsdk->saveAchievement( "Bot Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "a" );
-                        glsdk->saveAchievement( "Bold", "21st.Century.Skills", "a" );
+                        // NOT USED: glsdk->saveAchievement( "Core Cadet", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
+                        //glsdk->saveAchievement( "Bot Defender", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
+                        glsdk->saveAchievement( "Core Champion", "CCSS.ELA-Literacy.WHST.6-8.1", "b" );
+                        
+                        //glsdk->saveAchievement( "Deliberate", "21st.Century.Skills", "a" );
+                        //glsdk->saveAchievement( "Bold", "21st.Century.Skills", "a" );
                         glsdk->saveAchievement( "Persistent", "21st.Century.Skills", "a" );
+                        //glsdk->saveAchievement( "Curious", "21st.Century.Skills", "b" );
+                        // NOT USED: glsdk->saveAchievement( "Empathetic", "21st.Century.Skills", "b" );
                         
                         // Sleep a short duration between telemetry events and achievements
                         //usleep( telemEventLoopDelay );

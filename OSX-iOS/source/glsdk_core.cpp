@@ -179,9 +179,14 @@ namespace nsGlasslabSDK {
         sdkInfo.core->logMessage( "---------------------------" );
         sdkInfo.core->logMessage( "getConnect_Done", uri );
         sdkInfo.core->logMessage( "---------------------------" );
-        
+
         // Call getConfig next
-        sdkInfo.core->getConfig( uri );
+        if( sdkInfo.success ) {
+            sdkInfo.core->getConfig( uri );
+        }
+        else {
+            sdkInfo.core->getConfig( "" );
+        }
     }
 
     /**
@@ -1664,6 +1669,7 @@ namespace nsGlasslabSDK {
                         sdkInfo.sdk = request->sdk;
                         sdkInfo.core = request->core;
                         sdkInfo.data = inbuffer;
+                        sdkInfo.success = true;
                         request->core->getCoreCallback( request->coreCBKey )( sdkInfo );
                     }
                 }
@@ -1706,6 +1712,7 @@ namespace nsGlasslabSDK {
                         sdkInfo.sdk = request->sdk;
                         sdkInfo.core = request->core;
                         sdkInfo.data = errorMessage.c_str();
+                        sdkInfo.success = false;
                         request->core->getCoreCallback( request->coreCBKey )( sdkInfo );
                     }
                 }
