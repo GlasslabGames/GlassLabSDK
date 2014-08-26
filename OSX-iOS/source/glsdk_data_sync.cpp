@@ -40,7 +40,7 @@ namespace nsGlasslabSDK {
         }
         
         // If the database path exists, append the glasslabsdk.db, unless it is ":memory:"
-        if( !strstr( dbPath, ":memory:" ) ) {
+        if( !dbPath ) {
             m_dbName += "/glasslabsdk.db";
         }
         

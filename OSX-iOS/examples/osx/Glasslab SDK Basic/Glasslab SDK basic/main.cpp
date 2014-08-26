@@ -133,6 +133,17 @@ int main( int argc, const char * argv[] )
             } break;
                 
             //
+            // Once we're logged in we can get user information. The return for this will
+            // include the user Id, username, first name, last initial, type, and role. A
+            // successful user info retrieval will trigger a "Message_GetUserInfo" message,
+            // otherwise "Message_Error".
+            //
+            case nsGlasslabSDK::Const::Message_GetUserInfo : {
+                // Print the user info returned
+                printf( "** Get User Info: %s", resString.c_str() );
+            } break;
+                
+            //
             // Enrollment requires a course code in string form. A course code is a
             // 5-character string containing letters and numbers. A successful enrollment
             // will trigger a "Message_Enroll" message, otherwise "Message_Error".
