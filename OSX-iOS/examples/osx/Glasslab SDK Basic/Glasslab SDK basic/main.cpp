@@ -89,7 +89,7 @@ int main( int argc, const char * argv[] )
         // A response object contains the message, denoted by an enum, and
         // the response data as a JSON string.
         resCode   = glsdk->readTopMessageCode();
-        //resString = glsdk->readTopMessageString();
+        resString = glsdk->readTopMessageString() || "";
         
         // Check the message type
         switch( resCode ) {
