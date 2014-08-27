@@ -497,18 +497,16 @@
 				HEADER_SEARCH_PATHS = "../../deps/include/**";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../../deps/libevent/osx/lib\\\\\\\"",
-					"\\\\\\\"$(SYSTEM_APPS_DIR)/Unity/Unity.app/Contents/Frameworks/MonoEmbedRuntime/osx\\\\\\\"",
-					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/libevent/osx_32,
-					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/dependencies/lib,
-					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/lib,
+					../../deps/lib,
+					"\"$(SRCROOT)/../../deps/lib\"",
 				);
 				MACH_O_TYPE = staticlib;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = GlasslabSDK_i386;
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
-				VALID_ARCHS = i386;
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Debug;
 		};
@@ -521,18 +519,16 @@
 				HEADER_SEARCH_PATHS = "../../deps/include/**";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../../deps/libevent/osx/lib\\\\\\\"",
-					"\\\\\\\"$(SYSTEM_APPS_DIR)/Unity/Unity.app/Contents/Frameworks/MonoEmbedRuntime/osx\\\\\\\"",
-					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/libevent/osx_32,
-					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/dependencies/lib,
-					/data/projects/jstty_github/GlassLab/PlatformSDK/deps/lib,
+					../../deps/lib,
+					"\"$(SRCROOT)/../../deps/lib\"",
 				);
 				MACH_O_TYPE = staticlib;
+				ONLY_ACTIVE_ARCH = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = GlasslabSDK_i386;
 				SDKROOT = macosx;
 				SUPPORTED_PLATFORMS = macosx;
-				VALID_ARCHS = i386;
+				VALID_ARCHS = "i386 x86_64";
 			};
 			name = Release;
 		};
