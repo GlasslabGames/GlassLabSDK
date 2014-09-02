@@ -218,7 +218,7 @@ namespace nsGlasslabSDK {
         }
         
         // Make the request
-        mf_httpGetRequest( API_CONNECT, "getConnect_Done", "", "text/plain; charset=utf-8" );
+        mf_httpGetRequest( API_CONNECT, "GET", "getConnect_Done", "", "text/plain; charset=utf-8" );
         
         // Success
         return 0;
@@ -307,9 +307,7 @@ namespace nsGlasslabSDK {
         setConnectedState( false );
         
         // Make the request
-        string url = API_GET_CONFIG;
-        url += "/" + m_gameId;
-        mf_httpGetRequest( url, "getConfig_Done" );
+        mf_httpGetRequest( API_GET_CONFIG, "GET", "getConfig_Done" );
     }
 
 
@@ -361,7 +359,7 @@ namespace nsGlasslabSDK {
         data += m_gameId;
 
         // Make the request
-        mf_httpGetRequest( API_POST_DEVICE_UPDATE, "deviceUpdate_Done", data );
+        mf_httpGetRequest( API_POST_DEVICE_UPDATE, "POST", "deviceUpdate_Done", data );
     }
 
     //--------------------------------------
@@ -408,7 +406,7 @@ namespace nsGlasslabSDK {
      */
     void Core::authStatus() {
         // Make the request
-        mf_httpGetRequest( API_GET_AUTH_STATUS, "authStatus_Done", "" );
+        mf_httpGetRequest( API_GET_AUTH_STATUS, "GET", "authStatus_Done", "" );
     }
 
 
@@ -474,7 +472,7 @@ namespace nsGlasslabSDK {
         data += password;
         
         // Make the request
-        mf_httpGetRequest( API_POST_REGISTER, "register_Done", data );
+        mf_httpGetRequest( API_POST_REGISTER, "POST", "register_Done", data );
     }
 
     /**
@@ -500,7 +498,7 @@ namespace nsGlasslabSDK {
         data += newsletter;
         
         // Make the request
-        mf_httpGetRequest( API_POST_REGISTER, "register_Done", data );
+        mf_httpGetRequest( API_POST_REGISTER, "POST", "register_Done", data );
     }
 
 
@@ -572,12 +570,8 @@ namespace nsGlasslabSDK {
      * contains total time played and achievement infofmration.
      */
     void Core::getPlayerInfo() {
-        // Set the URL
-        string url = API_GET_PLAYERINFO;
-        url += "/" + m_gameId + "/playInfo";
-        
         // Make the request
-        mf_httpGetRequest( url, "getPlayerInfo_Done" );
+        mf_httpGetRequest( API_GET_PLAYERINFO, "GET", "getPlayerInfo_Done" );
     }
 
 
@@ -652,7 +646,7 @@ namespace nsGlasslabSDK {
      */
     void Core::getUserInfo() {
         // Make the request
-        mf_httpGetRequest( API_GET_USER_PROFILE, "getUserInfo_Done" );
+        mf_httpGetRequest( API_GET_USER_PROFILE, "GET", "getUserInfo_Done" );
     }
 
     /**
@@ -749,7 +743,7 @@ namespace nsGlasslabSDK {
             data += password;
             
             // Make the request
-            mf_httpGetRequest( API_POST_LOGIN, "login_Done", data );
+            mf_httpGetRequest( API_POST_LOGIN, "POST", "login_Done", data );
         }
         // Type is unrecognized
         else {
@@ -804,7 +798,7 @@ namespace nsGlasslabSDK {
         data += courseCode;
         
         // Make the request
-        mf_httpGetRequest( API_POST_ENROLL, "enroll_Done", data );
+        mf_httpGetRequest( API_POST_ENROLL, "POST", "enroll_Done", data );
     }
     
     /**
@@ -850,7 +844,7 @@ namespace nsGlasslabSDK {
         data += courseId;
 
         // Make the request
-        mf_httpGetRequest( API_POST_UNENROLL, "unenroll_Done", data );
+        mf_httpGetRequest( API_POST_UNENROLL, "POST", "unenroll_Done", data );
     }
 
 
@@ -896,7 +890,7 @@ namespace nsGlasslabSDK {
      */
     void Core::getCourses() {
         // Make the request
-        mf_httpGetRequest( API_GET_COURSES, "getCourses_Done" );
+        mf_httpGetRequest( API_GET_COURSES, "GET", "getCourses_Done" );
     }
     
 
@@ -945,7 +939,7 @@ namespace nsGlasslabSDK {
         string data = " ";
 
         // Make the request
-        mf_httpGetRequest( API_POST_LOGOUT, "logout_Done", data );
+        mf_httpGetRequest( API_POST_LOGOUT, "POST", "logout_Done", data );
     }
 
 
@@ -1060,7 +1054,7 @@ namespace nsGlasslabSDK {
         dataOut += t;
 
         // Add this message to the message queue
-        mf_addMessageToDataQueue( API_POST_SESSION_START, "startSession_Done", dataOut, "application/x-www-form-urlencoded" );
+        mf_addMessageToDataQueue( API_POST_SESSION_START, "POST", "startSession_Done", dataOut, "application/x-www-form-urlencoded" );
 
         // Record an "start session" telemetry event
         saveTelemEvent( "Game_start_session" );
@@ -1136,7 +1130,7 @@ namespace nsGlasslabSDK {
         dataOut += t;
 
         // Add this message to the message queue
-        mf_addMessageToDataQueue( API_POST_SESSION_END, "endSession_Done", dataOut, "application/x-www-form-urlencoded" );
+        mf_addMessageToDataQueue( API_POST_SESSION_END, "POST", "endSession_Done", dataOut, "application/x-www-form-urlencoded" );
     }
     
     
@@ -1179,13 +1173,9 @@ namespace nsGlasslabSDK {
      * SaveGame function communicates with the server to save the game data.
      */
     void Core::saveGame( const char* gameData ) {
-        //printf( "Saving Game Data - %s", gameData );
-        string url = API_POST_SAVEGAME;
-        url += "/" + m_gameId;
-        
         // Add this message to the message queue
         //mf_addMessageToDataQueue( url, "saveGame_Done", cb, gameData, "application/json" );
-        mf_httpGetRequest( url, "saveGame_Done", gameData, "application/json" );
+        mf_httpGetRequest( API_POST_SAVEGAME, "POST", "saveGame_Done", gameData, "application/json" );
     }
 
     /**
@@ -1224,13 +1214,9 @@ namespace nsGlasslabSDK {
      * GetSaveGame function communicates with the server to sget the save game data for the user.
      */
     void Core::getSaveGame() {
-        //printf( "Saving Game Data - %s", gameData );
-        string url = API_GET_SAVEGAME;
-        url += "/" + m_gameId;
-        
         // Add this message to the message queue
         //mf_addMessageToDataQueue( url, "getSaveGame_Done", cb );
-        mf_httpGetRequest( url, "getSaveGame_Done" );
+        mf_httpGetRequest( API_GET_SAVEGAME, "GET", "getSaveGame_Done" );
     }
 
 
@@ -1270,13 +1256,9 @@ namespace nsGlasslabSDK {
      * DeleteSaveGame function communicates with the server to get the save game data for the user.
      */
     void Core::deleteSaveGame() {
-        //printf( "Deleting Game Data - %s", gameData );
-        string url = API_DELETE_SAVEGAME;
-        url += "/" + m_gameId;
-        
         // Add this message to the message queue
         //mf_addMessageToDataQueue( url, "deleteSaveGame_Done", cb );
-        mf_httpGetRequest( url, "deleteSaveGame_Done" );
+        mf_httpGetRequest( API_DELETE_SAVEGAME, "DELETE", "deleteSaveGame_Done" );
     }
 
 
@@ -1322,11 +1304,6 @@ namespace nsGlasslabSDK {
      *  - subGroup
      */
     void Core::saveAchievement( const char* item, const char* group, const char* subGroup ) {
-        //printf( "Saving Game Data - %s", gameData );
-        string url = API_POST_ACHIEVEMENT;
-        url += "/" + m_gameId;
-        url += "/achievement";
-
         // Append the parameter information to the postdata
         string dataOut = "{\"item\":\"";
         dataOut += item;
@@ -1337,7 +1314,7 @@ namespace nsGlasslabSDK {
         dataOut += "\"}";
         
         // Add this message to the message queue
-        mf_addMessageToDataQueue( url, "saveAchievement_Done", dataOut, "application/json" );
+        mf_addMessageToDataQueue( API_POST_ACHIEVEMENT, "POST", "saveAchievement_Done", dataOut, "application/json" );
     }
 
 
@@ -1394,9 +1371,7 @@ namespace nsGlasslabSDK {
         }
 
         // Add this message to the queue
-        //string url = API_POST_PLAYERINFO;
-        //url += "/" + m_gameId;
-        //mf_addMessageToDataQueue( url, "savePlayerInfo_Done", jsonOut.c_str(), "application/json" );
+        //mf_addMessageToDataQueue( API_POST_PLAYERINFO, "POST", "savePlayerInfo_Done", jsonOut.c_str(), "application/json" );
     }
 
 
@@ -1450,9 +1425,7 @@ namespace nsGlasslabSDK {
         dataOut += "}";
 
         // Add this message to the queue
-        string url = API_POST_TOTAL_TIME_PLAYED;
-        url += "/" + m_gameId + "/totalTimePlayed";
-        mf_addMessageToDataQueue( url, "sendTotalTimePlayed_Done", dataOut, "application/json" );
+        mf_addMessageToDataQueue( API_POST_TOTAL_TIME_PLAYED, "POST", "sendTotalTimePlayed_Done", dataOut, "application/json" );
     }
 
 
@@ -1539,7 +1512,7 @@ namespace nsGlasslabSDK {
             printf( "\n---------------------------\n" );
          
             // Add this message to the queue
-            mf_addMessageToDataQueue( API_POST_EVENTS, "sendTelemEvent_Done", jsonOut.c_str(), "application/json" );
+            mf_addMessageToDataQueue( API_POST_EVENTS, "POST", "sendTelemEvent_Done", jsonOut.c_str(), "application/json" );
             
             // Reset all memebers in event list
             clearTelemEventValues();
@@ -1735,7 +1708,7 @@ namespace nsGlasslabSDK {
      * HttpGetRequest function performs a GET/POST request to the server for
      * a single event extracted from the SQLite database.
      */
-    void Core::mf_httpGetRequest( string path, string coreCB, string postdata, const char* contentType, int rowId ) {
+    void Core::mf_httpGetRequest( string path, string requestType, string coreCB, string postdata, const char* contentType, int rowId ) {
         // Set initial information to send to the server
         struct evhttp_uri* uri;
         int port;
@@ -1758,6 +1731,15 @@ namespace nsGlasslabSDK {
             port = 80;
 		}
 
+        //req.api = req.api.split( ":gameId" ).join( m_clientId );
+        // Update the path to remove all ":gameId" occurrences, replacing them with the actual gameId
+        string gameIdTag = ":gameId";
+        string::size_type n = 0;
+        while( ( n = path.find( gameIdTag, n ) ) != string::npos ) {
+            path.replace( n, gameIdTag.size(), m_gameId );
+            n += m_gameId.size();
+        }
+
         // Reset the cancel state of the callback
         setCoreCallbackCancelState( coreCB, false );
 
@@ -1778,11 +1760,8 @@ namespace nsGlasslabSDK {
             if( m_cookie != "" ) {
                 evhttp_add_header( httpRequest->req->output_headers, "cookie", m_cookie.c_str() );
             }
-            //evhttp_add_header(req->output_headers, "Host", "localhost");
-            //evhttp_add_header(req->output_headers, "Connection", "close");
             
             // Set the request type to GET by default
-            evhttp_cmd_type requestType = EVHTTP_REQ_GET;
             requestMethod = "GET";
             
             // add header if contentType set
@@ -1807,10 +1786,10 @@ namespace nsGlasslabSDK {
                 
                 // Add the postdata to the request and reset the type to POST
                 evbuffer_add_buffer( httpRequest->req->output_buffer, postdata_buffer );
-                requestType = EVHTTP_REQ_POST;
                 requestMethod = "POST";
             }
             
+            // Setup the user agent and host
             char headerUserAgent[255];
             if(m_clientName.length() == 0) {
                 sprintf(headerUserAgent, "GlassLab SDK v%s", SDK_VERSION);
@@ -1823,23 +1802,30 @@ namespace nsGlasslabSDK {
             evhttp_add_header( httpRequest->req->output_headers, "Host", headerHost );
             evhttp_add_header( httpRequest->req->output_headers, "Accept", "*/*" );
 
-            //
-            // TODO: we need to build an API-requestType map so we can elegantly pass in
-            // GET, POST, DELETE types.
-            // Remove this line when we have that.
-            //
-            if( coreCB == "deleteSaveGame_Done" ) {
-                requestType = EVHTTP_REQ_DELETE;
-                requestMethod = "DELETE";
+
+            // Update the request type based on the parameter, if it exists
+            if( requestType.c_str() != NULL ) {
+                requestMethod = requestType;
+            }
+
+            // Get the correct evhttp_cmd_type
+            evhttp_cmd_type requestCmd = EVHTTP_REQ_GET;
+            if( strstr( requestMethod.c_str(), "POST" ) ) {
+                requestCmd = EVHTTP_REQ_POST;
+            }
+            else if( strstr( requestMethod.c_str(), "DELETE" ) ) {
+                requestCmd = EVHTTP_REQ_DELETE;
             }
             
+            // Print the results
             printf("connect url: %s, method: %s, host: %s, port:%d, path: %s, cookie: %s\n", url.c_str(), requestMethod.c_str(), host, port, path.c_str(), m_cookie.c_str());
 
             // Dispatch the request
             evhttp_connection_set_timeout( httpRequest->conn, 600 );
-            evhttp_make_request( httpRequest->conn, httpRequest->req, requestType, path.c_str() );
+            evhttp_make_request( httpRequest->conn, httpRequest->req, requestCmd, path.c_str() );
             event_base_dispatch( httpRequest->base );
             
+            // Free the connection
             evhttp_connection_free(httpRequest->conn);
             event_base_free(httpRequest->base);
         }
@@ -2019,10 +2005,10 @@ namespace nsGlasslabSDK {
     /**
      * Function adds a new message to the SQLite message queue.
      */
-    void Core::mf_addMessageToDataQueue( string path, string coreCB, string postdata, const char* contentType ) {
+    void Core::mf_addMessageToDataQueue( string path, string requestType, string coreCB, string postdata, const char* contentType ) {
         // Only proceed if the data sync object exists
         if( m_dataSync != NULL ) {
-            m_dataSync->addToMsgQ( m_deviceId, path, coreCB, postdata, contentType );
+            m_dataSync->addToMsgQ( m_deviceId, path, requestType, coreCB, postdata, contentType );
         }
         else {
             displayError( "Core::mf_addMessageToDataQueue()", "Tried to add a message to MSG_QUEUE but the sync object was NULL!" );

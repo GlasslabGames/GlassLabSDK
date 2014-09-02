@@ -99,7 +99,7 @@ namespace nsGlasslabSDK {
             void sendTelemEvents();
             void forceFlushTelemEvents();
             void attemptMessageDispatch();
-            void mf_httpGetRequest( string path, string coreCB, string postdata = "", const char* contentType = NULL, int rowId = -1 );
+            void mf_httpGetRequest( string path, string requestType, string coreCB, string postdata = "", const char* contentType = NULL, int rowId = -1 );
 
             // Allow the user to cancel a request from being sent to the server, or ignore the response
             void cancelRequest( const char* requestKey );
@@ -110,7 +110,7 @@ namespace nsGlasslabSDK {
             void setCoreCallbackCancelState( string key, bool state );
 
             // SQLite message queue functions
-            void mf_addMessageToDataQueue( string path, string coreCB, string postdata = "", const char* contentType = NULL );
+            void mf_addMessageToDataQueue( string path, string requestType, string coreCB, string postdata = "", const char* contentType = NULL );
             void mf_updateMessageStatusInDataQueue( int rowId, string status );
             // SQLite session table functions
             void mf_updateTotalTimePlayedInSessionTable( float totalTimePlayed );
