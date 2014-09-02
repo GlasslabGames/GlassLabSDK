@@ -16,7 +16,8 @@ package GlassLabSDK {
 
 		public static const SDK_VERSION : Number = 0.1;
 		
-		public static const API_GET_CONFIG 				: Object = { KEY: "connect", 				API: "/api/config" };
+		public static const API_CONNECT					: Object = { KEY: "connect",				API: "/sdk/connect" };
+		public static const API_GET_CONFIG 				: Object = { KEY: "getConfig", 				API: "/api/v2/data/config/:gameId" };
 		public static const API_GET_AUTH_STATUS 		: Object = { KEY: "getAuthStatus", 			API: "/api/v2/auth/login/status" };
 		public static const API_POST_DEVICE_UPDATE 		: Object = { KEY: "deviceUpdate", 			API: "/api/v2/data/game/device" };
 		public static const API_GET_PLAYER_INFO 		: Object = { KEY: "getPlayerInfo", 			API: "/api/v2/data/game/:gameId/playInfo" };
@@ -33,18 +34,19 @@ package GlassLabSDK {
 		public static const CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED	: String = "application/x-www-form-urlencoded";
 		
 		public static const MESSAGE_CONNECT 				: int = 0;
-		public static const MESSAGE_AUTH_STATUS				: int = 1;
-		public static const MESSAGE_DEVICE_UPDATE 			: int = 2;
-		public static const MESSAGE_GET_PLAYER_INFO			: int = 3;
-		public static const MESSAGE_POST_TOTAL_TIME_PLAYED	: int = 4;
-		public static const MESSAGE_SESSION_START 			: int = 5;
-		public static const MESSAGE_SESSION_END 			: int = 6;
-		public static const MESSAGE_EVENTS 					: int = 7;
-		public static const MESSAGE_GET_ACHIEVEMENTS 		: int = 8;
-		public static const MESSAGE_POST_ACHIEVEMENT 		: int = 9;
-		public static const MESSAGE_GET_SAVE_GAME 			: int = 10;
-		public static const MESSAGE_POST_SAVE_GAME 			: int = 11;
-		public static const MESSAGE_ERROR 					: int = 12;
+		public static const MESSAGE_GET_CONFIG				: int = 1;
+		public static const MESSAGE_AUTH_STATUS				: int = 2;
+		public static const MESSAGE_DEVICE_UPDATE 			: int = 3;
+		public static const MESSAGE_GET_PLAYER_INFO			: int = 4;
+		public static const MESSAGE_POST_TOTAL_TIME_PLAYED	: int = 5;
+		public static const MESSAGE_SESSION_START 			: int = 6;
+		public static const MESSAGE_SESSION_END 			: int = 7;
+		public static const MESSAGE_EVENTS 					: int = 8;
+		public static const MESSAGE_GET_ACHIEVEMENTS 		: int = 9;
+		public static const MESSAGE_POST_ACHIEVEMENT 		: int = 10;
+		public static const MESSAGE_GET_SAVE_GAME 			: int = 11;
+		public static const MESSAGE_POST_SAVE_GAME 			: int = 12;
+		public static const MESSAGE_ERROR 					: int = 13;
 		
 		public static const UPDATE_TIMER				: int = 3;	// Update function is called at this interval
 		public static const TELEMETRY_DISPATCH_CHUNK 	: int = 32;	// Dispatch a number of telemetry events per tick

@@ -30,6 +30,9 @@ package GlassLabSDK {
 	
 	import flash.events.*;
 	import flash.utils.Timer;
+	import flash.utils.ByteArray;
+	
+	import com.hurlant.util.Hex;
 	
 	
 	public class glsdk_core {
@@ -258,7 +261,8 @@ package GlassLabSDK {
 		}
 		/**
 		* Success callback function for the connect() http request. Adds a CONNECT response
-		* to the message queue.
+		* to the message queue. Once this request is returned, we need to call getConfig to
+		* get the config information specific to the game Id.
 		*
 		* @param event A reference to the Event object sent along with the listener.
 		*
@@ -266,6 +270,60 @@ package GlassLabSDK {
 		*/
 		private function connect_Done( event:Object ) : void {
 			trace( "connect_Done: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_CONNECT, event.target.data );
+			
+			// Once we have a successful connection, get the config info with the redirect URL
+			getConfig( event.target.data );
+		}
+		/**
+		* Helper function for connecting directly with the server. This particular request will not
+		* be inserted into the queue. Instead, it is called immediately. This server call will return
+		* the server we should reroute requests to, if one is specified.
+		*
+		* If this request is successful, MESSAGE_CONNECT will be the response, otherwise
+		* MESSAGE_ERROR.
+		*
+		* @param clientId The product or game's client Id.
+		* @param deviceId The unique Id of the device.
+		* @param serverUri The Uri of the server to connect to.
+		*
+		* @see httpRequest
+		*/
+		public function connect( clientId:String, deviceId:String, serverUri:String ) : void {
+			// Set the Id variables and URI
+			m_clientId = clientId;
+			m_deviceId = deviceId;
+			m_serverUri = serverUri;
+			
+			// Perform the request
+			httpRequest( new glsdk_dispatch( glsdk_const.API_CONNECT, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, connect_Done, connect_Fail ) );
+		}
+		
+		
+		/**
+		* Failure callback function for the getConfig() http request. Adds an ERROR response
+		* to the message queue.
+		*
+		* @param event A reference to the IOErrorEvent object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getConfig_Fail( event:Object ) : void {
+			trace( "getConfig_Fail: " + event.target.data );
+			
+			pushMessageQueue( glsdk_const.MESSAGE_ERROR, event.target.data );
+		}
+		/**
+		* Success callback function for the getConfig() http request. Adds a GET_CONFIG response
+		* to the message queue.
+		*
+		* @param event A reference to the Event object sent along with the listener.
+		*
+		* @see pushMessageQueue
+		*/
+		private function getConfig_Done( event:Object ) : void {
+			trace( "getConfig_Done: " + event.target.data );
 			
 			// Parse the returned JSON and retrieve the telemetry throttle parameters
 			var parsedJSON : Object = glsdk_json.instance().parse( event.target.data );
@@ -287,33 +345,29 @@ package GlassLabSDK {
 				trace( "Found config info eventsMaxSize: " + m_config.eventsMaxSize );
 			}
 			
-			pushMessageQueue( glsdk_const.MESSAGE_CONNECT, event.target.data );
+			pushMessageQueue( glsdk_const.MESSAGE_GET_CONFIG, event.target.data );
 			
 			// Once we have a successful connection, get the player info
 			getPlayerInfo();
 		}
 		/**
-		* Helper function for connecting directly with the server. This particular request will not
+		* Helper function for getting config info from the server. This particular request will not
 		* be inserted into the queue. Instead, it is called immediately.
 		*
-		* If this request is successful, MESSAGE_CONNECT will be the response, otherwise
+		* If this request is successful, MESSAGE_GET_CONFIG will be the response, otherwise
 		* MESSAGE_ERROR.
 		*
-		* @param clientId The product or game's client Id.
-		* @param deviceId The unique Id of the device.
 		* @param serverUri The Uri of the server to connect to.
 		*
 		* @see httpRequest
 		*/
-		public function connect( clientId:String, deviceId:String, serverUri:String ) : void {
-			// Set the Id variables and URI
-			m_clientId = clientId;
-			m_deviceId = deviceId;
+		public function getConfig( serverUri:String ) : void {
+			// Set the new URI variable returned from API_CONNECT
 			m_serverUri = serverUri;
 			m_gameSessionId = "";
 			
 			// Perform the request
-			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_CONFIG, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, connect_Done, connect_Fail ) );
+			httpRequest( new glsdk_dispatch( glsdk_const.API_GET_CONFIG, "GET", {}, glsdk_const.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED, getConfig_Done, getConfig_Fail ) );
 		}
 		
 		
@@ -724,6 +778,17 @@ package GlassLabSDK {
 		private function getSaveGame_Done( event:Object ) : void {
 			trace( "getSaveGame_Done: " + event.target.data );
 			
+			// Make sure we can parse binary if that's what we sent over
+			var parsedJSON : Object = glsdk_json.instance().parse( event.target.data );
+			if( parsedJSON.hasOwnProperty( "binary" ) ) {
+				// We have binary, parse that further
+				var bytes:ByteArray = Hex.toArray( parsedJSON.binary );
+				bytes.inflate();
+				
+				// Read the save game object
+				event.target.data = glsdk_json.instance().stringify( bytes.readObject() );
+			}
+			
 			pushMessageQueue( glsdk_const.MESSAGE_GET_SAVE_GAME, event.target.data );
 			dispatchNext();
 		}
@@ -768,14 +833,24 @@ package GlassLabSDK {
 			dispatchNext();
 		}
 		/**
-		* Helper function for retrieving save game data from the server.
+		* Helper function for posting save game data to the server.
 		*
-		* If this request is successful, MESSAGE_GET_SAVE_GAME will be the response, otherwise
+		* If this request is successful, MESSAGE_POST_SAVE_GAME will be the response, otherwise
 		* MESSAGE_ERROR.
 		*/
 		public function postSaveGame( data:Object ) : void {
 			// Store the dispatch message to be called later
 			pushTelemetryQueue( new glsdk_dispatch( glsdk_const.API_POST_SAVE_GAME, "POST", data, glsdk_const.CONTENT_TYPE_APPLICATION_JSON, postSaveGame_Done, postSaveGame_Fail ) );
+		}
+		/**
+		* Helper function for posting save game binary data to the server.
+		*
+		* If this request is successful, MESSAGE_POST_SAVE_GAME will be the response, otherwise
+		* MESSAGE_ERROR.
+		*/
+		public function postSaveGameBinary( byteArray:ByteArray ) : void {
+			// Call the base function accepting a generic object, after converting
+			postSaveGame( { "binary": Hex.fromArray( byteArray ) } );
 		}
 		
 		

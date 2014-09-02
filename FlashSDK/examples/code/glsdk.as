@@ -16,6 +16,7 @@ package {
 	
 	import flash.events.*;
 	import flash.utils.Timer;
+	import flash.utils.ByteArray;
 	
 	
 	public class glsdk extends glsdk_core {
@@ -68,6 +69,13 @@ package {
 					
 						// DEBUG - append to canvas stream
 						writeText( "MESSAGE_CONNECT " + response.m_data );
+						break;
+					
+					case glsdk_const.MESSAGE_GET_CONFIG:
+						trace( "MESSAGE_GET_CONFIG " + response.m_data );
+					
+						// DEBUG - append to canvas stream
+						writeText( "MESSAGE_GET_CONFIG " + response.m_data );
 						break;
 					
 					case glsdk_const.MESSAGE_AUTH_STATUS:
@@ -221,7 +229,19 @@ package {
 			}
 			else if( event.charCode == 104 ) {	// H
 				writeText( "Attempting to post save game..." );
-				postSaveGame( { "level":"myLevel", "health":100.0, "lives":3 } );
+				
+				// Set the example save game blob to send
+				var saveGame:Object = { "level":"Forest", "health":80.0, "lives":2 };
+				
+				// Create a byte array containing the save game blob
+				var bytes:ByteArray = new ByteArray();
+				bytes.writeObject( saveGame );
+				
+				// Compress the byte array
+				bytes.deflate();
+				
+				// Post the save game data as hex
+				postSaveGameBinary( bytes );
 			}
 		}
 		
