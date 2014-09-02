@@ -204,7 +204,7 @@ namespace nsGlasslabSDK {
      *
      * Inserts a new entry into the MSG_QUEUE table.
      */
-    void DataSync::addToMsgQ( string deviceId, string path, string coreCB, string postdata, const char* contentType ) {
+    void DataSync::addToMsgQ( string deviceId, string path, string requestType, string coreCB, string postdata, const char* contentType ) {
         if( m_messageTableSize > DB_MESSAGE_CAP ) {
             cout << "------------------------------------" << endl;
             cout << "Database has reached a message cap! No longer inserting events!" << endl;
@@ -220,7 +220,7 @@ namespace nsGlasslabSDK {
             //cout << "------------------------------------" << endl;
             s += "INSERT INTO ";
             s += MSG_QUEUE_TABLE_NAME;
-            s += " (deviceId, path, coreCB, postdata, contentType, status) VALUES ('";
+            s += " (deviceId, path, requestType, coreCB, postdata, contentType, status) VALUES ('";
             s += deviceId;
             s += "', ";
 
@@ -231,6 +231,17 @@ namespace nsGlasslabSDK {
             else {
                 s += "'";
                 s += path;
+                s += "'";
+            }
+            s += ", ";
+
+            // Check the request type
+            if( requestType.c_str() == NULL ) {
+               s += "''";
+            }
+            else {
+                s += "'";
+                s += requestType;
                 s += "'";
             }
             s += ", ";
@@ -920,6 +931,7 @@ namespace nsGlasslabSDK {
                 - id
                 - deviceId
                 - path
+                - requestType
                 - coreCB
                 - postdata
                 - contentType
@@ -958,8 +970,9 @@ namespace nsGlasslabSDK {
 
                             // Get the path from MSG_QUEUE
                             string apiPath = msgQuery.fieldValue( 2 );
-                            string coreCB = msgQuery.fieldValue( 3 );
-                            //cout << "api path is: " << apiPath << endl;
+                            string requestType = msgQuery.fieldValue( 3 );
+                            string coreCB = msgQuery.fieldValue( 4 );
+                            //cout << "coreCB is: " << coreCB << endl;
 
                             // We only care about startsession, endsession, and sendtelemetry
                             // Anything else should be ignored (and not present in the queue)
@@ -971,25 +984,24 @@ namespace nsGlasslabSDK {
                             sessionQuery.finalize();
                             
                             //cout << "game session Id is: " << gameSessionId << endl;
-                            if( apiPath == API_POST_SESSION_START ||
+                            if( strstr( apiPath.c_str(), API_POST_SESSION_START ) ||
                                 strstr( apiPath.c_str(), API_POST_SAVEGAME ) ||
                                 strstr( apiPath.c_str(), API_POST_PLAYERINFO ) ||
-                                strstr( coreCB.c_str(), "saveAchievement_Done" ) ||
-                                ( ( apiPath == API_POST_SESSION_END || apiPath == API_POST_EVENTS ) &&
+                                strstr( apiPath.c_str(), API_POST_ACHIEVEMENT ) ||
+                                strstr( apiPath.c_str(), API_POST_TOTAL_TIME_PLAYED ) ||
+                                ( ( strstr( apiPath.c_str(), API_POST_SESSION_END ) || strstr( apiPath.c_str(), API_POST_EVENTS ) ) &&
                                     gameSessionId.c_str() != NULL &&
                                     gameSessionId.length() != 0
                                 )
                               ) {
 
-                                //cout << "performing the GET request for: " << apiPath << endl;
-
                                 // Get the event information
                                 //string coreCB = msgQuery.fieldValue( 3 );
-                                string postdata = msgQuery.fieldValue( 4 );
-                                const char* contentType = msgQuery.fieldValue( 5 );
+                                string postdata = msgQuery.fieldValue( 5 );
+                                const char* contentType = msgQuery.fieldValue( 6 );
 
                                 // If this is a telemetry event or end session, update the postdata to include the correct gameSessionId
-                                if( apiPath == API_POST_EVENTS || apiPath == API_POST_SESSION_END ) {
+                                if( strstr( apiPath.c_str(), API_POST_SESSION_END ) || strstr( apiPath.c_str(), API_POST_EVENTS ) ) {
                                     string gameSessionIdTag = "$gameSessionId$";
 
                                     string::size_type n = 0;
@@ -1009,7 +1021,7 @@ namespace nsGlasslabSDK {
                                 //printf("Updating result: %d\n", r);
 
                                 // Perform the get request using the message information
-                                m_core->mf_httpGetRequest( apiPath, coreCB, postdata, contentType, rowId );
+                                m_core->mf_httpGetRequest( apiPath, requestType, coreCB, postdata, contentType, rowId );
                                 requestsMade++;
                             }
                             else {
@@ -1121,6 +1133,7 @@ namespace nsGlasslabSDK {
                 s += "id integer primary key autoincrement, ";
                 s += "deviceId char(256), ";
                 s += "path char(256), ";
+                s += "requestType char(256), ";
                 s += "coreCB char(256), ";
                 s += "postdata text, ";
                 s += "contentType char(256), ";
@@ -1243,6 +1256,7 @@ namespace nsGlasslabSDK {
                 "id integer primary key autoincrement, "
                 "deviceId char(256), "
                 "path char(256), "
+                "requestType char(256), "
                 "coreCB char(256), "
                 "postdata text, "
                 "contentType char(256), "

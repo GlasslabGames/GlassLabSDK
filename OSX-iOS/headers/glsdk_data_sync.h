@@ -28,7 +28,7 @@ namespace nsGlasslabSDK {
         ~DataSync();
         
         // Message Queue (MSG_QUEUE) table operations
-        void addToMsgQ( string deviceId, string path, string coreCB, string postdata, const char* contentType );
+        void addToMsgQ( string deviceId, string path, string requestType, string coreCB, string postdata, const char* contentType );
         void removeFromMsgQ( int rowId );
         void updateMessageStatus( int rowId, string status );
         int getMessageTableSize();
