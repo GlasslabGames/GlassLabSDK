@@ -849,6 +849,9 @@ package GlassLabSDK {
 		* MESSAGE_ERROR.
 		*/
 		public function postSaveGameBinary( byteArray:ByteArray ) : void {
+			// Compress the byte array
+			byteArray.deflate();
+			
 			// Call the base function accepting a generic object, after converting
 			postSaveGame( { "binary": Hex.fromArray( byteArray ) } );
 		}

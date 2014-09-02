@@ -237,10 +237,7 @@ package {
 				var bytes:ByteArray = new ByteArray();
 				bytes.writeObject( saveGame );
 				
-				// Compress the byte array
-				bytes.deflate();
-				
-				// Post the save game data as hex
+				// Post the save game data
 				postSaveGameBinary( bytes );
 			}
 		}
