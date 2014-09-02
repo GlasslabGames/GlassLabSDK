@@ -26,18 +26,24 @@ namespace nsGlasslabSDK {
         if( dbPath ) {
             m_dbName += dbPath;
         } else {
-            char cwd[1024];
+			char cwd[1024];
 #if __APPLE__
 #if TARGET_OS_IPHONE
-            if(getcwd(cwd, sizeof(cwd)) != NULL) {
-                m_dbName += cwd;
-            }
+			if(getcwd(cwd, sizeof(cwd)) != NULL) {
+				m_dbName += cwd;
+			}
 #else
-            sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
+			sprintf( cwd, "%s/Documents", getenv( "HOME" ) );
+			m_dbName += cwd;
+#endif
+#endif
+#if WIN32
+			sprintf( cwd, "%s%s\\Documents", getenv( "HOMEDRIVE" ), getenv( "HOMEPATH" ) );
             m_dbName += cwd;
 #endif
-#endif
-        }
+		}
+
+
         
         // If the database path exists, append the glasslabsdk.db, unless it is ":memory:"
         if( !dbPath ) {

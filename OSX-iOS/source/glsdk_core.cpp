@@ -990,7 +990,9 @@ namespace nsGlasslabSDK {
                     //printf( "sessionId: %s\n", sdkInfo.core->getSessionId() );
                     
                     // Decrease the reference count, this way Jansson can release "sessionId" resources
+#if !WIN32
                     json_decref( root );
+#endif
                 }
                 // Invalid or non-existent gameSessionId
                 else {
@@ -1541,7 +1543,7 @@ namespace nsGlasslabSDK {
             
             // Reset all memebers in event list
             clearTelemEventValues();
-            printf( "sendTelemEvents Events after clear: %lu\n", json_array_size(m_telemEvents) );
+            //printf( "sendTelemEvents Events after clear: %lu\n", json_array_size(m_telemEvents) );
         }
         // No telemetry exists, perform callbacks normally
         else {
@@ -1593,23 +1595,23 @@ namespace nsGlasslabSDK {
 
         // If the seconds elapsed exceeds our interval, reset the current telemetry clock and
         // flush the message queue
-        if( secondsElapsed > config.eventsPeriodSecs ) {
+        //if( secondsElapsed > config.eventsPeriodSecs ) {
 
             //printf("secondsElapsed: %f,  getMessageTableSize: %d, config.eventsMinSize: %d\n", secondsElapsed, m_dataSync->getMessageTableSize(), config.eventsMinSize);
             // Check that we exceed the minimum number of events to send data
-            if( m_dataSync->getMessageTableSize() > config.eventsMinSize ) {
+            //if( m_dataSync->getMessageTableSize() > config.eventsMinSize ) {
                 // In addition to flushing the message queue, do a POST on the totalTimePlayed
                 sendTotalTimePlayed();
 
                 printf( "Connected: %d, Seconds elapsed for flush %f with %i events\n", getConnectedState(), secondsElapsed, m_dataSync->getMessageTableSize() );
 
                 // Only flush the queue if we are connected
-                if( getConnectedState() ) {
+                //if( getConnectedState() ) {
                     m_dataSync->flushMsgQ();
-                }
+                //}
                 m_telemetryLastTime = currentTime;
-            }
-        }
+            //}
+        //}
         // Or send events if we've exceeded the table size limit
         /*else if( m_dataSync->getMessageTableSize() > config.eventsMaxSize ) {
             printf( "reached max number of events: %i with %f elapsed with %i\n", m_dataSync->getMessageTableSize(), secondsElapsed, config.eventsPeriodSecs );
@@ -1741,6 +1743,11 @@ namespace nsGlasslabSDK {
         string url, requestMethod;
         struct evbuffer* postdata_buffer = NULL;
 
+		#ifdef _WIN32
+		WSADATA WSAData;
+		WSAStartup( 0x101, &WSAData );
+		#endif
+
         // Set the URI, host, and port information
         url  = m_connectUri;
         uri  = evhttp_uri_parse( url.c_str() );
@@ -1749,7 +1756,7 @@ namespace nsGlasslabSDK {
         // Default to port 80
         if( port == -1 ) {
             port = 80;
-        }
+		}
 
         // Reset the cancel state of the callback
         setCoreCallbackCancelState( coreCB, false );
