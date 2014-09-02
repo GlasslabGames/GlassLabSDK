@@ -17,10 +17,10 @@ package {
 
 	public class Document extends MovieClip {
 		
-		//public static const SERVER_URI 	: String = "http://192.168.6.171:8001";
-		public static const SERVER_URI 	: String = "http://aw.glgames.org";
-		public static const GAME_LEVEL 	: String	= "Argument Wars";
-		public static const GAME_ID		: String = "AW-1";
+		// Server/client constants
+		public static const SERVER_URI 	: String = "http://developer.playfully.org";
+		public static const GAME_LEVEL 	: String = "Demonstration";
+		public static const GAME_ID		: String = "TEST";
 		
 
 		/**
@@ -28,8 +28,6 @@ package {
 		* esablishes a connection to the server.
 		*/
 		public function Document() {
-
-			//flash.system.Security.loadPolicyFile( SERVER_URI + "/crossdomain.xml" );
 			
 			// DEBUG - set the document so we have the canvas to print to
 			glsdk.instance().setDocument( this );
