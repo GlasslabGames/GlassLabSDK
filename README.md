@@ -37,3 +37,7 @@ These are the three basic functions necessary for the core experience of GLGS. I
 We will flush the dispatch queue based on two protocols, 1) a certain amount of time elapses and there is a target minimum number of requests queued up, or 2) we've reached a maximum number of requests the queue can store. We use three parameters to control the server load.
 
 Once we've met the criteria for dispatch, these requests are made to the server. The server will always respond, with either success or failure, and return a message back to the SDK to be stored in the RESPONSE queue. It is the game client's responsibility (but not requirement) to read from the response queue and react accordingly.
+
+[Visit the **C++ SDK** for **iOS / OSX / Windows** developers!](https://github.com/GlasslabGames/GlassLabSDK-cpp/ "Visit the **C++ SDK** for **iOS / OSX / Windows** developers!")
+
+[Visit the **AS3 SDK** page for **Flash / Flex** developers!](https://github.com/GlasslabGames/GlassLabSDK-as3/ "Visit the **AS3 SDK** page for **Flash / Flex** developers!")
