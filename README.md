@@ -17,14 +17,12 @@ We currently support the following platforms with the GlassLab SDK:
 - Windows (C++)
 
 In addition to the general documentation provided in this page, you can find more detailed technical documentation for each of our supported platforms. In these sections, we'll cover the tech stack each of the platform-specific SDKs were built upon, integration and utilization steps, client-server communication, telemetry format and expectations, and some samples to help you get started.
-- [Technical documentation for Flash SDK](https://github.com/GlasslabGames/GlassLabSDK/tree/master/FlashSDK/ "Technical documentation for Flash SDK")
-- [Technical documentation for iOS/OSX SDK](https://github.com/GlasslabGames/GlassLabSDK/tree/master/OSX-iOS/ "Technical documentation for iOS/OSX SDK")
 
 ### Client-Server Communication Process:
 
 The diagram below provides a high level overview of how requests are communicated between the game client and the server:
 
-![Alt text](https://github.com/GlasslabGames/GlassLabSDK/tree/master/docs/Client_Server_Communication_With_SDK.png)
+![Alt text](https://raw.githubusercontent.com/bendapkiewicz/GlassLabSDK/master/docs/Client_Server_Communication_With_SDK.png?token=276083__eyJzY29wZSI6IlJhd0Jsb2I6YmVuZGFwa2lld2ljei9HbGFzc0xhYlNESy9tYXN0ZXIvZG9jcy9DbGllbnRfU2VydmVyX0NvbW11bmljYXRpb25fV2l0aF9TREsucG5nIiwiZXhwaXJlcyI6MTQxMDM3Mjk4NX0%3D--fbba54f75932c4f2c1ed8ca94da3483043ecf8f4)
 
 All requests made by the client are put into a queue maintained by the SDK. Examples of such requests include:
 - startSession()
