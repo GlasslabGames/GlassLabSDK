@@ -2,7 +2,7 @@
 
 [Visit the **C++ SDK** for **iOS / OSX / Windows** developers!](https://github.com/GlasslabGames/GlassLabSDK-cpp/ "Visit the **C++ SDK** for **iOS / OSX / Windows** developers!")
 
-[Visit the **AS3 SDK** page for Flash / Flex developers!](https://github.com/GlasslabGames/GlassLabSDK-as3/ "Visit the **AS3 SDK** page for Flash / Flex developers!")
+[Visit the **AS3 SDK** page for **Flash / Flex** developers!](https://github.com/GlasslabGames/GlassLabSDK-as3/ "Visit the **AS3 SDK** page for **Flash / Flex** developers!")
 
 In order for games and other applications to connect to the GlassLab Game Services (GLGS) platform, the GlassLab SDK is required. The SDK allows applications to establish a connection to our servers and create game sessions for data capture. We've provided a library with a plethora of functions available for communicating with our servers. The operations the SDK allows include user authentication, course management, session management, telemetry tracking, and reporting. It is not required to utilize all of these functions to experience the core of GLGS; the emphasis is on telemetry and data collection, which is made to be as simple as possible.
 
