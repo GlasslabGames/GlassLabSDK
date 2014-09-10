@@ -22,7 +22,7 @@ In addition to the general documentation provided in this page, you can find mor
 
 The diagram below provides a high level overview of how requests are communicated between the game client and the server:
 
-![Alt text](https://raw.githubusercontent.com/bendapkiewicz/GlassLabSDK/master/docs/Client_Server_Communication_With_SDK.png?token=276083__eyJzY29wZSI6IlJhd0Jsb2I6YmVuZGFwa2lld2ljei9HbGFzc0xhYlNESy9tYXN0ZXIvZG9jcy9DbGllbnRfU2VydmVyX0NvbW11bmljYXRpb25fV2l0aF9TREsucG5nIiwiZXhwaXJlcyI6MTQxMDM3Mjk4NX0%3D--fbba54f75932c4f2c1ed8ca94da3483043ecf8f4)
+![Alt text](https://github.com/GlasslabGames/GlassLabSDK/blob/master/docs/Client_Server_Communication_With_SDK.png)
 
 All requests made by the client are put into a queue maintained by the SDK. Examples of such requests include:
 - startSession()
