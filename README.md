@@ -38,6 +38,10 @@ We will flush the dispatch queue based on two protocols, 1) a certain amount of 
 
 Once we've met the criteria for dispatch, these requests are made to the server. The server will always respond, with either success or failure, and return a message back to the SDK to be stored in the RESPONSE queue. It is the game client's responsibility (but not requirement) to read from the response queue and react accordingly.
 
+### License
+
+The GlassLab SDK is under the BSD license: [SDK license](https://github.com/GlasslabGames/GlassLabSDK/blob/master/LICENSE "SDK license")
+
 [Visit the **C++ SDK** for **iOS / OSX / Windows** developers!](https://github.com/GlasslabGames/GlassLabSDK-cpp/ "Visit the **C++ SDK** for **iOS / OSX / Windows** developers!")
 
 [Visit the **AS3 SDK** page for **Flash / Flex** developers!](https://github.com/GlasslabGames/GlassLabSDK-as3/ "Visit the **AS3 SDK** page for **Flash / Flex** developers!")
