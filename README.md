@@ -25,13 +25,13 @@ In addition to the general documentation provided in this page, you can find mor
 
 In order to accelerate development, we suggest a four-step implementation process of the SDK. Each step of this process allows the developer to verify the core features of the SDK, starting with an immediate and basic integration, following with telemetry verification, and ending with a link on Playfully.org.
 
-1) SDK Integration
+**1) SDK Integration**
 
 Integrating the SDK for the desired platform is very simple and requires only the library, located in the "lib" directory, and associated header files (if you're using the C++ SDK). Each SDK repository has integration steps specific to the target platform included. There are also example projects that show how the library integration works, in addition to demonstrating the core features.
 
 Once the integration is successful, the first API call to make is connect(). This is an on-demand HTTP request that will fire immediately and you can listen for the results in the message stack (described in the next section). If the result of the connect() function is success then you are free to communicate with the Playfully.org server; if the result is a failure the response will indicate how to best proceed.
 
-2) Sessions and Telemetry
+**2) Sessions and Telemetry**
 
 The core feature of the SDK is telemetry. In order to send telemetry, a game session must be active. Once a game session is active, you can send any amount of telmemetry, with any amount of data, and then close the game session. All of this can be accomplished with the following SDK calls:
 - startSession()
@@ -40,7 +40,7 @@ The core feature of the SDK is telemetry. In order to send telemetry, a game ses
 
 These three functions are described further in the section below.
 
-3) Authentication
+**3) Authentication**
 
 Before the game can be released, Playfully.org authentication must be integrated. Authentication can be handled manually, using SDK calls, or with the Playfully.org webviews. If you desire to handle authentication manually, you can take advantage of the following SDK functions:
 - register()
@@ -54,7 +54,7 @@ You can also choose to integrate the Playfully.org webviews, which handle the au
 
 Finally, if you are building a Playfully-embedded application, using either the Flash SDK or the Javascript SDK, the authentication step will not be necessary because it is handled automatically before users can access the game page.
 
-4) Reporting
+**4) Reporting**
 
 The last implementation step allows the developer to surface the raw data collected as human-readable, actionable data on the Playfully.org dashboards. Currently, there are three types of reporting:
 - Learning progress
@@ -88,6 +88,8 @@ Once we've met the criteria for dispatch, these requests are made to the server.
 ### License
 
 The GlassLab SDK is under the BSD license: [SDK license](https://github.com/GlasslabGames/GlassLabSDK/blob/master/LICENSE "SDK license")
+
+[Visit the **Javascript Alpha SDK** for **Web** developers!](https://github.com/GlasslabGames/GlassLabSDK-js/ "Visit the **Javascript Alpha SDK** for **Web** developers!")
 
 [Visit the **C++ SDK** for **iOS / OSX / Windows** developers!](https://github.com/GlasslabGames/GlassLabSDK-cpp/ "Visit the **C++ SDK** for **iOS / OSX / Windows** developers!")
 
